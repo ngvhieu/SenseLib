@@ -25,37 +25,40 @@
                     @* Card thống kê *@
                     @if (ViewBag.StatsCards != null)
                     {
-                        <div class="row mb-3">
-                            @foreach (var card in ViewBag.StatsCards)
-                            {
-                                <div class="col-md-@(card.Width ?? 4)">
-                                    <div class="card info-card @card.ColorClass">
-                                        <div class="card-body">
-                                            <h5 class="card-title">@card.Title</h5>
-                                            <div class="d-flex align-items-center">
-                                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                    <i class="bi @card.Icon"></i>
+                        <div class="stats-dashboard mb-4">
+                            <div class="row g-3">
+                                @foreach (var card in ViewBag.StatsCards)
+                                {
+                                    string iconColorClass = card.ColorClass.Replace("-card", "");
+                                    bool hasDescription = false;
+                                    string description = "";
+                                    
+                                    try {
+                                        hasDescription = card.Description != null && !string.IsNullOrEmpty(card.Description.ToString());
+                                        description = card.Description?.ToString() ?? "";
+                                    } catch { }
+                                    
+                                    <div class="col-md-@(card.Width ?? 4) col-sm-6">
+                                        <div class="stat-card h-100 shadow-sm">
+                                            <div class="d-flex align-items-center p-3 h-100">
+                                                <div class="stat-icon-wrapper bg-light-@iconColorClass me-3">
+                                                    <i class="stat-icon bi @card.Icon text-@iconColorClass"></i>
                                                 </div>
-                                                <div class="ps-3">
-                                                    <h6>@card.Value</h6>
-                                                    @try
-                                                    {
-                                                        var description = card.Description;
-                                                        if (description != null && !string.IsNullOrEmpty(description.ToString()))
+                                                <div class="stat-content flex-grow-1">
+                                                    <h6 class="stat-title text-muted mb-1">@card.Title</h6>
+                                                    <div class="d-flex align-items-baseline">
+                                                        <h3 class="stat-value mb-0 me-2">@card.Value</h3>
+                                                        @if (hasDescription)
                                                         {
-                                                            <span class="text-muted small pt-2">@description</span>
+                                                            <small class="stat-subtitle text-@iconColorClass">@description</small>
                                                         }
-                                                    }
-                                                    catch
-                                                    {
-                                                        // Thuộc tính Description không tồn tại - bỏ qua
-                                                    }
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            }
+                                }
+                            </div>
                         </div>
                     }
 
@@ -180,6 +183,66 @@
         </div>
     </div>
 </section>
+
+<style>
+    .stats-dashboard {
+        margin-top: 10px;
+    }
+    
+    .stat-card {
+        border-radius: 10px;
+        border: 1px solid rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        background: #fff;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important;
+    }
+    
+    .stat-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .stat-icon {
+        font-size: 1.5rem;
+    }
+    
+    .stat-title {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+    
+    .stat-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .bg-light-primary { background-color: rgba(0, 123, 255, 0.15); }
+    .bg-light-success { background-color: rgba(40, 167, 69, 0.15); }
+    .bg-light-info { background-color: rgba(23, 162, 184, 0.15); }
+    .bg-light-warning { background-color: rgba(255, 193, 7, 0.15); }
+    .bg-light-danger { background-color: rgba(220, 53, 69, 0.15); }
+    .bg-light-secondary { background-color: rgba(108, 117, 125, 0.15); }
+    .bg-light-sales { background-color: rgba(92, 120, 255, 0.15); }
+    .bg-light-revenue { background-color: rgba(0, 188, 126, 0.15); }
+    .bg-light-customers { background-color: rgba(204, 97, 255, 0.15); }
+    .bg-light-downloads { background-color: rgba(0, 184, 217, 0.15); }
+</style>
 
 @section Scripts {
     <script>

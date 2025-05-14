@@ -126,11 +126,11 @@
                                             <a href="@Url.Action("Details", "Document", new { id = item.DocumentID })" class="btn btn-sm btn-outline-secondary">
                                                 <i class="bi bi-eye"></i>
                                             </a>
+                                            <a href="@Url.Action("Edit", "Upload", new { id = item.DocumentID })" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
                                             @if (item.Status != "Approved")
                                             {
-                                                <a href="@Url.Action("Edit", "Upload", new { id = item.DocumentID })" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
                                                 <a href="@Url.Action("Delete", "Upload", new { id = item.DocumentID })" class="btn btn-sm btn-outline-danger">
                                                     <i class="bi bi-trash"></i>
                                                 </a>
@@ -178,13 +178,62 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Xử lý chuyển tab
+            // Xử lý chuyển tab và lọc tài liệu theo trạng thái
             $('.nav-tabs .nav-link').click(function(e) {
                 e.preventDefault();
+                
+                // Cập nhật trạng thái active của tab
                 $('.nav-tabs .nav-link').removeClass('active');
                 $(this).addClass('active');
                 
-                // TODO: Thêm code lọc theo trạng thái
+                // Xác định trạng thái cần lọc
+                let status = 'all';
+                let tabText = $(this).text().toLowerCase();
+                
+                if (tabText.includes('chờ duyệt')) {
+                    status = 'pending';
+                } else if (tabText.includes('đã duyệt')) {
+                    status = 'approved';
+                } else if (tabText.includes('từ chối')) {
+                    status = 'rejected';
+                }
+                
+                // Lọc bảng dựa trên trạng thái
+                $('tbody tr').each(function() {
+                    let rowStatus = $(this).find('td:nth-child(4) .badge').text().toLowerCase();
+                    
+                    if (status === 'all') {
+                        $(this).show();
+                    } else if (status === 'pending' && rowStatus.includes('chờ duyệt')) {
+                        $(this).show();
+                    } else if (status === 'approved' && rowStatus.includes('đã duyệt')) {
+                        $(this).show();
+                    } else if (status === 'rejected' && rowStatus.includes('từ chối')) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                
+                // Hiển thị thông báo nếu không có tài liệu trong trạng thái được chọn
+                let visibleRows = $('tbody tr:visible').length;
+                if (visibleRows === 0) {
+                    if ($('tbody tr.no-results').length === 0) {
+                        let statusText = status === 'pending' ? 'chờ duyệt' : 
+                                         status === 'approved' ? 'đã duyệt' : 
+                                         status === 'rejected' ? 'bị từ chối' : '';
+                        
+                        $('tbody').append(
+                            `<tr class="no-results">
+                                <td colspan="7" class="text-center py-4">
+                                    <p>Không có tài liệu nào ở trạng thái ${statusText}</p>
+                                </td>
+                            </tr>`
+                        );
+                    }
+                } else {
+                    $('tbody tr.no-results').remove();
+                }
             });
         });
     </script>

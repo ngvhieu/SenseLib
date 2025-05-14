@@ -1,0 +1,82 @@
+@model SenseLib.Models.Document
+@{
+    ViewData["Title"] = "Thanh toán VNPay";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Thanh toán qua VNPay</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            @if (!string.IsNullOrEmpty(Model.ImagePath))
+                            {
+                                <img src="@Model.ImagePath" class="img-fluid rounded" alt="@Model.Title">
+                            }
+                            else if (!string.IsNullOrEmpty(Model.FilePath))
+                            {
+                                <img src="@Model.FilePath" class="img-fluid rounded" alt="@Model.Title">
+                            }
+                            else
+                            {
+                                <img src="/img/document-placeholder.jpg" class="img-fluid rounded" alt="@Model.Title">
+                            }
+                        </div>
+                        <div class="col-md-8">
+                            <h5 class="card-title">@Model.Title</h5>
+                            <p class="text-muted">Tác giả: @(Model.Author?.AuthorName ?? "Không có thông tin")</p>
+                            <p class="text-muted">Danh mục: @(Model.Category?.CategoryName ?? "Không có thông tin")</p>
+                            <p class="card-text">@Model.Description</p>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Thông tin thanh toán:</strong></p>
+                                <p>Phương thức: <img src="https://sandbox.vnpayment.vn/paymentv2/images/icons/logo-en.svg" alt="VNPay Logo" height="20" class="ms-2"></p>
+                                <p>Tên sản phẩm: @Model.Title</p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <h5 class="mb-3">Thành tiền: <span class="text-danger">@(Model.Price?.ToString("N0") ?? "0") VNĐ</span></h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-info-circle fa-2x text-warning"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1">Lưu ý khi thanh toán</h5>
+                                <p class="mb-0">Sau khi nhấn nút "Thanh toán", bạn sẽ được chuyển đến cổng thanh toán VNPay để hoàn tất giao dịch. Hãy làm theo hướng dẫn trên cổng thanh toán để hoàn thành.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="CreatePayment" asp-route-id="@Model.DocumentID" method="post" class="mt-4">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-controller="Document" asp-action="Details" asp-route-id="@Model.DocumentID" class="btn btn-outline-secondary">Hủy</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-credit-card me-2"></i>Thanh toán ngay
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="text-center">
+                            <img src="https://sandbox.vnpayment.vn/paymentv2/images/icons/logo-en.svg" alt="VNPay Logo" height="40" class="mb-2">
+                            <p class="mb-0 text-muted">Thanh toán an toàn qua cổng VNPay - Ngân hàng hỗ trợ: Vietcombank, BIDV, Agribank, VietinBank,...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

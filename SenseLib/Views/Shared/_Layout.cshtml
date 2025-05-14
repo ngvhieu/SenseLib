@@ -13,42 +13,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
         /* Style riêng cho trang chủ */
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--primary-color);
-            color: white;
-            padding: 12px 20px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 9999;
-            max-width: 400px;
-            font-size: 16px;
-            line-height: 1.5;
-            text-align: center;
-        }
-
-        .notification.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
         
-        .notification.success {
-            background-color: #28a745;
-        }
-        
-        .notification.error {
-            background-color: #dc3545;
-        }
-        
-        .notification.warning {
-            background-color: #ffc107;
-            color: #333;
-        }
+        /* Xóa tất cả CSS liên quan đến notification */
         
         .alert {
             padding: 15px;
@@ -308,6 +274,213 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Thêm CSS cho notification - vị trí ở dưới màn hình */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            max-width: 400px;
+            font-size: 16px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification.success {
+            background-color: #28a745;
+        }
+        
+        .notification.error {
+            background-color: #dc3545;
+        }
+        
+        .notification.warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        /* CSS mới cho thanh tìm kiếm */
+        .search-bar {
+            flex: 0 0 30%;
+            margin: 0 1rem;
+            position: relative;
+        }
+
+        .search-bar form {
+            display: flex;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.7rem 2.8rem 0.7rem 1.2rem;
+            border: none;
+            border-radius: 50px;
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--light-text);
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 2px rgba(77, 152, 224, 0.3);
+        }
+
+        .search-bar button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            border-radius: 50%;
+        }
+
+        .search-bar button:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-bar input:focus + button,
+        .search-bar button:focus {
+            color: #fff;
+        }
+
+        /* CSS cho tùy chọn tìm kiếm nâng cao */
+        .search-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 5px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .search-options.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .search-options-content {
+            padding: 15px;
+        }
+
+        .option-group {
+            margin-bottom: 12px;
+        }
+
+        .option-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .option-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--primary-color);
+            font-size: 0.85rem;
+        }
+
+        .search-select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: #f8f9fa;
+            font-size: 0.9rem;
+        }
+
+        .price-type-options {
+            display: flex;
+            gap: 15px;
+        }
+
+        .price-type-options label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-bottom: 0;
+        }
+
+        .price-type-options input {
+            margin-right: 5px;
+        }
+
+        .search-advanced-toggle {
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 5px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .search-advanced-toggle:hover {
+            color: #fff;
+        }
+
+        @@media (max-width: 768px) {
+            .search-bar {
+                flex: 0 0 100%;
+                order: 3;
+                margin: 10px 0;
+            }
+            
+            .search-bar input {
+                padding: 0.6rem 2.5rem 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .search-options-content {
+                padding: 10px;
+            }
+
+            .price-type-options {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -322,8 +495,39 @@
 
                 <!-- Thanh tìm kiếm -->
                 <div class="search-bar">
-                    <form asp-controller="Document" asp-action="Index" method="get">
-                        <input type="text" name="searchString" placeholder="Tìm kiếm tài liệu...">
+                    <form asp-controller="Document" asp-action="Index" method="get" class="search-form">
+                        <input type="text" name="searchString" placeholder="Tìm kiếm tài liệu..." id="searchInput">
+                        <button type="button" class="search-advanced-toggle" id="searchAdvancedToggle" title="Tùy chọn tìm kiếm">
+                            <i class="fas fa-sliders-h"></i>
+                        </button>
+                        <button type="submit" title="Tìm kiếm">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <div class="search-options" id="searchOptions">
+                            <div class="search-options-content">
+                                <div class="option-group">
+                                    <label>Danh mục:</label>
+                                    <select name="categoryId" class="search-select">
+                                        <option value="">Tất cả danh mục</option>
+                                        <!-- Danh mục được tải bằng AJAX -->
+                                    </select>
+                                </div>
+                                <div class="option-group">
+                                    <label>Loại tài liệu:</label>
+                                    <div class="price-type-options">
+                                        <label>
+                                            <input type="radio" name="priceType" value="all" checked> Tất cả
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="priceType" value="free"> Miễn phí
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="priceType" value="paid"> Có phí
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
 
@@ -364,8 +568,8 @@
                                 <a asp-controller="Purchase" asp-action="MyPurchases" class="user-dropdown-item">
                                     <i class="fas fa-shopping-cart"></i> Tài liệu đã mua
                                 </a>
-                                <a asp-controller="Purchase" asp-action="PaymentHistory" class="user-dropdown-item">
-                                    <i class="fas fa-history"></i> Lịch sử thanh toán
+                                <a asp-controller="VNPay" asp-action="PaymentHistory" class="user-dropdown-item">
+                                    <i class="fas fa-credit-card"></i> Lịch sử thanh toán VNPay
                                 </a>
                                 <a asp-controller="User" asp-action="Favorites" class="user-dropdown-item">
                                     <i class="fas fa-heart"></i> Yêu thích
@@ -443,6 +647,7 @@
         </div>
     </footer>
 
+    <!-- Thêm lại div notification -->
     <div class="notification" id="notification"></div>
 
     <!-- Thêm jQuery -->
@@ -450,6 +655,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/main.js"></script>
 
+    <!-- Thêm lại script xử lý TempData -->
     <script>
         // Hàm giải mã HTML entities
         function decodeHTMLEntities(text) {
@@ -536,5 +742,117 @@
     }
 
     @await RenderSectionAsync("Scripts", required: false)
+    
+    <!-- JavaScript cho chức năng tìm kiếm nâng cao -->
+    <script>
+        // Xử lý hiển thị tùy chọn tìm kiếm nâng cao
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchOptions = document.getElementById('searchOptions');
+            const searchAdvancedToggle = document.getElementById('searchAdvancedToggle');
+            
+            // Hiển thị/ẩn tùy chọn khi click vào nút toggle
+            searchAdvancedToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                searchOptions.classList.toggle('active');
+                
+                // Nếu danh sách danh mục chưa được tải, thực hiện AJAX để tải
+                if (searchOptions.classList.contains('active')) {
+                    loadCategories();
+                }
+            });
+            
+            // Ẩn tùy chọn khi click ra ngoài
+            document.addEventListener('click', function(event) {
+                const isClickInside = searchInput.contains(event.target) || 
+                                    searchOptions.contains(event.target) || 
+                                    searchAdvancedToggle.contains(event.target);
+                
+                if (!isClickInside && searchOptions.classList.contains('active')) {
+                    searchOptions.classList.remove('active');
+                }
+            });
+            
+            // Hàm tải danh mục từ server bằng AJAX
+            function loadCategories() {
+                const categorySelect = document.querySelector('select[name="categoryId"]');
+                
+                // Kiểm tra xem danh mục đã được tải chưa
+                if (categorySelect.options.length <= 1) {
+                    // Thêm tùy chọn "Đang tải..."
+                    const loadingOption = document.createElement('option');
+                    loadingOption.textContent = "Đang tải...";
+                    loadingOption.disabled = true;
+                    categorySelect.appendChild(loadingOption);
+                    
+                    fetch('/Document/GetCategories')
+                        .then(response => response.json())
+                        .then(categories => {
+                            // Xóa tùy chọn "Đang tải..."
+                            categorySelect.removeChild(loadingOption);
+                            
+                            // Thêm các danh mục vào dropdown
+                            categories.forEach(category => {
+                                const option = document.createElement('option');
+                                option.value = category.categoryID;
+                                option.textContent = category.categoryName;
+                                categorySelect.appendChild(option);
+                            });
+                            
+                            // Khôi phục giá trị đã chọn nếu có
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const selectedCategoryId = urlParams.get('categoryId');
+                            if (selectedCategoryId) {
+                                categorySelect.value = selectedCategoryId;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Lỗi khi tải danh mục:', error);
+                            // Xóa tùy chọn "Đang tải..."
+                            categorySelect.removeChild(loadingOption);
+                            
+                            // Thêm một số danh mục mặc định nếu không thể tải từ server
+                            const defaultCategories = [
+                                { id: 1, name: "Sách giáo khoa" },
+                                { id: 2, name: "Tài liệu học thuật" },
+                                { id: 3, name: "Luận văn, luận án" },
+                                { id: 4, name: "Sách tham khảo" }
+                            ];
+                            
+                            defaultCategories.forEach(category => {
+                                const option = document.createElement('option');
+                                option.value = category.id;
+                                option.textContent = category.name;
+                                categorySelect.appendChild(option);
+                            });
+                        });
+                }
+            }
+            
+            // Khôi phục các tùy chọn đã chọn trước đó
+            function restoreSearchOptions() {
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                // Khôi phục từ khóa tìm kiếm
+                const searchString = urlParams.get('searchString');
+                if (searchString) {
+                    searchInput.value = searchString;
+                }
+                
+                // Khôi phục loại tài liệu
+                const priceType = urlParams.get('priceType');
+                if (priceType) {
+                    const radioButton = document.querySelector(`input[name="priceType"][value="${priceType}"]`);
+                    if (radioButton) {
+                        radioButton.checked = true;
+                    }
+                }
+            }
+            
+            // Khôi phục tùy chọn khi trang tải
+            restoreSearchOptions();
+        });
+    </script>
 </body>
 </html> 

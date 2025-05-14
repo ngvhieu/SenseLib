@@ -13,7 +13,7 @@
         "ID", 
         "Tiêu đề", 
         "Danh mục", 
-        "Loại", 
+        "Giá tiền", 
         "Người tải", 
         "Ngày tải", 
         "Trạng thái", 
@@ -43,28 +43,42 @@
             Value = ViewBag.TotalCount,
             Icon = "bi-file-earmark-text",
             ColorClass = "sales-card",
-            Width = 3
+            Width = 2
+        },
+        new {
+            Title = "Tài liệu có phí",
+            Value = ViewBag.PaidCount,
+            Icon = "bi-currency-dollar",
+            ColorClass = "info-card",
+            Width = 2
+        },
+        new {
+            Title = "Tài liệu miễn phí",
+            Value = ViewBag.FreeCount,
+            Icon = "bi-wallet2",
+            ColorClass = "success-card",
+            Width = 2
         },
         new {
             Title = "Chờ duyệt",
             Value = ViewBag.PendingCount,
             Icon = "bi-hourglass-split",
             ColorClass = "warning-card",
-            Width = 3
+            Width = 2
         },
         new {
             Title = "Đã duyệt",
             Value = ViewBag.ApprovedCount,
             Icon = "bi-check-circle",
-            ColorClass = "success-card",
-            Width = 3
+            ColorClass = "primary-card",
+            Width = 2
         },
         new {
             Title = "Từ chối",
             Value = ViewBag.RejectedCount,
             Icon = "bi-x-circle",
             ColorClass = "danger-card",
-            Width = 3
+            Width = 2
         }
     };
 }

@@ -41,8 +41,6 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <input type="hidden" asp-for="DocumentID" />
                         <input type="hidden" asp-for="FilePath" />
-                        <input type="hidden" asp-for="IsPaid" />
-                        <input type="hidden" asp-for="Price" />
                         <input type="hidden" asp-for="UserID" />
                         <input type="hidden" asp-for="UploadDate" />
                         
@@ -158,6 +156,27 @@
                         </div>
                         
                         <div class="row mb-3">
+                            <label class="col-sm-2 col-form-label">Loại tài liệu</label>
+                            <div class="col-sm-10">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" asp-for="IsPaid" id="isPaidSwitch">
+                                    <label class="form-check-label" for="isPaidSwitch">
+                                        <span id="documentTypeLabel">@(Model.IsPaid ? "Tài liệu trả phí" : "Tài liệu miễn phí")</span>
+                                    </label>
+                                </div>
+                                
+                                <div id="priceInputGroup" class="@(Model.IsPaid ? "" : "d-none")">
+                                    <div class="input-group mb-2">
+                                        <input type="number" asp-for="Price" class="form-control" min="1000" step="1000" placeholder="Nhập giá tiền">
+                                        <span class="input-group-text">VNĐ</span>
+                                    </div>
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                    <small class="form-text text-muted">Giá tối thiểu là 1.000 VNĐ. Nhập số chẵn theo đơn vị nghìn đồng.</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
                             <div class="col-sm-10 offset-sm-2">
                                 <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                                 <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
@@ -174,9 +193,37 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
         $(document).ready(function() {
+            // Xử lý hiển thị/ẩn trường nhập giá dựa trên checkbox
+            $('#isPaidSwitch').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#priceInputGroup').removeClass('d-none');
+                    $('#documentTypeLabel').text('Tài liệu trả phí');
+                    // Đặt giá mặc định nếu trường giá trống
+                    if ($('#Price').val() === '' || $('#Price').val() === '0') {
+                        $('#Price').val('10000');
+                    }
+                    // Bắt buộc nhập giá
+                    $('#Price').prop('required', true);
+                } else {
+                    $('#priceInputGroup').addClass('d-none');
+                    $('#documentTypeLabel').text('Tài liệu miễn phí');
+                    // Không bắt buộc nhập giá
+                    $('#Price').prop('required', false);
+                }
+            });
+            
             // Kiểm tra kích thước và định dạng file trước khi submit form
             $('#documentForm').submit(function(e) {
                 let hasError = false;
+                
+                // Nếu là tài liệu trả phí, kiểm tra giá
+                if ($('#isPaidSwitch').is(':checked')) {
+                    const price = parseInt($('#Price').val());
+                    if (isNaN(price) || price < 1000) {
+                        $('#Price').next('.text-danger').text('Giá phải từ 1.000 VNĐ trở lên');
+                        hasError = true;
+                    }
+                }
                 
                 // Kiểm tra file tài liệu
                 var fileInput = $('#file')[0];

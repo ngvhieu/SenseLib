@@ -2,11 +2,11 @@
 
 @foreach (var item in Model)
 {
-    <tr>
+    <tr class="document-row">
         <td>@item.DocumentID</td>
         <td>
             <div class="d-flex align-items-center">
-                <div class="document-img me-2" style="width: 40px; height: 40px; overflow: hidden; border-radius: 4px;">
+                <div class="document-img me-2" style="width: 48px; height: 48px; overflow: hidden; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     @{
                         string imagePath = string.IsNullOrEmpty(item.ImagePath) ? "/img/document-placeholder.jpg" : item.ImagePath;
                     }
@@ -22,11 +22,18 @@
         <td>
             @if (item.IsPaid)
             {
-                <span class="badge bg-info">Có phí: @item.Price?.ToString("N0") ₫</span>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-primary me-2 px-2 py-1">
+                        <i class="bi bi-currency-dollar me-1"></i>Có phí
+                    </span>
+                    <span class="fw-bold text-primary">@(item.Price?.ToString("N0") ?? "0") ₫</span>
+                </div>
             }
             else
             {
-                <span class="badge bg-light text-dark">Miễn phí</span>
+                <span class="badge bg-success px-2 py-1">
+                    <i class="bi bi-wallet2 me-1"></i>Miễn phí
+                </span>
             }
         </td>
         <td>@(item.User?.Username ?? "N/A")</td>
@@ -35,40 +42,89 @@
             @switch (item.Status)
             {
                 case "Pending":
-                    <span class="badge bg-warning">Chờ duyệt</span>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-warning text-dark px-2 py-1">
+                            <i class="bi bi-hourglass-split me-1"></i>Chờ duyệt
+                        </span>
+                    </div>
                     break;
                 case "Approved":
-                    <span class="badge bg-success">Đã duyệt</span>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success px-2 py-1">
+                            <i class="bi bi-check-circle me-1"></i>Đã duyệt
+                        </span>
+                    </div>
                     break;
                 case "Rejected":
-                    <span class="badge bg-danger">Từ chối</span>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-danger px-2 py-1">
+                            <i class="bi bi-x-circle me-1"></i>Từ chối
+                        </span>
+                    </div>
+                    break;
+                case "Published":
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-info px-2 py-1">
+                            <i class="bi bi-globe me-1"></i>Đã xuất bản
+                        </span>
+                    </div>
                     break;
                 default:
-                    <span class="badge bg-secondary">@item.Status</span>
+                    <span class="badge bg-secondary px-2 py-1">
+                        <i class="bi bi-question-circle me-1"></i>@item.Status
+                    </span>
                     break;
             }
         </td>
         <td>
-            <div class="d-flex gap-1">
-                <a asp-action="Edit" asp-route-id="@item.DocumentID" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa">
-                    <i class="bi bi-pencil"></i>
-                </a>
-                <a href="@item.FilePath" target="_blank" class="btn btn-sm btn-outline-info" title="Xem tài liệu">
-                    <i class="bi bi-eye"></i>
-                </a>
-                @if (item.Status == "Pending")
-                {
-                    <a asp-action="Approve" asp-route-id="@item.DocumentID" class="btn btn-sm btn-outline-success" title="Duyệt">
-                        <i class="bi bi-check-circle"></i>
-                    </a>
-                    <a asp-action="Reject" asp-route-id="@item.DocumentID" class="btn btn-sm btn-outline-danger" title="Từ chối">
-                        <i class="bi bi-x-circle"></i>
-                    </a>
-                }
-                <a asp-action="Delete" asp-route-id="@item.DocumentID" class="btn btn-sm btn-outline-danger" title="Xóa">
-                    <i class="bi bi-trash"></i>
-                </a>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="actionMenu@(item.DocumentID)" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-gear me-1"></i>Tác vụ
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionMenu@(item.DocumentID)">
+                    <li>
+                        <a class="dropdown-item" href="@Url.Action("Edit", new { id = item.DocumentID })">
+                            <i class="bi bi-pencil me-2"></i>Chỉnh sửa
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="@item.FilePath" target="_blank">
+                            <i class="bi bi-eye me-2"></i>Xem tài liệu
+                        </a>
+                    </li>
+                    @if (item.Status == "Pending")
+                    {
+                        <li>
+                            <a class="dropdown-item text-success" href="@Url.Action("Approve", new { id = item.DocumentID })">
+                                <i class="bi bi-check-circle me-2"></i>Duyệt
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="@Url.Action("Reject", new { id = item.DocumentID })">
+                                <i class="bi bi-x-circle me-2"></i>Từ chối
+                            </a>
+                        </li>
+                    }
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="@Url.Action("Delete", new { id = item.DocumentID })">
+                            <i class="bi bi-trash me-2"></i>Xóa
+                        </a>
+                    </li>
+                </ul>
             </div>
         </td>
     </tr>
-} 
+}
+
+<style>
+    .document-row:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+    .document-img {
+        transition: transform 0.2s;
+    }
+    .document-row:hover .document-img {
+        transform: scale(1.05);
+    }
+</style> 

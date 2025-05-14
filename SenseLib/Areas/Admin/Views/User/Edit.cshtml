@@ -1,4 +1,4 @@
-@model SenseLib.Models.User
+@model SenseLib.Areas.Admin.Models.ViewModels.UserEditViewModel
 
 @{
     ViewData["Title"] = "Chỉnh sửa tài khoản";
@@ -29,9 +29,21 @@
                         <div class="row mb-3">
                             <label asp-for="Password" class="col-sm-3 col-form-label">Mật khẩu</label>
                             <div class="col-sm-9">
-                                <input asp-for="Password" type="password" class="form-control" placeholder="Để trống nếu không thay đổi mật khẩu" />
-                                <span asp-validation-for="Password" class="text-danger"></span>
-                                <small class="form-text text-muted">Để trống nếu không muốn thay đổi mật khẩu.</small>
+                                <div class="input-group">
+                                    <input id="Password" name="Password" type="password" class="form-control" value="********" />
+                                    <span class="input-group-text bg-info text-white" data-bs-toggle="tooltip" data-bs-placement="top" title="Để giữ mật khẩu hiện tại, giữ nguyên giá trị mặc định. Đổi thành mật khẩu mới nếu muốn thay đổi.">
+                                        <i class="bi bi-info-circle"></i>
+                                    </span>
+                                </div>
+                                <span id="PasswordError" class="text-danger"></span>
+                                <small class="form-text text-muted">Để giữ lại mật khẩu hiện tại, giữ nguyên giá trị mặc định. Nếu muốn thay đổi, hãy nhập mật khẩu mới.</small>
+                                
+                                @if (TempData["PasswordInfo"] != null)
+                                {
+                                    <div class="alert alert-info mt-2">
+                                        <i class="bi bi-info-circle"></i> @TempData["PasswordInfo"]
+                                    </div>
+                                }
                             </div>
                         </div>
 
@@ -40,6 +52,7 @@
                             <div class="col-sm-9">
                                 <input type="password" name="ConfirmPassword" id="ConfirmPassword" class="form-control" placeholder="Để trống nếu không thay đổi mật khẩu" />
                                 <span id="passwordError" class="text-danger"></span>
+                                <small class="form-text text-muted">Chỉ cần nhập khi bạn đã điền mật khẩu mới ở trên.</small>
                             </div>
                         </div>
 
@@ -98,6 +111,19 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
+        // Khởi tạo tooltip
+        $(document).ready(function() {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+            
+            // Bỏ qua validation cho Password và sử dụng xử lý chung cho form
+            var validator = $("form").validate();
+            if (validator) {
+                validator.settings.rules["Password"] = {};
+                validator.settings.messages["Password"] = {};
+            }
+        });
+    
+        // Xử lý xác nhận mật khẩu
         document.getElementById('ConfirmPassword').addEventListener('keyup', function() {
             var password = document.getElementById('Password').value;
             var confirmPassword = this.value;
@@ -109,14 +135,17 @@
             }
         });
         
+        // Xác thực khi submit form
         document.querySelector('form').addEventListener('submit', function(e) {
             var password = document.getElementById('Password').value;
             var confirmPassword = document.getElementById('ConfirmPassword').value;
             
-            if (password && password != confirmPassword) {
+            if (password && password != "********" && password != confirmPassword) {
                 e.preventDefault();
                 document.getElementById('passwordError').textContent = 'Mật khẩu không khớp';
+                return false;
             }
+            return true;
         });
     </script>
 } 

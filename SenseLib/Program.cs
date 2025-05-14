@@ -21,6 +21,10 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 // Đăng ký dịch vụ Favorite
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
+// Đăng ký dịch vụ VNPay
+builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPay"));
+builder.Services.AddScoped<VNPayService>();
+
 // Cấu hình xác thực cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

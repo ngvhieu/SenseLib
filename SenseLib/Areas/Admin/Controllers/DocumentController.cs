@@ -27,23 +27,23 @@ namespace SenseLib.Areas.Admin.Controllers
         }
 
         // GET: Admin/Document
-        public async Task<IActionResult> Index(string searchString, string status, int page = 1, bool showAllDocuments = false)
+        public async Task<IActionResult> Index(string searchString, string status, string isPaid, int? categoryId, 
+            decimal? minPrice, decimal? maxPrice, int page = 1, bool showAllDocuments = false)
         {
-            int pageSize = 10;
-
-            // Debug: Hiển thị tổng số tài liệu
+            int pageSize = 10; // Số lượng tài liệu mỗi trang
+            
+            // Lấy tổng số tài liệu để hiển thị trong thống kê
             int totalDocCount = await _context.Documents.CountAsync();
-            ViewBag.TotalDocumentsInDB = totalDocCount;
-            ViewBag.ShowAllDocuments = showAllDocuments;
-
+            
+            // Tạo query cơ bản
             var query = _context.Documents
                 .Include(d => d.Author)
                 .Include(d => d.Category)
                 .Include(d => d.Publisher)
-                .Include(d => d.Downloads)
                 .Include(d => d.User)
+                .Include(d => d.Statistics)
                 .AsQueryable();
-
+                
             // Lọc theo trạng thái
             if (!string.IsNullOrEmpty(status))
             {
@@ -54,6 +54,37 @@ namespace SenseLib.Areas.Admin.Controllers
             else
             {
                 ViewBag.CurrentStatus = "All";
+            }
+            
+            // Lọc theo loại tài liệu (có phí/miễn phí)
+            if (!string.IsNullOrEmpty(isPaid))
+            {
+                bool isPaidValue = isPaid.ToLower() == "true";
+                query = query.Where(d => d.IsPaid == isPaidValue);
+                ViewBag.CurrentIsPaid = isPaidValue;
+                
+                // Nếu là tài liệu có phí, lọc theo khoảng giá nếu có
+                if (isPaidValue)
+                {
+                    if (minPrice.HasValue)
+                    {
+                        query = query.Where(d => d.Price >= minPrice.Value);
+                        ViewBag.MinPrice = minPrice.Value;
+                    }
+                    
+                    if (maxPrice.HasValue)
+                    {
+                        query = query.Where(d => d.Price <= maxPrice.Value);
+                        ViewBag.MaxPrice = maxPrice.Value;
+                    }
+                }
+            }
+            
+            // Lọc theo danh mục
+            if (categoryId.HasValue && categoryId > 0)
+            {
+                query = query.Where(d => d.CategoryID == categoryId);
+                ViewBag.CurrentCategoryId = categoryId;
             }
 
             // Lọc theo từ khóa tìm kiếm
@@ -72,6 +103,9 @@ namespace SenseLib.Areas.Admin.Controllers
             ViewBag.PendingCount = await _context.Documents.CountAsync(d => d.Status == "Pending");
             ViewBag.ApprovedCount = await _context.Documents.CountAsync(d => d.Status == "Approved");
             ViewBag.RejectedCount = await _context.Documents.CountAsync(d => d.Status == "Rejected");
+            ViewBag.PublishedCount = await _context.Documents.CountAsync(d => d.Status == "Published");
+            ViewBag.PaidCount = await _context.Documents.CountAsync(d => d.IsPaid);
+            ViewBag.FreeCount = await _context.Documents.CountAsync(d => !d.IsPaid);
             ViewBag.TotalCount = totalDocCount;
             
             // Sắp xếp và phân trang
@@ -101,7 +135,10 @@ namespace SenseLib.Areas.Admin.Controllers
             ViewBag.TotalItems = totalItems;
             
             // Thêm danh sách các trạng thái để hiển thị filter
-            ViewBag.StatusList = new List<string> { "Pending", "Approved", "Rejected" };
+            ViewBag.StatusList = new List<string> { "Pending", "Approved", "Rejected", "Published" };
+            
+            // Lấy danh sách danh mục để hiển thị filter
+            ViewBag.Categories = await _context.Categories.ToListAsync();
 
             return View(documents);
         }

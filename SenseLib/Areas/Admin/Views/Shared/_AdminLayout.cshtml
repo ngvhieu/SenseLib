@@ -145,6 +145,15 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+    
+    @if (TempData["PasswordChanged"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-key me-1"></i>
+            @TempData["PasswordChanged"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
     <div class="pagetitle">
       <h1>@ViewData["Title"]</h1>

@@ -359,13 +359,6 @@ namespace SenseLib.Controllers
                 return Forbid();
             }
             
-            // Kiểm tra trạng thái
-            if (document.Status == "Approved")
-            {
-                TempData["ErrorMessage"] = "Không thể chỉnh sửa tài liệu đã được duyệt!";
-                return RedirectToAction(nameof(Index));
-            }
-            
             ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "CategoryName", document.CategoryID);
             ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "AuthorName", document.AuthorID);
             ViewData["PublisherID"] = new SelectList(_context.Publishers, "PublisherID", "PublisherName", document.PublisherID);
@@ -398,13 +391,6 @@ namespace SenseLib.Controllers
             if (existingDocument.UserID != userId)
             {
                 return Forbid();
-            }
-            
-            // Kiểm tra trạng thái
-            if (existingDocument.Status == "Approved")
-            {
-                TempData["ErrorMessage"] = "Không thể chỉnh sửa tài liệu đã được duyệt!";
-                return RedirectToAction(nameof(Index));
             }
             
             // Cập nhật thông tin tài liệu

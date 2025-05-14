@@ -94,4 +94,32 @@ SenseLib/
 - Cấu hình thời gian khóa tài khoản
 - Cấu hình số lượng tài liệu hiển thị trên trang chủ
 
+## Hướng dẫn thanh toán VNPay
+
+SenseLib hỗ trợ thanh toán trực tuyến qua cổng VNPay. Để sử dụng tính năng này, bạn cần cấu hình các thông số của VNPay trong file `appsettings.json`:
+
+```json
+"VNPay": {
+  "TmnCode": "YOUR_TMN_CODE",
+  "HashSecret": "YOUR_HASH_SECRET",
+  "BaseUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
+  "Command": "pay",
+  "CurrCode": "VND",
+  "Version": "2.1.0",
+  "Locale": "vn"
+}
+```
+
+### Các bước thanh toán
+
+1. Người dùng chọn tài liệu muốn mua
+2. Trang chi tiết tài liệu hiển thị nút "Thanh toán qua VNPay"
+3. Người dùng click vào nút thanh toán và được chuyển đến trang xác nhận
+4. Sau khi xác nhận, người dùng được chuyển đến cổng thanh toán VNPay
+5. Sau khi thanh toán thành công, hệ thống cập nhật trạng thái giao dịch và cho phép truy cập tài liệu
+
+### Môi trường test
+
+Trong môi trường phát triển, bạn có thể sử dụng Sandbox của VNPay để kiểm thử tính năng thanh toán mà không cần thực hiện giao dịch thật.
+
 

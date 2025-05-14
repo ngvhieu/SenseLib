@@ -85,9 +85,31 @@
                                     <option value="">-- Chọn trạng thái --</option>
                                     <option value="Draft">Bản nháp</option>
                                     <option value="Published">Đã xuất bản</option>
+                                    <option value="Approved">Đã duyệt</option>
                                     <option value="Archived">Đã lưu trữ</option>
                                 </select>
                                 <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label class="col-sm-2 col-form-label">Loại tài liệu</label>
+                            <div class="col-sm-10">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" asp-for="IsPaid" id="isPaidSwitch">
+                                    <label class="form-check-label" for="isPaidSwitch">
+                                        <span id="documentTypeLabel">Tài liệu miễn phí</span>
+                                    </label>
+                                </div>
+                                
+                                <div id="priceInputGroup" class="d-none">
+                                    <div class="input-group mb-2">
+                                        <input type="number" asp-for="Price" class="form-control" min="1000" step="1000" placeholder="Nhập giá tiền">
+                                        <span class="input-group-text">VNĐ</span>
+                                    </div>
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                    <small class="form-text text-muted">Giá tối thiểu là 1.000 VNĐ. Nhập số chẵn theo đơn vị nghìn đồng.</small>
+                                </div>
                             </div>
                         </div>
                         
@@ -126,24 +148,52 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
+            // Xử lý hiển thị/ẩn trường nhập giá dựa trên checkbox
+            $('#isPaidSwitch').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#priceInputGroup').removeClass('d-none');
+                    $('#documentTypeLabel').text('Tài liệu trả phí');
+                    // Đặt giá mặc định nếu trường giá trống
+                    if ($('#Price').val() === '' || $('#Price').val() === '0') {
+                        $('#Price').val('10000');
+                    }
+                    // Bắt buộc nhập giá
+                    $('#Price').prop('required', true);
+                } else {
+                    $('#priceInputGroup').addClass('d-none');
+                    $('#documentTypeLabel').text('Tài liệu miễn phí');
+                    // Không bắt buộc nhập giá
+                    $('#Price').prop('required', false);
+                }
+            });
+            
             // Kiểm tra kích thước file trước khi submit form
             $('form').submit(function(e) {
+                let hasError = false;
+                
+                // Nếu là tài liệu trả phí, kiểm tra giá
+                if ($('#isPaidSwitch').is(':checked')) {
+                    const price = parseInt($('#Price').val());
+                    if (isNaN(price) || price < 1000) {
+                        $('#Price').next('.text-danger').text('Giá phải từ 1.000 VNĐ trở lên');
+                        hasError = true;
+                    }
+                }
+                
                 var fileInput = $('#file')[0];
                 if(fileInput.files.length > 0) {
                     var fileSize = fileInput.files[0].size; // byte
                     var maxSize = 20 * 1024 * 1024; // 20MB
                     if(fileSize > maxSize) {
                         alert('Kích thước file không được vượt quá 20MB');
-                        e.preventDefault();
-                        return false;
+                        hasError = true;
                     }
                     
                     var fileName = fileInput.files[0].name;
                     var validExtensions = /(\.pdf|\.doc|\.docx)$/i;
                     if(!validExtensions.test(fileName)) {
                         alert('Vui lòng chọn file có định dạng PDF, DOC hoặc DOCX');
-                        e.preventDefault();
-                        return false;
+                        hasError = true;
                     }
                 }
                 
@@ -154,17 +204,20 @@
                     var maxImageSize = 5 * 1024 * 1024; // 5MB
                     if(imageFileSize > maxImageSize) {
                         alert('Kích thước ảnh không được vượt quá 5MB');
-                        e.preventDefault();
-                        return false;
+                        hasError = true;
                     }
                     
                     var imageFileName = imageFileInput.files[0].name;
                     var validImageExtensions = /(\.jpg|\.jpeg|\.png|\.gif)$/i;
                     if(!validImageExtensions.test(imageFileName)) {
                         alert('Vui lòng chọn ảnh có định dạng JPG, JPEG, PNG hoặc GIF');
-                        e.preventDefault();
-                        return false;
+                        hasError = true;
                     }
+                }
+                
+                if(hasError) {
+                    e.preventDefault();
+                    return false;
                 }
             });
             

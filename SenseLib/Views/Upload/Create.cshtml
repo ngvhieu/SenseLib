@@ -17,6 +17,7 @@
                     </div>
 
                     <form asp-action="Create" method="post" enctype="multipart/form-data" id="uploadForm">
+                        @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
                         
                         <!-- Hiển thị thông báo lỗi upload -->
@@ -483,6 +484,195 @@
                 else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KB';
                 else return (bytes / 1048576).toFixed(2) + ' MB';
             }
+
+            // Lấy token từ form chính
+            function getAntiForgeryToken() {
+                return document.querySelector('input[name="__RequestVerificationToken"]').value;
+            }
+
+            // Hiển thị thông báo thành công
+            function showSuccessMessage(message) {
+                const errorElement = document.getElementById('uploadError');
+                const errorMessage = document.getElementById('errorMessage');
+                
+                errorMessage.textContent = message;
+                errorElement.style.display = 'block';
+                errorElement.classList.remove('alert-danger');
+                errorElement.classList.add('alert-success');
+                
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                    errorElement.classList.remove('alert-success');
+                    errorElement.classList.add('alert-danger');
+                }, 3000);
+            }
+
+            // ----- Xử lý thêm danh mục mới -----
+            const categoryForm = document.getElementById('categoryForm');
+            const categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
+            const saveCategory = document.getElementById('saveCategory');
+            const categorySelect = document.getElementById('categorySelect');
+
+            saveCategory.addEventListener('click', async function() {
+                const categoryName = document.getElementById('categoryName').value;
+                const description = document.getElementById('categoryDescription').value;
+                
+                if (!categoryName) {
+                    alert('Vui lòng nhập tên danh mục');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/Upload/CreateCategory', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': getAntiForgeryToken()
+                        },
+                        body: new URLSearchParams({
+                            'categoryName': categoryName,
+                            'description': description,
+                            '__RequestVerificationToken': getAntiForgeryToken()
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Thêm danh mục mới vào dropdown
+                        const option = document.createElement('option');
+                        option.value = data.category.categoryID;
+                        option.textContent = data.category.categoryName;
+                        categorySelect.appendChild(option);
+                        
+                        // Chọn danh mục vừa thêm
+                        categorySelect.value = data.category.categoryID;
+                        
+                        // Đóng modal và reset form
+                        categoryModal.hide();
+                        categoryForm.reset();
+                        
+                        showSuccessMessage(data.message);
+                    } else {
+                        alert(data.message);
+                    }
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Đã xảy ra lỗi khi thêm danh mục');
+                }
+            });
+
+            // ----- Xử lý thêm tác giả mới -----
+            const authorForm = document.getElementById('authorForm');
+            const authorModal = new bootstrap.Modal(document.getElementById('authorModal'));
+            const saveAuthor = document.getElementById('saveAuthor');
+            const authorSelect = document.getElementById('authorSelect');
+
+            saveAuthor.addEventListener('click', async function() {
+                const authorName = document.getElementById('authorName').value;
+                const bio = document.getElementById('authorBio').value;
+                
+                if (!authorName) {
+                    alert('Vui lòng nhập tên tác giả');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/Upload/CreateAuthor', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': getAntiForgeryToken()
+                        },
+                        body: new URLSearchParams({
+                            'authorName': authorName,
+                            'authorBio': bio,
+                            '__RequestVerificationToken': getAntiForgeryToken()
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Thêm tác giả mới vào dropdown
+                        const option = document.createElement('option');
+                        option.value = data.author.authorID;
+                        option.textContent = data.author.authorName;
+                        authorSelect.appendChild(option);
+                        
+                        // Chọn tác giả vừa thêm
+                        authorSelect.value = data.author.authorID;
+                        
+                        // Đóng modal và reset form
+                        authorModal.hide();
+                        authorForm.reset();
+                        
+                        showSuccessMessage(data.message);
+                    } else {
+                        alert(data.message);
+                    }
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Đã xảy ra lỗi khi thêm tác giả');
+                }
+            });
+
+            // ----- Xử lý thêm nhà xuất bản mới -----
+            const publisherForm = document.getElementById('publisherForm');
+            const publisherModal = new bootstrap.Modal(document.getElementById('publisherModal'));
+            const savePublisher = document.getElementById('savePublisher');
+            const publisherSelect = document.getElementById('publisherSelect');
+
+            savePublisher.addEventListener('click', async function() {
+                const publisherName = document.getElementById('publisherName').value;
+                const address = document.getElementById('publisherAddress').value;
+                const phone = document.getElementById('publisherPhone').value;
+                
+                if (!publisherName) {
+                    alert('Vui lòng nhập tên nhà xuất bản');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/Upload/CreatePublisher', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': getAntiForgeryToken()
+                        },
+                        body: new URLSearchParams({
+                            'publisherName': publisherName,
+                            'address': address,
+                            'phone': phone,
+                            '__RequestVerificationToken': getAntiForgeryToken()
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Thêm nhà xuất bản mới vào dropdown
+                        const option = document.createElement('option');
+                        option.value = data.publisher.publisherID;
+                        option.textContent = data.publisher.publisherName;
+                        publisherSelect.appendChild(option);
+                        
+                        // Chọn nhà xuất bản vừa thêm
+                        publisherSelect.value = data.publisher.publisherID;
+                        
+                        // Đóng modal và reset form
+                        publisherModal.hide();
+                        publisherForm.reset();
+                        
+                        showSuccessMessage(data.message);
+                    } else {
+                        alert(data.message);
+                    }
+                } catch (error) {
+                    console.error('Lỗi:', error);
+                    alert('Đã xảy ra lỗi khi thêm nhà xuất bản');
+                }
+            });
         });
     </script>
 } 

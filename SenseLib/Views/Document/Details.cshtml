@@ -11,30 +11,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 <div class="container py-4">
-    @if (TempData["Message"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            <i class="fa fa-check-circle me-2"></i> @TempData["Message"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            <i class="fa fa-check-circle me-2"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    
-    @if (TempData["Error"] != null || TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-            <i class="fa fa-exclamation-triangle me-2"></i> @(TempData["Error"] ?? TempData["ErrorMessage"])
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    
     <div class="row g-4">
         <!-- Cột trái: Ảnh và thông tin ngắn -->
         <div class="col-lg-4 col-md-5">
@@ -89,8 +65,8 @@
                         
                         @if (Model.IsPaid && User.Identity.IsAuthenticated && !hasPurchased)
                         {
-                            <a asp-controller="Purchase" asp-action="CheckoutDocument" asp-route-id="@Model.DocumentID" class="btn btn-primary">
-                                <i class="fa fa-shopping-cart me-1"></i> Mua tài liệu - @Model.Price?.ToString("N0") ₫
+                            <a asp-controller="VNPay" asp-action="PaymentRequest" asp-route-id="@Model.DocumentID" class="btn btn-primary">
+                                <i class="fas fa-credit-card me-1"></i> Thanh toán qua VNPay - @Model.Price?.ToString("N0") ₫
                             </a>
                         }
                         
@@ -112,14 +88,23 @@
                     </div>
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <div class="d-grid">
-                            <!-- Nút yêu thích dùng form trực tiếp -->
+                        <div class="d-grid mt-2">
+                            <!-- Nút yêu thích dùng form trực tiếp - hiển thị cho mọi tài liệu -->
                             <form asp-controller="Document" asp-action="ToggleFavorite" asp-route-id="@Model.DocumentID" method="post" class="direct-form">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn @(isFavorite ? "btn-danger" : "btn-outline-danger") favorite-btn" data-document-id="@Model.DocumentID" data-is-favorite="@isFavorite.ToString().ToLower()">
                                     <i class="fa @(isFavorite ? "fa-heart" : "fa-heart-broken") me-1"></i> <span class="favorite-text">@(isFavorite ? "Bỏ yêu thích" : "Yêu thích")</span>
                                 </button>
                             </form>
+                            
+                            @if (Model.IsPaid && !ViewBag.HasPurchased)
+                            {
+                                <div class="mt-2">
+                                    <a asp-controller="VNPay" asp-action="PaymentRequest" asp-route-id="@Model.DocumentID" class="btn btn-primary w-100">
+                                        <i class="fas fa-credit-card me-1"></i> Thanh toán qua VNPay - @Model.Price?.ToString("N0") ₫
+                                    </a>
+                                </div>
+                            }
                         </div>
                     }
                     else
@@ -328,17 +313,14 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Nút yêu thích tài liệu
-            $('.favorite-btn').on('click', function(e) {
-                e.preventDefault();
-                
+            // Nút yêu thích Ajax
+            $('.favorite-btn').click(function() {
                 var btn = $(this);
                 var documentId = btn.data('document-id');
-                var isFavorite = btn.data('is-favorite') === 'true';
-                
-                // Hiển thị trạng thái đang xử lý
+                var isFavorite = btn.data('is-favorite');
                 var originalHtml = btn.html();
-                btn.html('<i class="fa fa-spinner fa-spin me-1"></i> <span>Đang xử lý...</span>');
+                
+                btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Đang xử lý...');
                 btn.prop('disabled', true);
                 
                 $.ajax({
@@ -350,22 +332,17 @@
                     },
                     success: function(result) {
                         if (result.success) {
-                            // Cập nhật trạng thái dựa vào kết quả từ server
-                            isFavorite = result.isFavorite;
-                            btn.data('is-favorite', isFavorite);
+                            btn.data('is-favorite', result.isFavorite);
                             
-                            // Thay đổi UI dựa trên trạng thái mới
-                            if (isFavorite) {
+                            if (result.isFavorite) {
                                 btn.removeClass('btn-outline-danger').addClass('btn-danger');
-                                btn.find('i').removeClass('fa-heart-broken').addClass('fa-heart');
-                                btn.find('.favorite-text').text('Bỏ yêu thích');
+                                btn.html('<i class="fa fa-heart me-1"></i> <span class="favorite-text">Bỏ yêu thích</span>');
                                 
                                 // Hiển thị thông báo
-                                showAlert('success', '<i class="fa fa-check-circle me-2"></i> Đã thêm vào danh sách yêu thích!');
+                                showAlert('success', '<i class="fa fa-check-circle me-2"></i> Đã thêm tài liệu vào danh sách yêu thích.');
                             } else {
                                 btn.removeClass('btn-danger').addClass('btn-outline-danger');
-                                btn.find('i').removeClass('fa-heart').addClass('fa-heart-broken');
-                                btn.find('.favorite-text').text('Yêu thích');
+                                btn.html('<i class="fa fa-heart-broken me-1"></i> <span class="favorite-text">Yêu thích</span>');
                                 
                                 // Hiển thị thông báo
                                 showAlert('info', '<i class="fa fa-info-circle me-2"></i> Đã bỏ yêu thích tài liệu này.');
@@ -373,10 +350,11 @@
                         } else {
                             // Hiển thị lỗi
                             showAlert('danger', '<i class="fa fa-exclamation-triangle me-2"></i> ' + result.message);
+                            
+                            // Khôi phục nút
+                            btn.html(originalHtml);
                         }
                         
-                        // Khôi phục nút
-                        btn.html(originalHtml);
                         btn.prop('disabled', false);
                     },
                     error: function(xhr, status, error) {
@@ -418,10 +396,8 @@
                             // Cập nhật số lượt tải và hiển thị thông báo
                             var downloadCount = parseInt($('li:contains("Lượt tải")').text().match(/\d+/)[0]) + 1;
                             $('li:contains("Lượt tải")').html('<i class="fa fa-download me-2 text-secondary"></i> <b>Lượt tải:</b> ' + downloadCount);
-                            
                             // Hiển thị thông báo thành công
                             showAlert('success', '<i class="fa fa-check-circle me-2"></i> Đã thêm tài liệu vào lịch sử tải xuống của bạn.');
-                            
                             // Tạo thẻ a để tải xuống
                             var link = document.createElement('a');
                             link.href = result.fileUrl;
@@ -539,6 +515,12 @@
             
             // Hàm hiển thị thông báo
             function showAlert(type, message) {
+                // Vô hiệu hóa thông báo nổi trên màn hình
+                // In ra console để debug nếu cần
+                console.log('[' + type + '] ' + message.replace(/<[^>]*>/g, ''));
+                
+                // Đoạn code gốc đã bị vô hiệu hóa
+                /*
                 // Xóa thông báo cũ nếu có
                 $('.alert-container .alert').alert('close');
                 
@@ -562,6 +544,7 @@
                 setTimeout(function() {
                     alert.alert('close');
                 }, 3000);
+                */
             }
         });
     </script>

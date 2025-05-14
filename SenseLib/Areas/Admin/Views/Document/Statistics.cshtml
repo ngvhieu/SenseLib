@@ -1,80 +1,284 @@
 @{
     ViewData["Title"] = "Thống kê tài liệu";
+    Layout = "_AdminLayout";
 }
 
-
-
-<section class="section">
+<section class="section dashboard">
+    <!-- Thống kê tổng quan -->
     <div class="row">
-        <!-- Thống kê tổng quan -->
-        <div class="col-xxl-4 col-md-6">
-            <div class="card info-card sales-card">
-                <div class="card-body">
-                    <h5 class="card-title">Tổng tài liệu</h5>
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi bi-journal-text"></i>
-                        </div>
-                        <div class="ps-3">
-                            <h6>@ViewBag.TotalDocuments</h6>
-                            <span class="text-muted small pt-2 ps-1">Tài liệu</span>
-                        </div>
-                    </div>
+        <div class="col-12">
+            <div class="card recent-sales overflow-auto">
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Bộ lọc</h6>
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="filter-today">Hôm nay</a></li>
+                        <li><a class="dropdown-item" href="#" id="filter-month">Tháng này</a></li>
+                        <li><a class="dropdown-item" href="#" id="filter-year">Năm nay</a></li>
+                    </ul>
                 </div>
-            </div>
-        </div>
 
-        <div class="col-xxl-4 col-md-6">
-            <div class="card info-card revenue-card">
                 <div class="card-body">
-                    <h5 class="card-title">Đã xuất bản</h5>
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi bi-journal-check"></i>
-                        </div>
-                        <div class="ps-3">
-                            <h6>@ViewBag.PublishedDocuments</h6>
-                            <span class="text-muted small pt-2 ps-1">Tài liệu</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    <h5 class="card-title">Thống kê tổng quan <span>| Tất cả</span></h5>
 
-        <div class="col-xxl-4 col-md-6">
-            <div class="card info-card downloads-card">
-                <div class="card-body">
-                    <h5 class="card-title">Lượt tải</h5>
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi bi-cloud-download"></i>
+                    <div class="row">
+                        <!-- Tổng tài liệu -->
+                        <div class="col-xxl-3 col-md-6">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tổng tài liệu</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-journal-text text-primary"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.TotalDocuments</h6>
+                                            <span class="text-muted small pt-2 ps-1">Tài liệu</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="ps-3">
-                            <h6>@ViewBag.TotalDownloads</h6>
-                            <span class="text-muted small pt-2 ps-1">Lượt tải</span>
+
+                        <!-- Tài liệu đã xuất bản -->
+                        <div class="col-xxl-3 col-md-6">
+                            <div class="card info-card revenue-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Đã xuất bản</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-journal-check text-success"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.PublishedDocuments</h6>
+                                            <span class="text-success small pt-1 fw-bold">@(Math.Round((double)ViewBag.PublishedDocuments / ViewBag.TotalDocuments * 100, 1))%</span>
+                                            <span class="text-muted small pt-2 ps-1">của tổng số</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tài liệu bản nháp -->
+                        <div class="col-xxl-3 col-md-6">
+                            <div class="card info-card customers-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Bản nháp</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-file-earmark-text text-warning"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.DraftDocuments</h6>
+                                            <span class="text-warning small pt-1 fw-bold">@(Math.Round((double)ViewBag.DraftDocuments / ViewBag.TotalDocuments * 100, 1))%</span>
+                                            <span class="text-muted small pt-2 ps-1">của tổng số</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lượt tải -->
+                        <div class="col-xxl-3 col-md-6">
+                            <div class="card info-card downloads-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Lượt tải</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-cloud-download text-info"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.TotalDownloads</h6>
+                                            <span class="text-info small pt-1 fw-bold">
+                                                @(ViewBag.TotalDocuments > 0 ? Math.Round((double)ViewBag.TotalDownloads / ViewBag.TotalDocuments, 1) : 0)
+                                            </span>
+                                            <span class="text-muted small pt-2 ps-1">lượt/tài liệu</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
+    <div class="row">
+        <!-- Biểu đồ thống kê -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Thống kê lượt tải theo danh mục</h5>
+
+                    <!-- Biểu đồ cột -->
+                    <div id="categoriesBarChart" style="min-height: 400px;" class="echart"></div>
+
+                    @{
+                        // Chuẩn bị dữ liệu cho biểu đồ ở đây để tránh sử dụng lambda trong Razor
+                        var categoryNames = new List<string>();
+                        var documentCounts = new List<int>();
+                        var downloadCounts = new List<int>();
+                        
+                        if (ViewBag.CategoriesStats != null) 
+                        {
+                            foreach (var item in ViewBag.CategoriesStats)
+                            {
+                                categoryNames.Add(item.Category.CategoryName);
+                                documentCounts.Add(item.DocumentCount);
+                                downloadCounts.Add(item.DownloadCount);
+                            }
+                        }
+                        
+                        var categoryNamesJson = System.Text.Json.JsonSerializer.Serialize(categoryNames);
+                        var documentCountsJson = System.Text.Json.JsonSerializer.Serialize(documentCounts);
+                        var downloadCountsJson = System.Text.Json.JsonSerializer.Serialize(downloadCounts);
+                    }
+
+                    <script>
+                        document.addEventListener("DOMContentLoaded", () => {
+                            // Dữ liệu từ biến Razor đã được chuẩn bị trước
+                            const categoryNames = @Html.Raw(categoryNamesJson);
+                            const documentCounts = @Html.Raw(documentCountsJson);
+                            const downloadCounts = @Html.Raw(downloadCountsJson);
+
+                            echarts.init(document.querySelector("#categoriesBarChart")).setOption({
+                                tooltip: {
+                                    trigger: 'axis',
+                                    axisPointer: {
+                                        type: 'shadow'
+                                    }
+                                },
+                                legend: {
+                                    data: ['Số tài liệu', 'Lượt tải']
+                                },
+                                grid: {
+                                    left: '3%',
+                                    right: '4%',
+                                    bottom: '3%',
+                                    containLabel: true
+                                },
+                                xAxis: {
+                                    type: 'value',
+                                },
+                                yAxis: {
+                                    type: 'category',
+                                    data: categoryNames,
+                                    axisLabel: {
+                                        width: 100,
+                                        overflow: 'truncate',
+                                        interval: 0
+                                    }
+                                },
+                                series: [
+                                    {
+                                        name: 'Số tài liệu',
+                                        type: 'bar',
+                                        stack: 'total',
+                                        label: {
+                                            show: true
+                                        },
+                                        emphasis: {
+                                            focus: 'series'
+                                        },
+                                        data: documentCounts
+                                    },
+                                    {
+                                        name: 'Lượt tải',
+                                        type: 'bar',
+                                        stack: 'total',
+                                        label: {
+                                            show: true
+                                        },
+                                        emphasis: {
+                                            focus: 'series'
+                                        },
+                                        data: downloadCounts
+                                    }
+                                ]
+                            });
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ tròn - Tỷ lệ tài liệu theo trạng thái -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tỷ lệ tài liệu theo trạng thái</h5>
+
+                    <!-- Biểu đồ tròn -->
+                    <div id="statusPieChart" style="min-height: 400px;" class="echart"></div>
+
+                    <script>
+                        document.addEventListener("DOMContentLoaded", () => {
+                            const published = @ViewBag.PublishedDocuments;
+                            const draft = @ViewBag.DraftDocuments;
+                            const total = @ViewBag.TotalDocuments;
+                            const other = total - published - draft;
+
+                            echarts.init(document.querySelector("#statusPieChart")).setOption({
+                                tooltip: {
+                                    trigger: 'item'
+                                },
+                                legend: {
+                                    top: '5%',
+                                    left: 'center'
+                                },
+                                series: [{
+                                    name: 'Trạng thái',
+                                    type: 'pie',
+                                    radius: ['40%', '70%'],
+                                    avoidLabelOverlap: false,
+                                    label: {
+                                        show: false,
+                                        position: 'center'
+                                    },
+                                    emphasis: {
+                                        label: {
+                                            show: true,
+                                            fontSize: '18',
+                                            fontWeight: 'bold'
+                                        }
+                                    },
+                                    labelLine: {
+                                        show: false
+                                    },
+                                    data: [
+                                        { value: published, name: 'Đã xuất bản' },
+                                        { value: draft, name: 'Bản nháp' },
+                                        { value: other, name: 'Khác' }
+                                    ]
+                                }]
+                            });
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Top 10 tài liệu được tải nhiều nhất -->
         <div class="col-12">
-            <div class="card">
+            <div class="card recent-sales overflow-auto">
                 <div class="card-body">
                     <h5 class="card-title">Top 10 tài liệu được tải nhiều nhất</h5>
+
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-borderless datatable">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Tiêu đề</th>
-                                    <th>Danh mục</th>
-                                    <th>Tác giả</th>
-                                    <th>Lượt tải</th>
-                                    <th>Thao tác</th>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Tài liệu</th>
+                                    <th scope="col">Danh mục</th>
+                                    <th scope="col">Tác giả</th>
+                                    <th scope="col">Lượt tải</th>
+                                    <th scope="col">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -83,17 +287,48 @@
                                     @foreach (var item in ViewBag.TopDownloadedDocuments)
                                     {
                                         <tr>
-                                            <td>@item.Document.DocumentID</td>
-                                            <td>@item.Document.Title</td>
+                                            <th scope="row"><a href="@Url.Action("Details", new { id = item.Document.DocumentID })">@item.Document.DocumentID</a></th>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="document-img me-2" style="width: 38px; height: 38px; overflow: hidden; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                        @{
+                                                            string imagePath = string.IsNullOrEmpty(item.Document.ImagePath) 
+                                                                ? "/img/document-placeholder.jpg" 
+                                                                : item.Document.ImagePath;
+                                                        }
+                                                        <img src="@imagePath" alt="@item.Document.Title" style="width: 100%; height: 100%; object-fit: cover;">
+                                                    </div>
+                                                    <span class="text-primary fw-bold">@item.Document.Title</span>
+                                                </div>
+                                            </td>
                                             <td>@(item.Document.Category?.CategoryName ?? "Không có")</td>
                                             <td>@(item.Document.Author?.AuthorName ?? "Không có")</td>
                                             <td>
-                                                <span class="badge bg-success">@item.DownloadCount lượt tải</span>
+                                                <span class="badge bg-success rounded-pill">@item.DownloadCount</span>
                                             </td>
                                             <td>
-                                                <a asp-action="Details" asp-route-id="@item.Document.DocumentID" class="btn btn-sm btn-outline-info">
-                                                    <i class="bi bi-eye"></i> Xem
-                                                </a>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        <i class="bi bi-gear me-1"></i>Tác vụ
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                        <li>
+                                                            <a class="dropdown-item" href="@Url.Action("Details", new { id = item.Document.DocumentID })">
+                                                                <i class="bi bi-eye me-2"></i>Xem chi tiết
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="@Url.Action("Edit", new { id = item.Document.DocumentID })">
+                                                                <i class="bi bi-pencil me-2"></i>Chỉnh sửa
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="@item.Document.FilePath" target="_blank">
+                                                                <i class="bi bi-file-earmark-text me-2"></i>Mở tài liệu
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
                                             </td>
                                         </tr>
                                     }
@@ -110,46 +345,103 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Thống kê theo danh mục -->
+
+        <!-- Thống kê theo danh mục dạng bảng -->
         <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Thống kê theo danh mục</h5>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Danh mục</th>
-                                    <th>Số tài liệu</th>
-                                    <th>Lượt tải</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (ViewBag.CategoriesStats != null)
+            <div class="card top-selling overflow-auto">
+                <div class="card-body pb-0">
+                    <h5 class="card-title">Thống kê chi tiết theo danh mục</h5>
+
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Danh mục</th>
+                                <th scope="col">Số tài liệu</th>
+                                <th scope="col">Lượt tải</th>
+                                <th scope="col">Tỷ lệ tải trung bình</th>
+                                <th scope="col">Hiệu suất</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ViewBag.CategoriesStats != null)
+                            {
+                                @foreach (var item in ViewBag.CategoriesStats)
                                 {
-                                    @foreach (var item in ViewBag.CategoriesStats)
-                                    {
-                                        <tr>
-                                            <td>@item.Category.CategoryID</td>
-                                            <td>@item.Category.CategoryName</td>
-                                            <td>@item.DocumentCount</td>
-                                            <td>@item.DownloadCount</td>
-                                        </tr>
-                                    }
-                                }
-                                else
-                                {
+                                    double avgDownloads = item.DocumentCount > 0 ? (double)item.DownloadCount / item.DocumentCount : 0;
+                                    double efficiency = item.DocumentCount > 0 ? (double)item.DownloadCount / item.DocumentCount / 
+                                        (ViewBag.TotalDownloads > 0 ? (double)ViewBag.TotalDownloads / ViewBag.TotalDocuments : 1) : 0;
+                                    
+                                    string efficiencyClass = efficiency < 0.8 ? "text-danger" : 
+                                                            efficiency < 1.0 ? "text-warning" : 
+                                                            efficiency < 1.5 ? "text-success" : "text-primary";
                                     <tr>
-                                        <td colspan="4" class="text-center">Không có dữ liệu</td>
+                                        <th scope="row">@item.Category.CategoryID</th>
+                                        <td><a href="#" class="text-primary fw-bold">@item.Category.CategoryName</a></td>
+                                        <td>@item.DocumentCount</td>
+                                        <td>@item.DownloadCount</td>
+                                        <td>@Math.Round(avgDownloads, 1)</td>
+                                        <td class="@efficiencyClass fw-bold">
+                                            @if (efficiency < 0.8)
+                                            {
+                                                <i class="bi bi-arrow-down-circle me-1"></i>
+                                            }
+                                            else if (efficiency < 1.0)
+                                            {
+                                                <i class="bi bi-dash-circle me-1"></i>
+                                            }
+                                            else if (efficiency < 1.5)
+                                            {
+                                                <i class="bi bi-arrow-up-circle me-1"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-star-fill me-1"></i>
+                                            }
+                                            @Math.Round(efficiency * 100, 0)%
+                                        </td>
                                     </tr>
                                 }
-                            </tbody>
-                        </table>
-                    </div>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center">Không có dữ liệu</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-</section> 
+</section>
+
+@section Scripts {
+    <!-- Thêm thư viện ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    
+    <script>
+        // Xử lý bộ lọc
+        document.addEventListener("DOMContentLoaded", () => {
+            // Bộ lọc thời gian
+            document.getElementById('filter-today').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.card-title span').textContent = "| Hôm nay";
+                // Đây là nơi bạn sẽ gọi API để lấy dữ liệu cho hôm nay
+            });
+            
+            document.getElementById('filter-month').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.card-title span').textContent = "| Tháng này";
+                // Đây là nơi bạn sẽ gọi API để lấy dữ liệu cho tháng này
+            });
+            
+            document.getElementById('filter-year').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.card-title span').textContent = "| Năm nay";
+                // Đây là nơi bạn sẽ gọi API để lấy dữ liệu cho năm nay
+            });
+        });
+    </script>
+} 

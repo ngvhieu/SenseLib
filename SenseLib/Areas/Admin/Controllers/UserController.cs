@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Cryptography;
 using System.Text;
+using SenseLib.Areas.Admin.Models.ViewModels;
 
 namespace SenseLib.Areas.Admin.Controllers
 {
@@ -121,77 +122,99 @@ namespace SenseLib.Areas.Admin.Controllers
                 return NotFound();
             }
             
-            // Không hiển thị mật khẩu gốc
-            user.Password = string.Empty;
+            // Tạo ViewModel từ model User
+            var viewModel = new UserEditViewModel(user);
             
-            return View(user);
+            // Đặt một giá trị mặc định cho trường mật khẩu
+            viewModel.Password = "********"; // Giá trị placeholder
+            
+            return View(viewModel);
         }
 
         // POST: Admin/User/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("UserID,Username,Password,Email,FullName,Role,Status")] User user)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id != user.UserID)
+            // Lấy thông tin user hiện tại
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
             {
                 return NotFound();
             }
 
-            // Nếu mật khẩu trống, bỏ qua lỗi validation cho trường Password
-            if (string.IsNullOrEmpty(user.Password))
+            try
             {
-                ModelState.Remove("Password");
-            }
+                // Cập nhật thông tin từ form
+                var username = Request.Form["Username"].ToString();
+                var email = Request.Form["Email"].ToString();
+                var fullName = Request.Form["FullName"].ToString();
+                var role = Request.Form["Role"].ToString();
+                var status = Request.Form["Status"].ToString();
+                var password = Request.Form["Password"].ToString();
 
-            if (ModelState.IsValid)
-            {
-                try
+                // Kiểm tra các trường bắt buộc
+                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) ||
+                    string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(role) ||
+                    string.IsNullOrEmpty(status))
                 {
-                    var existingUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserID == id);
-                    
-                    // Kiểm tra xem username đã tồn tại chưa (nếu thay đổi)
-                    if (existingUser.Username != user.Username && await _context.Users.AnyAsync(u => u.Username == user.Username))
-                    {
-                        ModelState.AddModelError("Username", "Tên đăng nhập đã tồn tại");
-                        return View(user);
-                    }
-
-                    // Kiểm tra xem email đã tồn tại chưa (nếu thay đổi)
-                    if (existingUser.Email != user.Email && await _context.Users.AnyAsync(u => u.Email == user.Email))
-                    {
-                        ModelState.AddModelError("Email", "Email đã tồn tại");
-                        return View(user);
-                    }
-
-                    // Nếu mật khẩu trống, giữ nguyên mật khẩu cũ
-                    if (string.IsNullOrEmpty(user.Password))
-                    {
-                        user.Password = existingUser.Password;
-                    }
-                    else
-                    {
-                        // Mã hóa mật khẩu mới
-                        user.Password = HashPassword(user.Password);
-                    }
-
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Cập nhật tài khoản thành công";
+                    TempData["ErrorMessage"] = "Vui lòng điền đầy đủ thông tin bắt buộc";
+                    return RedirectToAction(nameof(Edit), new { id = id });
                 }
-                catch (DbUpdateConcurrencyException)
+
+                // Kiểm tra xem username đã tồn tại chưa (nếu thay đổi)
+                if (user.Username != username && await _context.Users.AnyAsync(u => u.Username == username))
                 {
-                    if (!UserExists(user.UserID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    TempData["ErrorMessage"] = "Tên đăng nhập đã tồn tại";
+                    return RedirectToAction(nameof(Edit), new { id = id });
                 }
+
+                // Kiểm tra xem email đã tồn tại chưa (nếu thay đổi)
+                if (user.Email != email && await _context.Users.AnyAsync(u => u.Email == email))
+                {
+                    TempData["ErrorMessage"] = "Email đã tồn tại";
+                    return RedirectToAction(nameof(Edit), new { id = id });
+                }
+
+                // Cập nhật các trường
+                user.Username = username;
+                user.Email = email;
+                user.FullName = fullName;
+                user.Role = role;
+                user.Status = status;
+                
+                // Cập nhật mật khẩu nếu có thay đổi và không phải là placeholder
+                if (!string.IsNullOrEmpty(password) && password != "********")
+                {
+                    user.Password = HashPassword(password);
+                    TempData["PasswordChanged"] = "Mật khẩu đã được cập nhật";
+                }
+                else
+                {
+                    TempData["PasswordInfo"] = "Mật khẩu không thay đổi";
+                }
+
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Cập nhật tài khoản thành công";
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Có lỗi xảy ra: {ex.Message}";
+                return RedirectToAction(nameof(Edit), new { id = id });
+            }
         }
 
         // GET: Admin/User/Delete/5

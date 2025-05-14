@@ -59,26 +59,7 @@ namespace SenseLib.Services
                     return true; // Đã tồn tại, không cần thêm nữa
                 }
                 
-                // Kiểm tra tài liệu có tồn tại không
-                var document = await _context.Documents.FindAsync(documentId);
-                if (document == null)
-                {
-                    _logger.LogWarning("Không thể thêm yêu thích - Tài liệu {DocumentId} không tồn tại", documentId);
-                    return false; // Tài liệu không tồn tại
-                }
-                
-                // Kiểm tra người dùng có tồn tại không
-                var user = await _context.Users.FindAsync(userId);
-                if (user == null)
-                {
-                    _logger.LogWarning("Không thể thêm yêu thích - Người dùng {UserId} không tồn tại", userId);
-                    return false; // Người dùng không tồn tại
-                }
-                
-                // Log trạng thái DbContext trước khi tạo đối tượng Favorite
-                _logger.LogDebug("Trạng thái DbContext trước khi thêm: CanConnect={CanConnect}", _context.Database.CanConnect());
-                
-                // Thử thêm trực tiếp bằng SQL trước
+                // Thử thêm trực tiếp bằng SQL trước (cách an toàn nhất)
                 try
                 {
                     using (var command = _context.Database.GetDbConnection().CreateCommand())
@@ -92,7 +73,7 @@ namespace SenseLib.Services
                         var rowsAffected = await command.ExecuteNonQueryAsync();
                         _logger.LogInformation("Thêm yêu thích bằng SQL trực tiếp: {Result} rows affected", rowsAffected);
                         
-                        // Kiểm tra xem đã tồn tại chưa
+                        // Kiểm tra xem đã thêm thành công chưa
                         command.CommandText = $"SELECT COUNT(1) FROM Favorites WHERE UserID = {userId} AND DocumentID = {documentId}";
                         var result = await command.ExecuteScalarAsync();
                         var count = Convert.ToInt32(result);
@@ -122,84 +103,23 @@ namespace SenseLib.Services
                 // Thêm vào database và lưu thay đổi
                 _context.Favorites.Add(favorite);
                 
-                // Theo dõi thay đổi trước khi lưu
-                var entries = _context.ChangeTracker.Entries().Where(e => e.State == EntityState.Added).ToList();
-                _logger.LogDebug("Số lượng entities đang được theo dõi để thêm: {Count}", entries.Count);
-                
+                // Thử lưu vào cơ sở dữ liệu
                 try
                 {
                     var rowsAffected = await _context.SaveChangesAsync();
-                    
                     _logger.LogInformation("SaveChanges đã hoàn thành - Rows affected: {RowsAffected}", rowsAffected);
-                    
-                    if (rowsAffected > 0)
-                    {
-                        _logger.LogInformation("Đã thêm tài liệu {DocumentId} vào yêu thích của người dùng {UserId}", documentId, userId);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Không có thay đổi nào được lưu khi thêm tài liệu {DocumentId} vào yêu thích", documentId);
-                    }
-                    
-                    // Xác thực trực tiếp bằng SQL thuần
-                    using (var command = _context.Database.GetDbConnection().CreateCommand())
-                    {
-                        command.CommandText = $"SELECT COUNT(1) FROM Favorites WHERE UserID = {userId} AND DocumentID = {documentId}";
-                        
-                        if (command.Connection.State != System.Data.ConnectionState.Open)
-                            await command.Connection.OpenAsync();
-                            
-                        var result = await command.ExecuteScalarAsync();
-                        var count = Convert.ToInt32(result);
-                        
-                        _logger.LogInformation("Kiểm tra SQL trực tiếp - Số bản ghi tìm thấy: {Count}", count);
-                        
-                        return count > 0;
-                    }
+                    return rowsAffected > 0;
                 }
-                catch (DbUpdateException dbEx)
+                catch (Exception ex)
                 {
-                    _logger.LogError(dbEx, "DbUpdateException khi lưu yêu thích - Message: {Message}", dbEx.Message);
-                    
-                    if (dbEx.InnerException != null)
-                    {
-                        _logger.LogError(dbEx.InnerException, "Inner exception: {Message}", dbEx.InnerException.Message);
-                    }
-                    
-                    // Cố gắng thực hiện thêm bằng SQL thuần
-                    try
-                    {
-                        _logger.LogWarning("Thử thêm bằng SQL thuần sau khi EF Core thất bại");
-                        using (var command = _context.Database.GetDbConnection().CreateCommand())
-                        {
-                            command.CommandText = $"IF NOT EXISTS (SELECT 1 FROM Favorites WHERE UserID = {userId} AND DocumentID = {documentId}) " +
-                                                $"INSERT INTO Favorites (UserID, DocumentID) VALUES ({userId}, {documentId})";
-                            
-                            if (command.Connection.State != System.Data.ConnectionState.Open)
-                                await command.Connection.OpenAsync();
-                                
-                            var result = await command.ExecuteNonQueryAsync();
-                            _logger.LogInformation("Kết quả thêm bằng SQL thuần: {Result} rows affected", result);
-                            
-                            // Kiểm tra xem đã tồn tại chưa
-                            command.CommandText = $"SELECT COUNT(1) FROM Favorites WHERE UserID = {userId} AND DocumentID = {documentId}";
-                            var checkResult = await command.ExecuteScalarAsync();
-                            var count = Convert.ToInt32(checkResult);
-                            
-                            return count > 0;
-                        }
-                    }
-                    catch (Exception sqlEx)
-                    {
-                        _logger.LogError(sqlEx, "Lỗi khi thêm bằng SQL thuần: {Message}", sqlEx.Message);
-                        throw;
-                    }
+                    _logger.LogError(ex, "Lỗi khi lưu Favorite vào cơ sở dữ liệu: {Message}", ex.Message);
+                    return false;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi thêm tài liệu vào yêu thích. UserId: {UserId}, DocumentId: {DocumentId}", userId, documentId);
-                throw new Exception("Không thể thêm tài liệu vào yêu thích", ex);
+                return false; // Trả về false thay vì ném exception để xử lý lỗi một cách nhẹ nhàng hơn
             }
         }
         
@@ -208,36 +128,77 @@ namespace SenseLib.Services
         {
             try
             {
+                _logger.LogInformation("Bắt đầu xóa yêu thích - UserId: {UserId}, DocumentId: {DocumentId}", userId, documentId);
+                
+                // Kiểm tra bản ghi có tồn tại không
+                var exists = await IsFavorite(userId, documentId);
+                if (!exists)
+                {
+                    _logger.LogInformation("Tài liệu {DocumentId} không có trong yêu thích của người dùng {UserId}", documentId, userId);
+                    return true; // Không tồn tại, coi như đã xóa thành công
+                }
+                
+                // Thử xóa trực tiếp bằng SQL trước (cách an toàn nhất)
+                try
+                {
+                    using (var command = _context.Database.GetDbConnection().CreateCommand())
+                    {
+                        command.CommandText = $"DELETE FROM Favorites WHERE UserID = {userId} AND DocumentID = {documentId}";
+                        
+                        if (command.Connection.State != System.Data.ConnectionState.Open)
+                            await command.Connection.OpenAsync();
+                            
+                        var rowsAffected = await command.ExecuteNonQueryAsync();
+                        _logger.LogInformation("Xóa yêu thích bằng SQL trực tiếp: {Result} rows affected", rowsAffected);
+                        
+                        // Kiểm tra xem đã xóa thành công chưa
+                        command.CommandText = $"SELECT COUNT(1) FROM Favorites WHERE UserID = {userId} AND DocumentID = {documentId}";
+                        var result = await command.ExecuteScalarAsync();
+                        var count = Convert.ToInt32(result);
+                        
+                        if (count == 0)
+                        {
+                            _logger.LogInformation("Đã xóa yêu thích thành công bằng SQL trực tiếp");
+                            return true;
+                        }
+                    }
+                }
+                catch (Exception sqlEx)
+                {
+                    _logger.LogWarning(sqlEx, "Không thể xóa yêu thích bằng SQL trực tiếp: {Message}. Thử bằng EF Core", sqlEx.Message);
+                    // Tiếp tục thực hiện bằng Entity Framework
+                }
+                
+                // Nếu xóa bằng SQL không thành công, thử dùng Entity Framework
                 // Tìm bản ghi yêu thích
                 var favorite = await _context.Favorites
                     .FirstOrDefaultAsync(f => f.UserID == userId && f.DocumentID == documentId);
                     
                 if (favorite == null)
                 {
-                    _logger.LogInformation("Tài liệu {DocumentId} không có trong yêu thích của người dùng {UserId}", documentId, userId);
+                    _logger.LogInformation("Không tìm thấy bản ghi yêu thích trong cơ sở dữ liệu");
                     return true; // Không tồn tại, coi như đã xóa thành công
                 }
                 
                 // Xóa bản ghi
                 _context.Favorites.Remove(favorite);
-                var rowsAffected = await _context.SaveChangesAsync();
                 
-                if (rowsAffected > 0)
+                try
                 {
-                    _logger.LogInformation("Đã xóa tài liệu {DocumentId} khỏi yêu thích của người dùng {UserId}", documentId, userId);
+                    var rowsAffected = await _context.SaveChangesAsync();
+                    _logger.LogInformation("SaveChanges đã hoàn thành - Rows affected: {RowsAffected}", rowsAffected);
+                    return rowsAffected > 0;
                 }
-                else
+                catch (Exception ex)
                 {
-                    _logger.LogWarning("Không có thay đổi nào được lưu khi xóa tài liệu {DocumentId} khỏi yêu thích", documentId);
+                    _logger.LogError(ex, "Lỗi khi xóa Favorite khỏi cơ sở dữ liệu: {Message}", ex.Message);
+                    return false;
                 }
-                
-                // Kiểm tra xem đã xóa thành công chưa
-                return !(await IsFavorite(userId, documentId));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi xóa tài liệu khỏi yêu thích. UserId: {UserId}, DocumentId: {DocumentId}", userId, documentId);
-                throw new Exception("Không thể xóa tài liệu khỏi yêu thích", ex);
+                return false; // Trả về false thay vì ném exception để xử lý lỗi một cách nhẹ nhàng hơn
             }
         }
         
@@ -246,11 +207,13 @@ namespace SenseLib.Services
         {
             try
             {
+                _logger.LogInformation("ToggleFavorite - Bắt đầu cho UserId: {UserId}, DocumentId: {DocumentId}", userId, documentId);
+                
                 // Kiểm tra trạng thái hiện tại
                 var isFavorite = await IsFavorite(userId, documentId);
-                _logger.LogInformation("ToggleFavorite - Trạng thái hiện tại: {IsFavorite} cho UserId: {UserId}, DocumentId: {DocumentId}", 
-                    isFavorite ? "Đã yêu thích" : "Chưa yêu thích", userId, documentId);
+                _logger.LogInformation("ToggleFavorite - Trạng thái hiện tại: {IsFavorite}", isFavorite ? "Đã yêu thích" : "Chưa yêu thích");
                 
+                // Thực hiện thêm hoặc xóa yêu thích mà không kiểm tra việc mua tài liệu
                 bool result;
                 if (isFavorite)
                 {
@@ -270,7 +233,51 @@ namespace SenseLib.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi toggle yêu thích. UserId: {UserId}, DocumentId: {DocumentId}", userId, documentId);
-                throw;
+                
+                // Thêm logging chi tiết để debug
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError("Inner Exception: {Message}", ex.InnerException.Message);
+                }
+                
+                // Thử cách khác: sử dụng SQL trực tiếp
+                try
+                {
+                    _logger.LogWarning("Thử toggle bằng SQL thuần...");
+                    using (var command = _context.Database.GetDbConnection().CreateCommand())
+                    {
+                        // Kiểm tra có tồn tại không
+                        command.CommandText = $"SELECT COUNT(1) FROM Favorites WHERE UserID = {userId} AND DocumentID = {documentId}";
+                        
+                        if (command.Connection.State != System.Data.ConnectionState.Open)
+                            await command.Connection.OpenAsync();
+                            
+                        var countResult = await command.ExecuteScalarAsync();
+                        var exists = Convert.ToInt32(countResult) > 0;
+                        
+                        if (exists)
+                        {
+                            // Xóa
+                            command.CommandText = $"DELETE FROM Favorites WHERE UserID = {userId} AND DocumentID = {documentId}";
+                            await command.ExecuteNonQueryAsync();
+                            _logger.LogInformation("SQL: Đã xóa yêu thích");
+                            return false;
+                        }
+                        else
+                        {
+                            // Thêm
+                            command.CommandText = $"INSERT INTO Favorites (UserID, DocumentID) VALUES ({userId}, {documentId})";
+                            await command.ExecuteNonQueryAsync();
+                            _logger.LogInformation("SQL: Đã thêm yêu thích");
+                            return true;
+                        }
+                    }
+                }
+                catch (Exception sqlEx)
+                {
+                    _logger.LogError(sqlEx, "Cả hai phương pháp đều thất bại. Lỗi SQL: {Message}", sqlEx.Message);
+                    throw;
+                }
             }
         }
         
@@ -288,7 +295,7 @@ namespace SenseLib.Services
                         f => f.DocumentID,
                         d => d.DocumentID,
                         (f, d) => d)
-                    .Where(d => d.Status == "Published")
+                    .Where(d => d.Status == "Published" || d.Status == "Approved")
                     .Include(d => d.Author)
                     .Include(d => d.Category)
                     .Include(d => d.Publisher)
@@ -336,7 +343,7 @@ namespace SenseLib.Services
                         f => f.DocumentID,
                         d => d.DocumentID,
                         (f, d) => d)
-                    .Where(d => d.Status == "Published")
+                    .Where(d => d.Status == "Published" || d.Status == "Approved")
                     .CountAsync();
                 
                 return count;

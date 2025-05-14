@@ -1,0 +1,122 @@
+@model SenseLib.Models.Document
+@{
+    ViewData["Title"] = "Xác nhận xóa tài liệu";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">@ViewData["Title"]</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Cảnh báo:</strong> Hành động này không thể hoàn tác. Tất cả dữ liệu liên quan đến tài liệu sẽ bị xóa vĩnh viễn.
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="mb-3">Thông tin tài liệu:</h5>
+                        <div class="card mb-3">
+                            <div class="row g-0">
+                                <div class="col-md-3">
+                                    @{
+                                        string imagePath = string.IsNullOrEmpty(Model.ImagePath) ? "/img/document-placeholder.jpg" : Model.ImagePath;
+                                    }
+                                    <img src="@imagePath" class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="@Model.Title">
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@Model.Title</h5>
+                                        <p class="card-text mb-2">
+                                            <small class="text-muted">
+                                                <i class="bi bi-person me-1"></i> 
+                                                Tác giả: @(Model.Author?.AuthorName ?? "Không có")
+                                            </small>
+                                        </p>
+                                        <p class="card-text mb-2">
+                                            <small class="text-muted">
+                                                <i class="bi bi-folder me-1"></i> 
+                                                Danh mục: @(Model.Category?.CategoryName ?? "Không có")
+                                            </small>
+                                        </p>
+                                        <p class="card-text mb-2">
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i> 
+                                                Ngày tải lên: @Model.UploadDate.ToString("dd/MM/yyyy HH:mm")
+                                            </small>
+                                        </p>
+                                        <p class="card-text mb-2">
+                                            <small class="text-muted">
+                                                <i class="bi bi-tag me-1"></i> 
+                                                Giá: @(Model.IsPaid ? $"{Model.Price?.ToString("N0")} ₫" : "Miễn phí")
+                                            </small>
+                                        </p>
+                                        <p class="card-text">
+                                            <span class="badge bg-@(Model.Status == "Approved" ? "success" : Model.Status == "Pending" ? "warning" : "danger")">
+                                                @(Model.Status == "Approved" ? "Đã duyệt" : Model.Status == "Pending" ? "Chờ duyệt" : "Từ chối")
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.Status == "Approved")
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-x-circle-fill me-2"></i>
+                            <strong>Không thể xóa!</strong> Tài liệu đã được duyệt không thể xóa. Vui lòng liên hệ với quản trị viên để được hỗ trợ.
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mt-4">
+                            <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="Delete" method="post">
+                            <input type="hidden" asp-for="DocumentID" />
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Xác nhận bằng cách nhập "XÓA TÀI LIỆU"</label>
+                                <input type="text" id="confirmDelete" class="form-control" placeholder="XÓA TÀI LIỆU" required />
+                                <div class="invalid-feedback">
+                                    Vui lòng nhập chính xác cụm từ "XÓA TÀI LIỆU" để xác nhận
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end mt-4">
+                                <a asp-action="Index" class="btn btn-secondary me-2">Hủy bỏ</a>
+                                <button type="submit" class="btn btn-danger" id="btnDelete" disabled>Xóa vĩnh viễn</button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var confirmInput = document.getElementById('confirmDelete');
+            var deleteButton = document.getElementById('btnDelete');
+            
+            if (confirmInput && deleteButton) {
+                confirmInput.addEventListener('input', function() {
+                    deleteButton.disabled = this.value !== 'XÓA TÀI LIỆU';
+                    
+                    if (this.value && this.value !== 'XÓA TÀI LIỆU') {
+                        confirmInput.classList.add('is-invalid');
+                    } else {
+                        confirmInput.classList.remove('is-invalid');
+                    }
+                });
+            }
+        });
+    </script>
+} 

@@ -283,7 +283,7 @@ namespace SenseLib.Controllers
                 var document = await _context.Documents.FindAsync(id);
                 if (document == null)
                 {
-                    TempData["Error"] = "Tài liệu không tồn tại";
+                    TempData["ErrorMessage"] = "Tài liệu không tồn tại";
                     return RedirectToAction("Index");
                 }
                 
@@ -295,7 +295,7 @@ namespace SenseLib.Controllers
                     userId, isFavoriteNow ? "thêm" : "xóa", id);
                 
                 // Thông báo kết quả
-                TempData["Message"] = isFavoriteNow 
+                TempData["SuccessMessage"] = isFavoriteNow 
                     ? "Đã thêm vào danh sách yêu thích" 
                     : "Đã xóa khỏi danh sách yêu thích";
                 
@@ -304,7 +304,7 @@ namespace SenseLib.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi toggle yêu thích. DocumentId: {DocumentId}", id);
-                TempData["Error"] = $"Lỗi: {ex.Message}";
+                TempData["ErrorMessage"] = $"Lỗi: {ex.Message}";
                 return RedirectToAction(nameof(Details), new { id });
             }
         }
@@ -315,134 +315,34 @@ namespace SenseLib.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleFavoriteAjax(int id)
         {
+            _logger.LogInformation("Bắt đầu ToggleFavoriteAjax - DocumentId: {DocumentId}", id);
+            
             try
             {
+                // Lấy user ID
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-                
-                _logger.LogInformation("Bắt đầu ToggleFavoriteAjax - UserId: {UserId}, DocumentId: {DocumentId}", userId, id);
+                _logger.LogInformation("UserId: {UserId}", userId);
                 
                 // Kiểm tra tài liệu có tồn tại không
                 var document = await _context.Documents.FindAsync(id);
                 if (document == null)
                 {
-                    _logger.LogWarning("Không thể toggle yêu thích - Tài liệu {DocumentId} không tồn tại", id);
+                    _logger.LogWarning("Tài liệu không tồn tại - ID: {DocumentId}", id);
                     return Json(new { success = false, message = "Tài liệu không tồn tại" });
                 }
                 
-                // Kiểm tra người dùng tồn tại
-                var user = await _context.Users.FindAsync(userId);
-                if (user == null)
-                {
-                    _logger.LogWarning("Không thể toggle yêu thích - Người dùng {UserId} không tồn tại", userId);
-                    return Json(new { success = false, message = "Người dùng không tồn tại" });
-                }
-                
-                // Kiểm tra trạng thái yêu thích hiện tại trước khi toggle
-                var currentFavoriteStatus = await _favoriteService.IsFavorite(userId, id);
-                _logger.LogInformation("Trạng thái yêu thích hiện tại: {Status}", currentFavoriteStatus ? "Đã yêu thích" : "Chưa yêu thích");
-                
-                // Thực hiện toggle yêu thích
-                bool resultSuccess = false;
-                bool isFavoriteNow = false;
-                
-                try
-                {
-                    // Nếu chưa yêu thích, thử thêm trực tiếp vào cơ sở dữ liệu
-                    if (!currentFavoriteStatus)
-                    {
-                        _logger.LogInformation("Thử thêm yêu thích trực tiếp vào cơ sở dữ liệu");
-                        
-                        // Thử thêm bằng cách tạo entity mới
-                        var favorite = new Favorite
-                        {
-                            UserID = userId,
-                            DocumentID = id
-                        };
-                        
-                        _context.Favorites.Add(favorite);
-                        try 
-                        {
-                            var rowsAffected = await _context.SaveChangesAsync();
-                            _logger.LogInformation("Đã thêm yêu thích trực tiếp - Rows affected: {Rows}", rowsAffected);
-                            resultSuccess = true;
-                            isFavoriteNow = true;
-                        }
-                        catch (DbUpdateException dbEx)
-                        {
-                            _logger.LogWarning(dbEx, "Lỗi khi thêm trực tiếp: {Message}", dbEx.Message);
-                            
-                            // Nếu thất bại, thử bằng SQL
-                            try
-                            {
-                                using (var command = _context.Database.GetDbConnection().CreateCommand())
-                                {
-                                    command.CommandText = $"IF NOT EXISTS (SELECT 1 FROM Favorites WHERE UserID = {userId} AND DocumentID = {id}) " +
-                                                       $"INSERT INTO Favorites (UserID, DocumentID) VALUES ({userId}, {id})";
-                                    
-                                    if (command.Connection.State != System.Data.ConnectionState.Open)
-                                        await command.Connection.OpenAsync();
-                                        
-                                    var result = await command.ExecuteNonQueryAsync();
-                                    _logger.LogInformation("Thêm yêu thích bằng SQL: {Result} rows affected", result);
-                                    resultSuccess = true;
-                                    isFavoriteNow = true;
-                                }
-                            }
-                            catch (Exception sqlEx)
-                            {
-                                _logger.LogError(sqlEx, "Lỗi khi thêm bằng SQL: {Message}", sqlEx.Message);
-                                // Tiếp tục thử phương thức service
-                            }
-                        }
-                    }
-                    
-                    // Nếu chưa thành công, thử dùng service
-                    if (!resultSuccess)
-                    {
-                        _logger.LogInformation("Thử dùng service ToggleFavorite");
-                        isFavoriteNow = await _favoriteService.ToggleFavorite(userId, id);
-                        _logger.LogInformation("Kết quả toggle từ service: {Result}", isFavoriteNow ? "Đã thêm yêu thích" : "Đã xóa yêu thích");
-                        resultSuccess = true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Lỗi khi thực hiện ToggleFavorite. UserId: {UserId}, DocumentId: {DocumentId}", userId, id);
-                    throw;
-                }
-                
-                // Kiểm tra lại trạng thái sau khi toggle để xác nhận
-                var newStatus = await _favoriteService.IsFavorite(userId, id);
-                _logger.LogInformation("Trạng thái yêu thích sau khi toggle: {Status}", newStatus ? "Đã yêu thích" : "Chưa yêu thích");
-                
-                // Sử dụng giá trị kiểm tra trực tiếp thay vì giá trị trả về
-                isFavoriteNow = newStatus;
+                // Thực hiện toggle favorite bằng service
+                bool isFavoriteNow = await _favoriteService.ToggleFavorite(userId, id);
                 
                 // Ghi log
-                _logger.LogInformation("Người dùng {UserId} đã {Action} yêu thích tài liệu {DocumentId} qua Ajax", 
+                _logger.LogInformation("Kết quả: Người dùng {UserId} đã {Action} yêu thích tài liệu {DocumentId}", 
                     userId, isFavoriteNow ? "thêm" : "xóa", id);
                 
-                // Thực hiện kiểm tra SQL trực tiếp để xác minh
-                bool sqlVerification = false;
-                using (var command = _context.Database.GetDbConnection().CreateCommand())
-                {
-                    command.CommandText = $"SELECT COUNT(1) FROM Favorites WHERE UserID = {userId} AND DocumentID = {id}";
-                    
-                    if (command.Connection.State != System.Data.ConnectionState.Open)
-                        await command.Connection.OpenAsync();
-                        
-                    var result = await command.ExecuteScalarAsync();
-                    var count = Convert.ToInt32(result);
-                    sqlVerification = count > 0;
-                    
-                    _logger.LogInformation("Xác minh SQL: {Result} ({Count} bản ghi)", 
-                        sqlVerification ? "Đã yêu thích" : "Chưa yêu thích", count);
-                }
-                
+                // Trả về kết quả
                 return Json(new { 
                     success = true, 
-                    isFavorite = sqlVerification, // Sử dụng kết quả xác minh SQL
-                    message = sqlVerification 
+                    isFavorite = isFavoriteNow,
+                    message = isFavoriteNow 
                         ? "Đã thêm vào danh sách yêu thích" 
                         : "Đã xóa khỏi danh sách yêu thích"
                 });
@@ -451,17 +351,9 @@ namespace SenseLib.Controllers
             {
                 _logger.LogError(ex, "Lỗi khi toggle yêu thích qua Ajax. DocumentId: {DocumentId}", id);
                 
-                // Chi tiết hơn về lỗi
-                string errorDetails = ex.InnerException?.Message ?? "Không có thông tin thêm";
-                string stackTrace = ex.StackTrace;
-                
-                _logger.LogError("Chi tiết lỗi: {Details}, Stack: {Stack}", errorDetails, stackTrace);
-                
                 return Json(new { 
                     success = false, 
-                    message = $"Lỗi: {ex.Message}",
-                    details = errorDetails,
-                    stackTrace = stackTrace
+                    message = "Đã xảy ra lỗi khi thực hiện thao tác yêu thích. Vui lòng thử lại sau."
                 });
             }
         }
@@ -885,10 +777,17 @@ namespace SenseLib.Controllers
             // Lấy danh sách tài liệu yêu thích cho trang hiện tại
             var favorites = await _favoriteService.GetUserFavorites(userId, page, pageSize);
             
+            // Lấy danh sách tài liệu đã mua
+            var purchasedDocuments = await _context.Purchases
+                .Where(p => p.UserID == userId && p.Status == "Completed")
+                .Select(p => p.DocumentID)
+                .ToListAsync();
+            
             // Truyền dữ liệu phân trang cho view
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalItems = totalItems;
+            ViewBag.PurchasedDocuments = purchasedDocuments;
             
             return View(favorites);
         }
@@ -937,6 +836,27 @@ namespace SenseLib.Controllers
             ViewBag.TotalItems = totalItems;
             
             return View(downloads);
+        }
+
+        // API để lấy danh sách danh mục cho AJAX
+        [HttpGet]
+        public async Task<IActionResult> GetCategories()
+        {
+            try
+            {
+                var categories = await _context.Categories
+                    .Where(c => c.Status == "Active")
+                    .OrderBy(c => c.CategoryName)
+                    .Select(c => new { categoryID = c.CategoryID, categoryName = c.CategoryName })
+                    .ToListAsync();
+                
+                return Json(categories);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách danh mục");
+                return Json(new List<object>());
+            }
         }
     }
 } 

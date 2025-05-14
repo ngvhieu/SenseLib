@@ -1,26 +1,35 @@
 <form asp-action="Index" method="get" class="row g-3">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <label class="form-label small fw-bold">Từ khóa</label>
         <input type="text" name="searchString" value="@ViewBag.CurrentSearch" class="form-control" placeholder="Tiêu đề, tác giả...">
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <label class="form-label small fw-bold">Trạng thái</label>
         <select name="status" class="form-select">
             <option value="">Tất cả</option>
             @foreach (var status in ViewBag.StatusList)
             {
+                string statusName = status switch
+                {
+                    "Pending" => "Chờ duyệt",
+                    "Approved" => "Đã duyệt",
+                    "Rejected" => "Từ chối",
+                    "Published" => "Đã xuất bản",
+                    _ => status
+                };
+                
                 if (ViewBag.CurrentStatus == status)
                 {
-                    <option value="@status" selected>@status</option>
+                    <option value="@status" selected>@statusName</option>
                 }
                 else
                 {
-                    <option value="@status">@status</option>
+                    <option value="@status">@statusName</option>
                 }
             }
         </select>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <label class="form-label small fw-bold">Danh mục</label>
         <select name="categoryId" class="form-select">
             <option value="">Tất cả</option>
@@ -42,7 +51,7 @@
     </div>
     <div class="col-md-2">
         <label class="form-label small fw-bold">Loại tài liệu</label>
-        <select name="isPaid" class="form-select">
+        <select name="isPaid" class="form-select" id="isPaidFilter">
             <option value="">Tất cả</option>
             @if (ViewBag.CurrentIsPaid == true)
             {
@@ -61,6 +70,14 @@
             }
         </select>
     </div>
+    <div class="col-md-3" id="priceRangeFilter" style="@(ViewBag.CurrentIsPaid == true ? "" : "display:none")">
+        <label class="form-label small fw-bold">Khoảng giá</label>
+        <div class="d-flex gap-2 align-items-center">
+            <input type="number" name="minPrice" value="@ViewBag.MinPrice" class="form-control" placeholder="Từ" min="0" step="1000">
+            <span>-</span>
+            <input type="number" name="maxPrice" value="@ViewBag.MaxPrice" class="form-control" placeholder="Đến" min="0" step="1000">
+        </div>
+    </div>
     <div class="col-12">
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">
@@ -71,4 +88,17 @@
             </a>
         </div>
     </div>
-</form> 
+</form>
+
+<script>
+    $(document).ready(function() {
+        // Hiển thị/ẩn bộ lọc giá khi thay đổi lựa chọn isPaid
+        $('#isPaidFilter').change(function() {
+            if ($(this).val() === 'true') {
+                $('#priceRangeFilter').show();
+            } else {
+                $('#priceRangeFilter').hide();
+            }
+        });
+    });
+</script> 
