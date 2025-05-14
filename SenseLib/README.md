@@ -30,7 +30,7 @@ SenseLib là một hệ thống quản lý thư viện số hiện đại, cho p
 
 1. Clone repository về máy:
    ```
-   git clone https://github.com/yourusername/SenseLib.git
+   git clone https://github.com/hiu.ngv/SenseLib.git
    cd SenseLib
    ```
 
@@ -94,23 +94,4 @@ SenseLib/
 - Cấu hình thời gian khóa tài khoản
 - Cấu hình số lượng tài liệu hiển thị trên trang chủ
 
-## Tài liệu liên quan
 
-- [Tài liệu API](docs/api.md)
-- [Hướng dẫn triển khai](docs/deployment.md)
-- [Hướng dẫn sử dụng cho quản trị viên](docs/admin-guide.md)
-- [Hướng dẫn sử dụng cho người dùng](docs/user-guide.md)
-
-## Đóng góp
-
-Chúng tôi rất hoan nghênh mọi đóng góp cho dự án SenseLib. Vui lòng tạo pull request hoặc báo cáo lỗi qua mục Issues trên GitHub.
-
-## Giấy phép
-
-SenseLib được phát hành dưới giấy phép MIT. Xem file [LICENSE](LICENSE) để biết thêm chi tiết.
-
-## Liên hệ
-
-- Email: your@email.com
-- Website: https://senselib.com
-- GitHub: https://github.com/yourusername/SenseLib 
