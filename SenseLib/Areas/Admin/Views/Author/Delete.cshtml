@@ -1,0 +1,59 @@
+@model SenseLib.Models.Author
+
+@{
+    ViewData["Title"] = "Xóa tác giả";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Xóa tác giả</h5>
+    </div>
+    <div class="card-body">
+        @if (ViewBag.HasDocuments == true)
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Không thể xóa tác giả này!</strong> Tác giả đang có @ViewBag.DocumentCount tài liệu. 
+                Bạn cần chuyển tài liệu sang tác giả khác trước khi xóa.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa tác giả này không? Thao tác này không thể hoàn tác.
+            </div>
+        }
+        
+        <h3>Thông tin tác giả</h3>
+        <dl class="row">
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.AuthorName)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.AuthorName)
+            </dd>
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Bio)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Bio)
+            </dd>
+        </dl>
+        
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="AuthorID" />
+            <div class="mt-3">
+                @if (ViewBag.HasDocuments != true)
+                {
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Xác nhận xóa
+                    </button>
+                }
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </form>
+    </div>
+</div> 

@@ -1,0 +1,303 @@
+@model IEnumerable<SenseLib.Models.Purchase>
+
+@{
+    ViewData["Title"] = "Quản lý thanh toán";
+    Layout = "_AdminLayout";
+    
+    var currentPage = ViewBag.CurrentPage;
+    var totalPages = ViewBag.TotalPages;
+    var totalItems = ViewBag.TotalItems;
+    var totalRevenue = ViewBag.TotalRevenue;
+    var completedCount = ViewBag.CompletedCount;
+    var pendingCount = ViewBag.PendingCount;
+    var failedCount = ViewBag.FailedCount;
+    var currentStatus = ViewBag.CurrentStatus;
+    var users = ViewBag.Users;
+    var keyword = ViewBag.Keyword;
+    var fromDate = ViewBag.FromDate;
+    var toDate = ViewBag.ToDate;
+    var selectedUserId = ViewBag.SelectedUserId;
+}
+
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="card-title">Quản lý thanh toán</h5>
+                <a href="@Url.Action("Reports", "Purchase", new { area = "Admin" })" class="btn btn-primary">
+                    <i class="bi bi-bar-chart"></i> Xem báo cáo doanh thu
+                </a>
+            </div>
+            
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-1"></i>
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card info-card revenue-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Tổng doanh thu</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-currency-exchange"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>@totalRevenue.ToString("N0") ₫</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="card info-card sales-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Hoàn thành</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>@completedCount</h6>
+                                    <a href="@Url.Action("Index", "Purchase", new { area = "Admin", status = "Completed" })" class="text-primary small pt-1 fw-bold">Xem giao dịch</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="card info-card customers-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Đang xử lý</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-hourglass-split"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>@pendingCount</h6>
+                                    <a href="@Url.Action("Index", "Purchase", new { area = "Admin", status = "Pending" })" class="text-primary small pt-1 fw-bold">Xem giao dịch</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="card info-card revenue-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Thất bại</h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-exclamation-circle"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>@failedCount</h6>
+                                    <a href="@Url.Action("Index", "Purchase", new { area = "Admin", status = "Failed" })" class="text-primary small pt-1 fw-bold">Xem giao dịch</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Bộ lọc giao dịch <span>| <a asp-area="Admin" asp-controller="Purchase" asp-action="Index" class="text-primary">Đặt lại</a></span></h5>
+                    
+                    <form asp-action="Index" method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="keyword" name="keyword" value="@keyword" placeholder="Tài liệu, mã GD, người dùng...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" id="status" name="status">
+                                @if (string.IsNullOrEmpty(currentStatus))
+                                {
+                                    <option value="" selected="selected">Tất cả trạng thái</option>
+                                }
+                                else
+                                {
+                                    <option value="">Tất cả trạng thái</option>
+                                }
+                                
+                                @if (currentStatus == "Completed")
+                                {
+                                    <option value="Completed" selected="selected">Hoàn thành</option>
+                                }
+                                else
+                                {
+                                    <option value="Completed">Hoàn thành</option>
+                                }
+                                
+                                @if (currentStatus == "Pending")
+                                {
+                                    <option value="Pending" selected="selected">Đang xử lý</option>
+                                }
+                                else
+                                {
+                                    <option value="Pending">Đang xử lý</option>
+                                }
+                                
+                                @if (currentStatus == "Failed")
+                                {
+                                    <option value="Failed" selected="selected">Thất bại</option>
+                                }
+                                else
+                                {
+                                    <option value="Failed">Thất bại</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" class="form-control" id="fromDate" name="fromDate" value="@fromDate" placeholder="Từ ngày">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="date" class="form-control" id="toDate" name="toDate" value="@toDate" placeholder="Đến ngày">
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" id="userId" name="userId">
+                                @if (selectedUserId == null || selectedUserId == 0)
+                                {
+                                    <option value="" selected="selected">Tất cả người dùng</option>
+                                }
+                                else
+                                {
+                                    <option value="">Tất cả người dùng</option>
+                                }
+                                
+                                @foreach (var user in users)
+                                {
+                                    if (selectedUserId == user.UserID)
+                                    {
+                                        <option value="@user.UserID" selected="selected">@user.Username</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@user.UserID">@user.Username</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Danh sách giao dịch</h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover datatable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Mã giao dịch</th>
+                                    <th scope="col">Người dùng</th>
+                                    <th scope="col">Tài liệu</th>
+                                    <th scope="col">Thời gian</th>
+                                    <th scope="col">Số tiền</th>
+                                    <th scope="col">Trạng thái</th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>@item.PurchaseID</td>
+                                        <td>
+                                            <div style="max-width: 130px; overflow: hidden; text-overflow: ellipsis" title="@item.TransactionCode">
+                                                @item.TransactionCode
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a asp-area="Admin" asp-controller="Purchase" asp-action="UserPurchases" asp-route-id="@item.UserID" class="text-decoration-none">
+                                                @item.User?.Username
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis" title="@item.Document?.Title">
+                                                <a href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })" target="_blank" class="text-decoration-none">
+                                                    @item.Document?.Title
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td>@item.PurchaseDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="text-end">@item.Amount.ToString("N0") ₫</td>
+                                        <td>
+                                            @if (item.Status == "Completed")
+                                            {
+                                                <span class="badge bg-success">Hoàn thành</span>
+                                            }
+                                            else if (item.Status == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark">Đang xử lý</span>
+                                            }
+                                            else if (item.Status == "Failed")
+                                            {
+                                                <span class="badge bg-danger">Thất bại</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@item.Status</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a asp-area="Admin" asp-controller="Purchase" asp-action="Details" asp-route-id="@item.PurchaseID" class="btn btn-primary btn-sm">
+                                                    <i class="bi bi-info-circle"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.datatable').DataTable({
+                "language": {
+                    "lengthMenu": "Hiển thị _MENU_ mục",
+                    "zeroRecords": "Không tìm thấy dữ liệu",
+                    "info": "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+                    "infoEmpty": "Không có dữ liệu",
+                    "infoFiltered": "(lọc từ _MAX_ mục)",
+                    "search": "Tìm kiếm:",
+                    "paginate": {
+                        "first": "Đầu",
+                        "last": "Cuối",
+                        "next": "Sau",
+                        "previous": "Trước"
+                    }
+                },
+                "paging": true,
+                "ordering": true,
+                "order": [[ 0, "desc" ]],
+                "info": true,
+                "pageLength": 15
+            });
+        });
+    </script>
+} 

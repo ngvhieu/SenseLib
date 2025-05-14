@@ -1,0 +1,114 @@
+@model IEnumerable<SenseLib.Models.Purchase>
+
+@{
+    ViewData["Title"] = "Tài liệu đã mua";
+}
+
+<style>
+    .purchase-card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-bottom: 1.5rem;
+    }
+    
+    .purchase-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    }
+    
+    .purchase-card .card-img-top {
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .purchase-date {
+        font-size: 0.8rem;
+        color: #666;
+    }
+    
+    .empty-purchases {
+        text-align: center;
+        padding: 60px 0;
+    }
+    
+    .empty-purchases i {
+        font-size: 4rem;
+        color: #ccc;
+        margin-bottom: 20px;
+    }
+    
+    .empty-purchases h4 {
+        color: #555;
+        margin-bottom: 15px;
+    }
+    
+    .empty-purchases p {
+        color: #888;
+        max-width: 500px;
+        margin: 0 auto 20px;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0"><i class="bi bi-collection"></i> Tài liệu đã mua</h2>
+                <a asp-controller="Document" asp-action="Index" class="btn btn-outline-primary">
+                    <i class="bi bi-search"></i> Khám phá thêm tài liệu
+                </a>
+            </div>
+            <hr>
+        </div>
+    </div>
+    
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var purchase in Model)
+            {
+                <div class="col-md-4">
+                    <div class="card purchase-card">
+                        <img src="@(string.IsNullOrEmpty(purchase.Document.ImagePath) ? "/images/document-placeholder.jpg" : purchase.Document.ImagePath)" 
+                             class="card-img-top" alt="@purchase.Document.Title">
+                        <div class="card-body">
+                            <h5 class="card-title">@purchase.Document.Title</h5>
+                            <p class="card-text mb-1">
+                                <i class="bi bi-person"></i> @(purchase.Document.Author?.AuthorName ?? "Không xác định")
+                            </p>
+                            <p class="card-text mb-1">
+                                <i class="bi bi-folder"></i> @(purchase.Document.Category?.CategoryName ?? "Không phân loại")
+                            </p>
+                            <p class="card-text purchase-date">
+                                <i class="bi bi-calendar3"></i> Ngày mua: @purchase.PurchaseDate.ToString("dd/MM/yyyy")
+                            </p>
+                            <div class="d-grid gap-2 mt-3">
+                                <a asp-controller="Document" asp-action="Read" asp-route-id="@purchase.DocumentID" 
+                                   class="btn btn-primary">
+                                    <i class="bi bi-book"></i> Đọc tài liệu
+                                </a>
+                                <a asp-controller="Document" asp-action="Download" asp-route-id="@purchase.DocumentID" 
+                                   class="btn btn-outline-success">
+                                    <i class="bi bi-download"></i> Tải về
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-purchases">
+            <i class="bi bi-journal-x"></i>
+            <h4>Bạn chưa mua tài liệu nào</h4>
+            <p>Khám phá thư viện của chúng tôi và mua tài liệu để có quyền truy cập đầy đủ vào nội dung.</p>
+            <a asp-controller="Document" asp-action="Index" class="btn btn-primary">
+                <i class="bi bi-search"></i> Khám phá tài liệu ngay
+            </a>
+        </div>
+    }
+</div> 

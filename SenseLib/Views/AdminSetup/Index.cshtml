@@ -1,0 +1,80 @@
+@{
+    ViewData["Title"] = "Tạo tài khoản Admin";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h1 class="text-center mb-4">Thiết lập tài khoản Admin</h1>
+                    
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+                    
+                    <div class="alert @(ViewBag.HasAdmin ? "alert-warning" : "alert-info")">
+                        @ViewBag.Message
+                    </div>
+                    
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger">
+                            @ViewBag.ErrorMessage
+                        </div>
+                    }
+                    
+                    @if (!ViewBag.HasAdmin)
+                    {
+                        <form method="post" asp-action="CreateAdmin">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Tên đăng nhập</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fullName" class="form-label">Họ tên đầy đủ</label>
+                                <input type="text" class="form-control" id="fullName" name="fullName" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Mật khẩu</label>
+                                <input type="password" class="form-control" id="password" name="password" required
+                                       minlength="6">
+                                <div class="form-text">Mật khẩu phải có ít nhất 6 ký tự.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg px-5">Tạo tài khoản Admin</button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="mt-4">
+                            <h4 class="mb-3">Các tác vụ quản trị</h4>
+                            
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Đăng nhập</a>
+                                <a asp-action="AddDefaultMenus" class="btn btn-secondary">Thêm menu About/Contact</a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

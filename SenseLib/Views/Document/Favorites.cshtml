@@ -1,0 +1,241 @@
+@model IEnumerable<SenseLib.Models.Document>
+@{
+    ViewData["Title"] = "Tài liệu yêu thích";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    int totalItems = ViewBag.TotalItems;
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="fa fa-heart text-danger me-2"></i> Tài liệu yêu thích
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item active">Tài liệu yêu thích</li>
+                    </ol>
+                </nav>
+            </div>
+            <p class="text-muted">
+                Danh sách tài liệu bạn đã đánh dấu yêu thích (<strong>@totalItems</strong> tài liệu)
+            </p>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var document in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100 shadow-sm card-hover">
+                        <div class="position-relative">
+                            <img src="@(string.IsNullOrEmpty(document.ImagePath) ? 
+                                      (string.IsNullOrEmpty(document.FilePath) ? "/images/document-placeholder.jpg" : document.FilePath) 
+                                      : document.ImagePath)" class="card-img-top" style="height:180px; object-fit:cover;" alt="@document.Title">
+                            <div class="position-absolute top-0 end-0 p-2">
+                                <button type="button" class="btn btn-sm btn-danger favorite-btn" data-document-id="@document.DocumentID" data-is-favorite="true">
+                                    <i class="fa fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-truncate">@document.Title</h5>
+                            <div class="card-text small text-muted mb-2">
+                                <div><i class="fa fa-user me-1"></i> @(document.Author?.AuthorName ?? "Không xác định")</div>
+                                <div><i class="fa fa-folder me-1"></i> @(document.Category?.CategoryName ?? "Không xác định")</div>
+                                <div><i class="fa fa-calendar me-1"></i> @document.UploadDate.ToString("dd/MM/yyyy")</div>
+                                <div><i class="fa fa-eye me-1"></i> @(document.Statistics?.ViewCount ?? 0) lượt xem</div>
+                            </div>
+                            <a asp-action="Details" asp-route-id="@document.DocumentID" class="mt-auto btn btn-sm btn-outline-primary">
+                                Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Phân trang -->
+        @if (totalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="Favorites" asp-route-page="@(currentPage - 1)">
+                            <i class="fa fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    
+                    @{
+                        int startPage = Math.Max(1, currentPage - 2);
+                        int endPage = Math.Min(totalPages, startPage + 4);
+                        
+                        if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Favorites" asp-route-page="1">1</a>
+                            </li>
+                            if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+                        
+                        for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" asp-action="Favorites" asp-route-page="@i">@i</a>
+                            </li>
+                        }
+                        
+                        if (endPage < totalPages)
+                        {
+                            if (endPage < totalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Favorites" asp-route-page="@totalPages">@totalPages</a>
+                            </li>
+                        }
+                    }
+                    
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link" asp-action="Favorites" asp-route-page="@(currentPage + 1)">
+                            <i class="fa fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-3">
+                    <i class="fa fa-heart fa-3x text-danger"></i>
+                </div>
+                <h5 class="mb-3">Bạn chưa có tài liệu yêu thích nào</h5>
+                <p class="text-muted">Hãy duyệt qua các tài liệu và đánh dấu yêu thích để dễ dàng xem lại sau này</p>
+                <a asp-action="Index" class="btn btn-primary mt-2">
+                    <i class="fa fa-list me-1"></i> Xem danh sách tài liệu
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Xử lý xóa tài liệu khỏi yêu thích
+            $('.favorite-btn').click(function() {
+                var btn = $(this);
+                var documentId = btn.data('document-id');
+                var card = btn.closest('.col-lg-3');
+                
+                // Hiển thị trạng thái đang xử lý
+                var originalHtml = btn.html();
+                btn.html('<i class="fa fa-spinner fa-spin"></i>');
+                btn.prop('disabled', true);
+                
+                $.ajax({
+                    url: '@Url.Action("ToggleFavoriteAjax", "Document")',
+                    type: 'POST',
+                    data: {
+                        id: documentId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(result) {
+                        console.log('Kết quả:', result);
+                        
+                        if (result.success) {
+                            // Nếu là bỏ yêu thích thành công thì xóa card khỏi giao diện
+                            if (!result.isFavorite) {
+                                // Hiển thị thông báo thành công
+                                showAlert('success', '<i class="fa fa-check-circle me-2"></i> Đã xóa khỏi danh sách yêu thích');
+                                
+                                // Xóa card với hiệu ứng
+                                card.fadeOut(300, function() {
+                                    card.remove();
+                                    
+                                    // Kiểm tra nếu không còn tài liệu nào
+                                    if ($('.col-lg-3').length === 0) {
+                                        location.reload(); // Tải lại trang để hiển thị thông báo không có tài liệu
+                                    }
+                                });
+                            } else {
+                                // Trong trường hợp vẫn là yêu thích, không xóa card
+                                showAlert('info', '<i class="fa fa-info-circle me-2"></i> Đã cập nhật trạng thái yêu thích');
+                                
+                                // Khôi phục nút
+                                btn.html(originalHtml);
+                                btn.prop('disabled', false);
+                            }
+                        } else {
+                            // Hiển thị lỗi
+                            var errorMessage = result.message;
+                            if (result.details) {
+                                errorMessage += ' (' + result.details + ')';
+                            }
+                            
+                            showAlert('danger', '<i class="fa fa-exclamation-triangle me-2"></i> ' + errorMessage);
+                            
+                            // Khôi phục nút
+                            btn.html(originalHtml);
+                            btn.prop('disabled', false);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Lỗi AJAX:', xhr.responseText);
+                        showAlert('danger', '<i class="fa fa-exclamation-triangle me-2"></i> Đã xảy ra lỗi: ' + error);
+                        
+                        // Khôi phục nút
+                        btn.html(originalHtml);
+                        btn.prop('disabled', false);
+                    }
+                });
+            });
+            
+            // Hàm hiển thị thông báo
+            function showAlert(type, message) {
+                // Xóa thông báo cũ nếu có
+                $('.alert-container .alert').alert('close');
+                
+                // Tạo thông báo mới
+                var alert = $('<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
+                    message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                    '</div>');
+                
+                // Kiểm tra xem đã có container chưa
+                if ($('.alert-container').length === 0) {
+                    // Tạo container cho thông báo
+                    var container = $('<div class="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050; max-width: 350px;"></div>');
+                    $('body').append(container);
+                }
+                
+                // Thêm thông báo vào container
+                $('.alert-container').append(alert);
+                
+                // Tự động đóng thông báo sau 3 giây
+                setTimeout(function() {
+                    alert.alert('close');
+                }, 3000);
+            }
+        });
+    </script>
+    
+    @* Thêm Anti-Forgery Token *@
+    @Html.AntiForgeryToken()
+} 

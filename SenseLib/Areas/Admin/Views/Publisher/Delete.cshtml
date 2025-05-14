@@ -1,0 +1,97 @@
+@model SenseLib.Models.Publisher
+
+@{
+    ViewData["Title"] = "Xóa nhà xuất bản";
+    Layout = "_AdminLayout";
+    bool hasDocuments = ViewBag.HasDocuments != null && ViewBag.HasDocuments;
+}
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Xác nhận xóa nhà xuất bản</h5>
+                    
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+                    
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            @if (hasDocuments)
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <strong>Không thể xóa!</strong> Nhà xuất bản này đang có @ViewBag.DocumentCount tài liệu. 
+                                    Vui lòng chuyển tài liệu sang nhà xuất bản khác trước khi xóa.
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-danger">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa nhà xuất bản này không? Hành động này không thể hoàn tác.
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <dl class="row">
+                                <dt class="col-sm-3">Mã nhà xuất bản:</dt>
+                                <dd class="col-sm-9">@Model.PublisherID</dd>
+
+                                <dt class="col-sm-3">Tên nhà xuất bản:</dt>
+                                <dd class="col-sm-9">@Model.PublisherName</dd>
+
+                                <dt class="col-sm-3">Địa chỉ:</dt>
+                                <dd class="col-sm-9">
+                                    @if (string.IsNullOrEmpty(Model.Address))
+                                    {
+                                        <em>Chưa cập nhật</em>
+                                    }
+                                    else
+                                    {
+                                        <div style="white-space: pre-line">@Model.Address</div>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-3">Điện thoại:</dt>
+                                <dd class="col-sm-9">
+                                    @if (string.IsNullOrEmpty(Model.Phone))
+                                    {
+                                        <em>Chưa cập nhật</em>
+                                    }
+                                    else
+                                    {
+                                        @Model.Phone
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <form asp-action="Delete" method="post">
+                                <input type="hidden" asp-for="PublisherID" />
+                                <button type="submit" class="btn btn-danger" @(hasDocuments ? "disabled" : "")>
+                                    <i class="bi bi-trash"></i> Xóa
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Quay lại
+                                </a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 

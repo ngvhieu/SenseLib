@@ -1,0 +1,62 @@
+@model SenseLib.Models.SystemConfig
+
+@{
+    ViewData["Title"] = "Chỉnh sửa cấu hình";
+    Layout = "_AdminLayout";
+}
+
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Chỉnh sửa cấu hình</h5>
+                    
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="ConfigID" />
+                        
+                        <div class="row mb-3">
+                            <label asp-for="ConfigKey" class="col-sm-2 col-form-label">Khóa cấu hình</label>
+                            <div class="col-sm-10">
+                                <input asp-for="ConfigKey" class="form-control" readonly />
+                                <span asp-validation-for="ConfigKey" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="ConfigValue" class="col-sm-2 col-form-label">Giá trị</label>
+                            <div class="col-sm-10">
+                                <input asp-for="ConfigValue" class="form-control" required />
+                                <span asp-validation-for="ConfigValue" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="Description" class="col-sm-2 col-form-label">Mô tả</label>
+                            <div class="col-sm-10">
+                                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-10 offset-sm-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Lưu thay đổi
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Quay lại
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

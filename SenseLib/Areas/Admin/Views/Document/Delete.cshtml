@@ -1,0 +1,88 @@
+@model SenseLib.Models.Document
+
+@{
+    ViewData["Title"] = "Xóa tài liệu";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Xóa tài liệu</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa tài liệu này không? Thao tác này sẽ xóa cả file tài liệu và không thể hoàn tác.
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="document-image mb-3">
+                    <img src="@(string.IsNullOrEmpty(Model.ImagePath) ? 
+                              (string.IsNullOrEmpty(Model.FilePath) ? "/images/document-placeholder.jpg" : Model.FilePath) 
+                              : Model.ImagePath)" 
+                        alt="@Model.Title" class="img-fluid rounded" style="max-height: 250px; object-fit: cover;">
+                </div>
+            </div>
+            <div class="col-md-8">
+                <h3>Thông tin tài liệu</h3>
+                <dl class="row">
+                    <dt class="col-sm-3">Tiêu đề</dt>
+                    <dd class="col-sm-9">@Model.Title</dd>
+                    
+                    <dt class="col-sm-3">Mô tả</dt>
+                    <dd class="col-sm-9">@Model.Description</dd>
+                    
+                    <dt class="col-sm-3">Tác giả</dt>
+                    <dd class="col-sm-9">@(Model.Author?.AuthorName ?? "Không xác định")</dd>
+                    
+                    <dt class="col-sm-3">Danh mục</dt>
+                    <dd class="col-sm-9">@(Model.Category?.CategoryName ?? "Không xác định")</dd>
+                    
+                    <dt class="col-sm-3">Nhà xuất bản</dt>
+                    <dd class="col-sm-9">@(Model.Publisher?.PublisherName ?? "Không xác định")</dd>
+                    
+                    <dt class="col-sm-3">Trạng thái</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge @(Model.Status == "Published" || Model.Status == "Approved" ? "bg-success" : (Model.Status == "Pending" ? "bg-warning" : "bg-danger"))">
+                            @Model.Status
+                        </span>
+                    </dd>
+                    
+                    <dt class="col-sm-3">Loại tài liệu</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.IsPaid)
+                        {
+                            <span>Có phí (@Model.Price?.ToString("N0") ₫)</span>
+                        }
+                        else
+                        {
+                            <span>Miễn phí</span>
+                        }
+                    </dd>
+                    
+                    <dt class="col-sm-3">Ngày tải lên</dt>
+                    <dd class="col-sm-9">@Model.UploadDate.ToString("dd/MM/yyyy HH:mm")</dd>
+                    
+                    <dt class="col-sm-3">Đường dẫn file</dt>
+                    <dd class="col-sm-9">
+                        <a href="@Model.FilePath" target="_blank" class="text-truncate d-inline-block" style="max-width: 100%;">
+                            <i class="bi bi-file-earmark-text"></i> @Model.FilePath
+                        </a>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="DocumentID" />
+            <div class="mt-3">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Xác nhận xóa
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </form>
+    </div>
+</div> 

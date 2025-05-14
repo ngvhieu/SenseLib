@@ -1,0 +1,132 @@
+@using SenseLib.Models
+@model IEnumerable<AdminMenu>
+
+<ul class="sidebar-nav" id="sidebar-nav">
+    @{
+        // Dashboard item
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "" : "collapsed")"
+               href="@Url.Action("Index", "Home", new { area = "Admin" })">
+                <i class="bi bi-grid"></i>
+                <span>Bảng điều khiển</span>
+            </a>
+        </li>
+        
+        // Document Management section
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Document" ? "" : "collapsed")"
+               data-bs-target="#document-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-journal-text"></i>
+                <span>Quản lý tài liệu</span>
+                <i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="document-nav" class="nav-content collapse @(ViewContext.RouteData.Values["controller"]?.ToString() == "Document" ? "show" : "")"
+                data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="@Url.Action("Index", "Document", new { area = "Admin" })" 
+                       class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                        <i class="bi bi-circle"></i><span>Danh sách tài liệu</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Create", "Document", new { area = "Admin" })"
+                       class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Create" ? "active" : "")">
+                        <i class="bi bi-circle"></i><span>Thêm tài liệu mới</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Statistics", "Document", new { area = "Admin" })"
+                       class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Statistics" ? "active" : "")">
+                        <i class="bi bi-circle"></i><span>Thống kê</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        
+        // Category Management section
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Category" ? "" : "collapsed")"
+               href="@Url.Action("Index", "Category", new { area = "Admin" })">
+                <i class="bi bi-folder"></i>
+                <span>Quản lý danh mục</span>
+            </a>
+        </li>
+        
+        // Author Management section
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Author" ? "" : "collapsed")"
+               href="@Url.Action("Index", "Author", new { area = "Admin" })">
+                <i class="bi bi-people"></i>
+                <span>Quản lý tác giả</span>
+            </a>
+        </li>
+        
+        // Publisher Management section
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Publisher" ? "" : "collapsed")"
+               href="@Url.Action("Index", "Publisher", new { area = "Admin" })">
+                <i class="bi bi-buildings"></i>
+                <span>Quản lý nhà xuất bản</span>
+            </a>
+        </li>
+        
+        // Menu Management
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Menu" ? "" : "collapsed")"
+               href="@Url.Action("Index", "Menu", new { area = "Admin" })">
+                <i class="bi bi-list"></i>
+                <span>Quản lý menu</span>
+            </a>
+        </li>
+
+        // Slideshow Management
+        <li class="nav-item">
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Slideshow" ? "" : "collapsed")"
+               href="@Url.Action("Index", "Slideshow", new { area = "Admin" })">
+                <i class="bi bi-images"></i>
+                <span>Quản lý slideshow</span>
+            </a>
+        </li>
+
+        // Display dynamic menu items
+        foreach (var parentItem in Model.Where(m => m.ParentLevel == 0).OrderBy(m => m.ItemOrder))
+        {
+            var childItems = Model.Where(m => m.ParentLevel == parentItem.MenuID).OrderBy(m => m.ItemOrder).ToList();
+            var hasChildren = childItems.Any();
+            
+            if (!hasChildren)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == parentItem.ControllerName ? "" : "collapsed")" 
+                       href="@Url.Action(parentItem.ActionName ?? "Index", parentItem.ControllerName, new { area = parentItem.AreaName })">
+                        <i class="@(string.IsNullOrEmpty(parentItem.Icon) ? "bi bi-grid" : parentItem.Icon)"></i>
+                        <span>@parentItem.MenuName</span>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == parentItem.ControllerName ? "" : "collapsed")" 
+                       data-bs-target="#@parentItem.ControllerName-nav" data-bs-toggle="collapse" href="#">
+                        <i class="@(string.IsNullOrEmpty(parentItem.Icon) ? "bi bi-grid" : parentItem.Icon)"></i>
+                        <span>@parentItem.MenuName</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <ul id="@parentItem.ControllerName-nav" class="nav-content collapse @(ViewContext.RouteData.Values["controller"]?.ToString() == parentItem.ControllerName ? "show" : "")" 
+                        data-bs-parent="#sidebar-nav">
+                        @foreach (var child in childItems)
+                        {
+                            <li>
+                                <a href="@Url.Action(child.ActionName ?? "Index", child.ControllerName, new { area = child.AreaName })"
+                                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == child.ControllerName && ViewContext.RouteData.Values["action"]?.ToString() == child.ActionName ? "active" : "")">
+                                    <i class="bi bi-circle"></i><span>@child.MenuName</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </li>
+            }
+        }
+    }
+</ul> 

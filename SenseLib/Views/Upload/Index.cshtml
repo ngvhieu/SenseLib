@@ -1,0 +1,191 @@
+@model IEnumerable<SenseLib.Models.Document>
+@{
+    ViewData["Title"] = "Quản lý tài liệu của tôi";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Quản lý tài liệu của tôi</h1>
+        <a href="@Url.Action("Create", "Upload")" class="btn btn-primary">
+            <i class="bi bi-plus"></i> Tải lên tài liệu mới
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 my-5">
+            <div class="mb-4">
+                <i class="bi bi-file-earmark-text" style="font-size: 5rem; color: #ccc;"></i>
+            </div>
+            <h3>Bạn chưa tải lên tài liệu nào</h3>
+            <p class="text-muted mb-4">Hãy bắt đầu tải lên tài liệu để chia sẻ với cộng đồng</p>
+            <a href="@Url.Action("Create", "Upload")" class="btn btn-primary">
+                <i class="bi bi-plus"></i> Tải lên tài liệu mới
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="true" href="#">Tất cả (@Model.Count())</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Chờ duyệt (@Model.Count(d => d.Status == "Pending"))</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Đã duyệt (@Model.Count(d => d.Status == "Approved"))</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Từ chối (@Model.Count(d => d.Status == "Rejected"))</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px">#</th>
+                                <th>Tên tài liệu</th>
+                                <th>Thể loại</th>
+                                <th>Trạng thái</th>
+                                <th>Giá</th>
+                                <th>Ngày tải lên</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderByDescending(d => d.UploadDate))
+                            {
+                                <tr>
+                                    <td>@item.DocumentID</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="document-img me-3" style="width: 48px; height: 48px; overflow: hidden; border-radius: 4px;">
+                                                @{
+                                                    string imagePath = string.IsNullOrEmpty(item.ImagePath) ? "/img/document-placeholder.jpg" : item.ImagePath;
+                                                }
+                                                <img src="@imagePath" alt="@item.Title" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">@item.Title</h6>
+                                                <small class="text-muted">@(string.IsNullOrEmpty(item.Description) ? "Không có mô tả" : (item.Description.Length > 50 ? item.Description.Substring(0, 47) + "..." : item.Description))</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@(item.Category?.CategoryName ?? "Không phân loại")</td>
+                                    <td>
+                                        @switch (item.Status)
+                                        {
+                                            case "Pending":
+                                                <span class="badge bg-warning">Chờ duyệt</span>
+                                                break;
+                                            case "Approved":
+                                                <span class="badge bg-success">Đã duyệt</span>
+                                                break;
+                                            case "Rejected":
+                                                <span class="badge bg-danger">Từ chối</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary">@item.Status</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.IsPaid)
+                                        {
+                                            <span class="badge bg-info">@item.Price.GetValueOrDefault().ToString("N0") ₫</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">Miễn phí</span>
+                                        }
+                                    </td>
+                                    <td>@item.UploadDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="@Url.Action("Details", "Document", new { id = item.DocumentID })" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            @if (item.Status != "Approved")
+                                            {
+                                                <a href="@Url.Action("Edit", "Upload", new { id = item.DocumentID })" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="@Url.Action("Delete", "Upload", new { id = item.DocumentID })" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">Thông tin về trạng thái tài liệu</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-warning me-2">Chờ duyệt</span>
+                            <span>Tài liệu đang chờ quản trị viên xét duyệt</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-success me-2">Đã duyệt</span>
+                            <span>Tài liệu đã được duyệt và xuất bản trên thư viện</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-danger me-2">Từ chối</span>
+                            <span>Tài liệu không đủ điều kiện để xuất bản</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Xử lý chuyển tab
+            $('.nav-tabs .nav-link').click(function(e) {
+                e.preventDefault();
+                $('.nav-tabs .nav-link').removeClass('active');
+                $(this).addClass('active');
+                
+                // TODO: Thêm code lọc theo trạng thái
+            });
+        });
+    </script>
+} 

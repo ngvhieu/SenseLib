@@ -1,0 +1,81 @@
+@model SenseLib.Models.Slideshow
+
+@{
+    ViewData["Title"] = "Chi tiết Slideshow";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Thông tin Slideshow</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-12 mb-3">
+                            <img src="@Model.ImagePath" alt="@Model.Title" class="img-fluid" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Tiêu đề:</div>
+                        <div class="col-md-9">@Model.Title</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Mô tả:</div>
+                        <div class="col-md-9">@Model.Description</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Liên kết:</div>
+                        <div class="col-md-9">
+                            @if (!string.IsNullOrEmpty(Model.Link))
+                            {
+                                <a href="@Model.Link" target="_blank">@Model.Link</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Không có liên kết</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Thứ tự hiển thị:</div>
+                        <div class="col-md-9">@Model.DisplayOrder</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Trạng thái:</div>
+                        <div class="col-md-9">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Hiển thị</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Ẩn</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Ngày tạo:</div>
+                        <div class="col-md-9">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <a asp-action="Edit" asp-route-id="@Model.SlideID" class="btn btn-primary">Chỉnh sửa</a>
+                            <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 

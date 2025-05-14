@@ -1,0 +1,540 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - SenseLib</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/custom-pages.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        /* Style riêng cho trang chủ */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            max-width: 400px;
+            font-size: 16px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification.success {
+            background-color: #28a745;
+        }
+        
+        .notification.error {
+            background-color: #dc3545;
+        }
+        
+        .notification.warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: var(--border-radius);
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+        }
+
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            color: #777;
+        }
+
+        .auth-container {
+            max-width: 450px;
+            margin: 6rem auto;
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .auth-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-header p {
+            color: #777;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--secondary-color);
+            color: #fff;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .auth-btn:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #777;
+        }
+        
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .remember-forgot a {
+            color: var(--secondary-color);
+        }
+        
+        .remember-forgot a:hover {
+            text-decoration: underline;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+        }
+        
+        .remember-me input {
+            margin-right: 0.5rem;
+        }
+        
+        .social-auth {
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        
+        .social-auth p {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .social-auth p::before, .social-auth p::after {
+            content: '';
+            display: block;
+            width: 40%;
+            height: 1px;
+            background-color: #ddd;
+            position: absolute;
+            top: 50%;
+        }
+        
+        .social-auth p::before {
+            left: 0;
+        }
+        
+        .social-auth p::after {
+            right: 0;
+        }
+        
+        .social-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .social-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+            color: #fff;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .social-btn i {
+            margin-right: 0.5rem;
+        }
+        
+        .social-btn.facebook {
+            background-color: #3b5998;
+        }
+        
+        .social-btn.google {
+            background-color: #dd4b39;
+        }
+        
+        .social-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Style cho dropdown menu */
+        .user-dropdown {
+            position: relative;
+        }
+
+        .user-dropdown-content {
+            
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #fff;
+            min-width: 210px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 99;
+            border-radius: var(--border-radius);
+        }
+
+        .user-dropdown:hover .user-dropdown-content {
+            display: block;
+        }
+
+        .user-dropdown-item {
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            color: #333;
+            transition: var(--transition);
+            font-size: 0.85rem;
+        }
+
+        .user-dropdown-item i {
+            margin-right: 6px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .user-dropdown-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        @@media (max-width: 992px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <!-- Logo (bên trái) -->
+                <div class="logo">
+                    <a asp-controller="Home" asp-action="Index">SenseLib</a>
+                </div>
+
+                <!-- Thanh tìm kiếm -->
+                <div class="search-bar">
+                    <form asp-controller="Document" asp-action="Index" method="get">
+                        <input type="text" name="searchString" placeholder="Tìm kiếm tài liệu...">
+                    </form>
+                </div>
+
+                <!-- Menu chính (ở giữa) -->
+                @await Component.InvokeAsync("Menu", new { position = 1 })
+
+                <!-- User Authentication Links (bên phải) -->
+                <div class="user-auth">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="user-dropdown">
+                            <span class="user-btn" style="padding: 0.5rem 0.8rem; display: flex; align-items: center;">
+                                <div style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; margin-right: 6px; border: 1px solid #3498db;">
+                                    @{
+                                        var user = Context.Items["CurrentUser"] as SenseLib.Models.User;
+                                        string profileImage = user?.ProfileImage;
+                                        string imagePath = string.IsNullOrEmpty(profileImage) || profileImage == "smile.jpg" 
+                                            ? "/uploads/profiles/smile.jpg" 
+                                            : $"/uploads/profiles/{profileImage}";
+                                    }
+                                    <img src="@imagePath" alt="@User.Identity.Name" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <span style="font-size: 0.9rem;">@User.Identity.Name</span>
+                            </span>
+                            <div class="user-dropdown-content" style="background-color: #fff;">
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="user-dropdown-item">
+                                        <i class="fas fa-user-cog"></i> Quản trị
+                                    </a>
+                                }
+                                <a asp-controller="Account" asp-action="Profile" class="user-dropdown-item">
+                                    <i class="fas fa-user"></i> Tài khoản
+                                </a>
+                                <a asp-controller="Upload" asp-action="Index" class="user-dropdown-item">
+                                    <i class="fas fa-file-alt"></i> Tài liệu của tôi
+                                </a>
+                                <a asp-controller="Purchase" asp-action="MyPurchases" class="user-dropdown-item">
+                                    <i class="fas fa-shopping-cart"></i> Tài liệu đã mua
+                                </a>
+                                <a asp-controller="Purchase" asp-action="PaymentHistory" class="user-dropdown-item">
+                                    <i class="fas fa-history"></i> Lịch sử thanh toán
+                                </a>
+                                <a asp-controller="User" asp-action="Favorites" class="user-dropdown-item">
+                                    <i class="fas fa-heart"></i> Yêu thích
+                                </a>
+                                <a asp-controller="User" asp-action="Downloads" class="user-dropdown-item">
+                                    <i class="fas fa-download"></i> Tải xuống
+                                </a>
+                                <a asp-controller="Account" asp-action="Logout" class="user-dropdown-item">
+                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="auth-link">
+                            <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                        </a>
+                    }
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>SenseLib</h3>
+                    <p>Kho tàng tri thức số dành cho mọi người. Chúng tôi cung cấp truy cập đến hàng ngàn tài liệu học thuật và nguồn tài nguyên giáo dục.</p>
+                </div>
+
+                <div class="footer-column">
+                    <h3>Liên kết nhanh</h3>
+                    <!-- Gọi Menu ViewComponent cho vị trí 2 (Footer quick links) với view FooterMenu -->
+                    @await Component.InvokeAsync("Menu", new { position = 2 })
+                </div>
+
+                <div class="footer-column">
+                    <h3>Danh mục</h3>
+                    <!-- Gọi Menu ViewComponent cho vị trí 3 (Footer categories) với view FooterMenu -->
+                    @await Component.InvokeAsync("Menu", new { position = 3 })
+                </div>
+
+                <div class="footer-column">
+                    <h3>Liên hệ</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> contact@senselib.com</li>
+                        <li><i class="fas fa-phone"></i> (84) 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, Hà Nội</li>
+                    </ul>
+                    <div style="margin-top: 1rem;">
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-twitter"></i></a>
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2023 SenseLib. Tất cả các quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="notification" id="notification"></div>
+
+    <!-- Thêm jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/main.js"></script>
+
+    <script>
+        // Hàm giải mã HTML entities
+        function decodeHTMLEntities(text) {
+            const textArea = document.createElement('textarea');
+            textArea.innerHTML = text;
+            return textArea.value;
+        }
+    </script>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const notification = document.getElementById('notification');
+                notification.textContent = decodeHTMLEntities("@TempData["SuccessMessage"]");
+                notification.classList.add('success', 'show');
+                
+                // Ẩn thông báo sau 3 giây
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        notification.classList.remove('success');
+                    }, 300);
+                }, 3000);
+            });
+        </script>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const notification = document.getElementById('notification');
+                notification.textContent = decodeHTMLEntities("@TempData["ErrorMessage"]");
+                notification.classList.add('error', 'show');
+                
+                // Ẩn thông báo sau 3 giây
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        notification.classList.remove('error');
+                    }, 300);
+                }, 3000);
+            });
+        </script>
+    }
+    
+    @if (TempData["WarningMessage"] != null)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const notification = document.getElementById('notification');
+                notification.textContent = decodeHTMLEntities("@TempData["WarningMessage"]");
+                notification.classList.add('warning', 'show');
+                
+                // Ẩn thông báo sau 3 giây
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        notification.classList.remove('warning');
+                    }, 300);
+                }, 3000);
+            });
+        </script>
+    }
+    
+    @if (TempData["InfoMessage"] != null)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const notification = document.getElementById('notification');
+                notification.textContent = decodeHTMLEntities("@TempData["InfoMessage"]");
+                notification.classList.add('info', 'show');
+                
+                // Ẩn thông báo sau 3 giây
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        notification.classList.remove('info');
+                    }, 300);
+                }, 3000);
+            });
+        </script>
+    }
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html> 

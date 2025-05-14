@@ -1,0 +1,488 @@
+@model SenseLib.Models.Document
+@{
+    ViewData["Title"] = "Tải lên tài liệu mới";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">@ViewData["Title"]</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Tài liệu của bạn sẽ được quản trị viên xét duyệt trước khi xuất bản trên thư viện
+                    </div>
+
+                    <form asp-action="Create" method="post" enctype="multipart/form-data" id="uploadForm">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        
+                        <!-- Hiển thị thông báo lỗi upload -->
+                        <div id="uploadError" class="alert alert-danger" role="alert" style="display: none;">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <span id="errorMessage"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label asp-for="Title" class="form-label fw-semibold">
+                                        <i class="bi bi-type"></i> Tiêu đề tài liệu <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề tài liệu" required />
+                                    <span asp-validation-for="Title" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label fw-semibold">
+                                        <i class="bi bi-card-text"></i> Mô tả
+                                    </label>
+                                    <textarea asp-for="Description" class="form-control" rows="5" placeholder="Mô tả chi tiết về nội dung tài liệu"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label asp-for="CategoryID" class="form-label fw-semibold">
+                                            <i class="bi bi-bookmark"></i> Danh mục <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <select asp-for="CategoryID" class="form-select" asp-items="ViewBag.CategoryID" id="categorySelect" required>
+                                                <option value="">-- Chọn danh mục --</option>
+                                            </select>
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#categoryModal">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="CategoryID" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label asp-for="AuthorID" class="form-label fw-semibold">
+                                            <i class="bi bi-person"></i> Tác giả
+                                        </label>
+                                        <div class="input-group">
+                                            <select asp-for="AuthorID" class="form-select" asp-items="ViewBag.AuthorID" id="authorSelect">
+                                                <option value="">-- Chọn tác giả --</option>
+                                            </select>
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#authorModal">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="AuthorID" class="text-danger"></span>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" id="setAsAuthor" name="setAsAuthor" value="true">
+                                            <label class="form-check-label" for="setAsAuthor">
+                                                <i class="bi bi-person-check"></i> Đặt tôi làm tác giả
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label asp-for="PublisherID" class="form-label fw-semibold">
+                                            <i class="bi bi-building"></i> Nhà xuất bản
+                                        </label>
+                                        <div class="input-group">
+                                            <select asp-for="PublisherID" class="form-select" asp-items="ViewBag.PublisherID" id="publisherSelect">
+                                                <option value="">-- Chọn NXB --</option>
+                                            </select>
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#publisherModal">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="PublisherID" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold d-block">
+                                        <i class="bi bi-tag"></i> Loại tài liệu <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="isPaid" id="documentTypeFree" value="false" checked onclick="togglePriceField(false)">
+                                        <label class="form-check-label" for="documentTypeFree">
+                                            <i class="bi bi-unlock"></i> Miễn phí
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="isPaid" id="documentTypePaid" value="true" onclick="togglePriceField(true)">
+                                        <label class="form-check-label" for="documentTypePaid">
+                                            <i class="bi bi-lock"></i> Có phí
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3" id="priceField" style="display: none;">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-currency-dollar"></i> Giá (VNĐ) <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="price" class="form-control" min="1000" step="1000" placeholder="Nhập giá tài liệu" />
+                                    <small class="form-text text-muted">Giá tối thiểu 1,000 VNĐ</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Tệp tài liệu <span class="text-danger">*</span></label>
+                                    <div class="upload-area p-4 text-center border rounded bg-light mb-2" id="dropAreaDocument" 
+                                         style="border: 2px dashed #ccc; transition: all 0.3s; cursor: pointer; position: relative; overflow: hidden;">
+                                        <div id="documentPlaceholder">
+                                            <i class="bi bi-file-earmark-pdf" style="font-size: 3rem; color: #dc3545;"></i>
+                                            <p class="mt-2 mb-3">Kéo & thả file hoặc click vào đây để chọn từ máy tính</p>
+                                            <button type="button" class="btn btn-primary mb-2" id="browseDocumentBtn">
+                                                <i class="bi bi-folder2-open me-1"></i> Duyệt file
+                                            </button>
+                                        </div>
+                                        <div id="documentPreview" style="display: none; width: 100%;">
+                                            <div class="d-flex align-items-center p-2 bg-white rounded mb-2">
+                                                <i class="bi bi-file-earmark-pdf me-2" style="font-size: 2rem; color: #dc3545;"></i>
+                                                <div class="flex-grow-1 text-start overflow-hidden">
+                                                    <p class="mb-0 document-name text-truncate fw-semibold"></p>
+                                                    <small class="text-muted document-size"></small>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-danger remove-document">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <input type="file" name="file" id="documentFile" class="form-control" accept=".pdf,.doc,.docx" required style="display: none;" />
+                                        <small class="d-block mt-2">Hỗ trợ file: PDF, DOC, DOCX - Tối đa 50MB</small>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Ảnh bìa (tùy chọn)</label>
+                                    <div class="upload-area p-4 text-center border rounded bg-light mb-2" id="dropAreaImage"
+                                         style="border: 2px dashed #ccc; transition: all 0.3s; cursor: pointer; position: relative; overflow: hidden;">
+                                        <div id="imagePlaceholder">
+                                            <i class="bi bi-image" style="font-size: 3rem; color: #0d6efd;"></i>
+                                            <p class="mt-2 mb-3">Kéo & thả ảnh hoặc click vào đây để chọn từ máy tính</p>
+                                            <button type="button" class="btn btn-primary mb-2" id="browseImageBtn">
+                                                <i class="bi bi-folder2-open me-1"></i> Duyệt ảnh
+                                            </button>
+                                        </div>
+                                        <div id="imagePreview" style="display: none;">
+                                            <div class="position-relative">
+                                                <img src="" alt="Ảnh xem trước" style="max-width: 100%; max-height: 150px; border-radius: 4px;" />
+                                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 remove-image">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <input type="file" name="imageFile" id="coverImage" class="form-control" accept="image/*" style="display: none;" />
+                                        <small class="d-block mt-2">Khuyên dùng ảnh JPG/PNG - Tối đa 5MB</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-cloud-upload"></i> Tải lên tài liệu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo mới danh mục -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="categoryModalLabel">Thêm danh mục mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="categoryName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryDescription" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle me-1"></i> Hủy</button>
+                <button type="button" class="btn btn-primary" id="saveCategory"><i class="bi bi-check-circle me-1"></i> Lưu danh mục</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo mới tác giả -->
+<div class="modal fade" id="authorModal" tabindex="-1" aria-labelledby="authorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="authorModalLabel">Thêm tác giả mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="authorForm">
+                    <div class="mb-3">
+                        <label for="authorName" class="form-label">Tên tác giả <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="authorName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="authorBio" class="form-label">Tiểu sử</label>
+                        <textarea class="form-control" id="authorBio" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle me-1"></i> Hủy</button>
+                <button type="button" class="btn btn-primary" id="saveAuthor"><i class="bi bi-check-circle me-1"></i> Lưu tác giả</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo mới nhà xuất bản -->
+<div class="modal fade" id="publisherModal" tabindex="-1" aria-labelledby="publisherModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="publisherModalLabel">Thêm nhà xuất bản mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="publisherForm">
+                    <div class="mb-3">
+                        <label for="publisherName" class="form-label">Tên nhà xuất bản <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="publisherName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="publisherAddress" class="form-label">Địa chỉ</label>
+                        <input type="text" class="form-control" id="publisherAddress">
+                    </div>
+                    <div class="mb-3">
+                        <label for="publisherPhone" class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" id="publisherPhone">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle me-1"></i> Hủy</button>
+                <button type="button" class="btn btn-primary" id="savePublisher"><i class="bi bi-check-circle me-1"></i> Lưu nhà xuất bản</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Hiển thị/ẩn trường giá
+        function togglePriceField(show) {
+            document.getElementById('priceField').style.display = show ? 'block' : 'none';
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Xử lý tải lên tài liệu
+            const dropAreaDocument = document.getElementById('dropAreaDocument');
+            const documentFile = document.getElementById('documentFile');
+            const documentPlaceholder = document.getElementById('documentPlaceholder');
+            const documentPreview = document.getElementById('documentPreview');
+            const documentName = document.querySelector('.document-name');
+            const documentSize = document.querySelector('.document-size');
+            const browseDocumentBtn = document.getElementById('browseDocumentBtn');
+            const removeDocumentBtn = document.querySelector('.remove-document');
+            
+            // Xử lý tải lên ảnh
+            const dropAreaImage = document.getElementById('dropAreaImage');
+            const coverImage = document.getElementById('coverImage');
+            const imagePlaceholder = document.getElementById('imagePlaceholder');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewImg = document.querySelector('#imagePreview img');
+            const browseImageBtn = document.getElementById('browseImageBtn');
+            const removeImageBtn = document.querySelector('.remove-image');
+            
+            // Xử lý kéo thả tài liệu
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropAreaDocument.addEventListener(eventName, preventDefaults, false);
+                dropAreaImage.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropAreaDocument.addEventListener(eventName, () => {
+                    dropAreaDocument.style.borderColor = '#0d6efd';
+                    dropAreaDocument.style.backgroundColor = '#f8f9fa';
+                }, false);
+                
+                dropAreaImage.addEventListener(eventName, () => {
+                    dropAreaImage.style.borderColor = '#0d6efd';
+                    dropAreaImage.style.backgroundColor = '#f8f9fa';
+                }, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropAreaDocument.addEventListener(eventName, () => {
+                    dropAreaDocument.style.borderColor = '#ccc';
+                    dropAreaDocument.style.backgroundColor = '#f8f9fa';
+                }, false);
+                
+                dropAreaImage.addEventListener(eventName, () => {
+                    dropAreaImage.style.borderColor = '#ccc';
+                    dropAreaImage.style.backgroundColor = '#f8f9fa';
+                }, false);
+            });
+            
+            // Xử lý thả tài liệu
+            dropAreaDocument.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length) {
+                    documentFile.files = files;
+                    updateDocumentPreview(files[0]);
+                }
+            }, false);
+            
+            // Xử lý thả ảnh
+            dropAreaImage.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length && files[0].type.startsWith('image/')) {
+                    coverImage.files = files;
+                    updateImagePreview(files[0]);
+                }
+            }, false);
+            
+            // Click để chọn tài liệu
+            dropAreaDocument.addEventListener('click', () => {
+                documentFile.click();
+            });
+            
+            browseDocumentBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                documentFile.click();
+            });
+            
+            // Click để chọn ảnh
+            dropAreaImage.addEventListener('click', () => {
+                coverImage.click();
+            });
+            
+            browseImageBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                coverImage.click();
+            });
+            
+            // Khi chọn tài liệu từ input
+            documentFile.addEventListener('change', () => {
+                if (documentFile.files.length) {
+                    updateDocumentPreview(documentFile.files[0]);
+                }
+            });
+            
+            // Khi chọn ảnh từ input
+            coverImage.addEventListener('change', () => {
+                if (coverImage.files.length) {
+                    updateImagePreview(coverImage.files[0]);
+                }
+            });
+            
+            // Cập nhật xem trước tài liệu
+            function updateDocumentPreview(file) {
+                // Kiểm tra định dạng file
+                const extension = file.name.split('.').pop().toLowerCase();
+                const validExtensions = ['pdf', 'doc', 'docx'];
+                
+                if (!validExtensions.includes(extension)) {
+                    showError('Chỉ chấp nhận file PDF, DOC, DOCX');
+                    return;
+                }
+                
+                // Kiểm tra kích thước (50MB)
+                if (file.size > 50 * 1024 * 1024) {
+                    showError('Kích thước file không được vượt quá 50MB');
+                    return;
+                }
+                
+                // Hiển thị thông tin file
+                documentName.textContent = file.name;
+                documentSize.textContent = formatFileSize(file.size);
+                
+                documentPlaceholder.style.display = 'none';
+                documentPreview.style.display = 'block';
+            }
+            
+            // Cập nhật xem trước ảnh
+            function updateImagePreview(file) {
+                // Kiểm tra định dạng ảnh
+                if (!file.type.startsWith('image/')) {
+                    showError('Vui lòng chọn file ảnh');
+                    return;
+                }
+                
+                // Kiểm tra kích thước (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showError('Kích thước ảnh không được vượt quá 5MB');
+                    return;
+                }
+                
+                // Hiển thị ảnh xem trước
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreviewImg.src = e.target.result;
+                    imagePlaceholder.style.display = 'none';
+                    imagePreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+            
+            // Xử lý xóa tài liệu
+            removeDocumentBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                documentFile.value = '';
+                documentPlaceholder.style.display = 'block';
+                documentPreview.style.display = 'none';
+            });
+            
+            // Xử lý xóa ảnh
+            removeImageBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                coverImage.value = '';
+                imagePlaceholder.style.display = 'block';
+                imagePreview.style.display = 'none';
+            });
+            
+            // Hiển thị lỗi
+            function showError(message) {
+                const errorElement = document.getElementById('uploadError');
+                const errorMessage = document.getElementById('errorMessage');
+                
+                errorMessage.textContent = message;
+                errorElement.style.display = 'block';
+                
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Format kích thước file
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' bytes';
+                else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KB';
+                else return (bytes / 1048576).toFixed(2) + ' MB';
+            }
+        });
+    </script>
+} 

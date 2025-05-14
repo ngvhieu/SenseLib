@@ -1,0 +1,277 @@
+@{
+    ViewData["Title"] = "Quản lý file";
+    Layout = "_AdminLayout";
+}
+
+<div class="pagetitle">
+    <h1>Quản lý File</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active">Quản lý File</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quản lý File</h5>
+                    
+                    <div class="upload-area mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Tải lên file mới</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="fileUploadForm" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <input type="file" id="fileInput" class="form-control" name="upload" />
+                                        <small class="form-text text-muted">Định dạng hỗ trợ: jpg, png, gif, pdf, doc, docx, xls, xlsx, ppt, pptx, txt. Tối đa 20MB.</small>
+                                    </div>
+                                    <button type="button" id="uploadButton" class="btn btn-primary">
+                                        <i class="bi bi-upload"></i> Tải lên
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="file-list-area">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Danh sách file</h5>
+                                <button id="refreshButton" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-arrow-clockwise"></i> Làm mới
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="fileList" class="row file-list">
+                                    <div class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Đang tải...</span>
+                                        </div>
+                                        <p class="mt-2">Đang tải danh sách file...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Styles {
+    <style>
+        .file-item {
+            margin-bottom: 20px;
+        }
+        
+        .file-item .card {
+            height: 100%;
+            transition: all 0.3s;
+        }
+        
+        .file-item .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .file-thumbnail {
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+        
+        .file-thumbnail img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .file-info {
+            padding: 15px;
+        }
+        
+        .file-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-size {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .file-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Tải danh sách file khi trang được load
+            loadFileList();
+            
+            // Refresh danh sách file
+            $('#refreshButton').click(function() {
+                loadFileList();
+            });
+            
+            // Xử lý upload file
+            $('#uploadButton').click(function() {
+                var fileInput = $('#fileInput')[0];
+                var file = fileInput.files[0];
+                
+                if (!file) {
+                    alert('Vui lòng chọn file để tải lên');
+                    return;
+                }
+                
+                var formData = new FormData();
+                formData.append('upload', file);
+                
+                // Đổi text button và disable
+                var originalText = $(this).html();
+                $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang tải lên...');
+                $(this).prop('disabled', true);
+                
+                $.ajax({
+                    url: '@Url.Action("Upload", "FileManager", new { area = "Admin" })',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.error) {
+                            alert('Lỗi: ' + response.error.message);
+                        } else {
+                            // Reset form
+                            $('#fileUploadForm')[0].reset();
+                            
+                            // Reload danh sách file
+                            loadFileList();
+                            
+                            // Thông báo thành công
+                            alert('Tải lên file thành công!');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                        alert('Đã xảy ra lỗi khi tải lên file. Vui lòng thử lại sau.');
+                    },
+                    complete: function() {
+                        // Restore button state
+                        $('#uploadButton').html(originalText);
+                        $('#uploadButton').prop('disabled', false);
+                    }
+                });
+            });
+            
+            // Xử lý sự kiện xóa file (delegation vì các phần tử được tạo động)
+            $(document).on('click', '.delete-file-btn', function() {
+                if (!confirm('Bạn có chắc chắn muốn xóa file này không?')) {
+                    return;
+                }
+                
+                var fileName = $(this).data('filename');
+                var fileItem = $(this).closest('.file-item');
+                
+                $.ajax({
+                    url: '@Url.Action("DeleteFile", "FileManager", new { area = "Admin" })',
+                    type: 'POST',
+                    data: { fileName: fileName },
+                    success: function(response) {
+                        if (response.success) {
+                            // Xóa phần tử file khỏi DOM
+                            fileItem.fadeOut(300, function() {
+                                $(this).remove();
+                            });
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                        alert('Đã xảy ra lỗi khi xóa file. Vui lòng thử lại sau.');
+                    }
+                });
+            });
+        });
+        
+        // Hàm tải danh sách file
+        function loadFileList() {
+            $('#fileList').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div><p class="mt-2">Đang tải danh sách file...</p></div>');
+            
+            $.ajax({
+                url: '@Url.Action("ListFiles", "FileManager", new { area = "Admin" })',
+                type: 'POST',
+                success: function(files) {
+                    if (files.error) {
+                        $('#fileList').html('<div class="alert alert-danger">Lỗi: ' + files.error + '</div>');
+                        return;
+                    }
+                    
+                    if (files.length === 0) {
+                        $('#fileList').html('<div class="alert alert-info">Chưa có file nào được tải lên.</div>');
+                        return;
+                    }
+                    
+                    var html = '';
+                    
+                    $.each(files, function(index, file) {
+                        html += '<div class="col-md-3 file-item">';
+                        html += '    <div class="card h-100">';
+                        html += '        <div class="file-thumbnail">';
+                        html += '            <img src="' + file.thumbnailUrl + '" alt="' + file.name + '">';
+                        html += '        </div>';
+                        html += '        <div class="file-info">';
+                        html += '            <div class="file-name" title="' + file.name + '">' + file.name + '</div>';
+                        html += '            <div class="file-size">' + formatFileSize(file.size) + '</div>';
+                        html += '            <div class="file-actions">';
+                        html += '                <a href="' + file.url + '" class="btn btn-sm btn-outline-primary" target="_blank">';
+                        html += '                    <i class="bi bi-eye"></i> Xem';
+                        html += '                </a>';
+                        html += '                <button class="btn btn-sm btn-outline-danger delete-file-btn" data-filename="' + file.name + '">';
+                        html += '                    <i class="bi bi-trash"></i> Xóa';
+                        html += '                </button>';
+                        html += '            </div>';
+                        html += '        </div>';
+                        html += '    </div>';
+                        html += '</div>';
+                    });
+                    
+                    $('#fileList').html(html);
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                    $('#fileList').html('<div class="alert alert-danger">Đã xảy ra lỗi khi tải danh sách file. Vui lòng thử lại sau.</div>');
+                }
+            });
+        }
+        
+        // Hàm định dạng kích thước file
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+} 

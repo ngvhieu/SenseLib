@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Quản lý Menu";
+}
+
+
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Thêm menu hệ thống</h5>
+                    
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+                    
+                    @if (TempData["InfoMessage"] != null)
+                    {
+                        <div class="alert alert-info">
+                            @TempData["InfoMessage"]
+                        </div>
+                    }
+                    
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Menu Tài liệu</h5>
+                                    <p>Thêm menu Tài liệu vào thanh điều hướng hệ thống.</p>
+                                    <a asp-controller="AdminMenu" asp-action="AddDocumentMenuItem" asp-area="" class="btn btn-primary">
+                                        Thêm menu Tài liệu
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Menu con Thống kê</h5>
+                                    <p>Thêm menu con Thống kê vào menu Tài liệu.</p>
+                                    <a asp-controller="AdminMenu" asp-action="AddDocumentStatisticsMenuItem" asp-area="" class="btn btn-primary">
+                                        Thêm menu Thống kê
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 

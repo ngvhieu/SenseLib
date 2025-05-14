@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = "Đăng Ký";
+}
+
+<div class="auth-container">
+    <div class="auth-header">
+        <h1>Đăng Ký Tài Khoản</h1>
+        <p>Đăng ký để truy cập kho tàng tri thức SenseLib</p>
+    </div>
+    
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+    
+    <form asp-action="Register" asp-controller="Account" method="post">
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            <label for="username">Tên đăng nhập</label>
+            <input type="text" id="username" name="username" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="fullName">Họ và tên</label>
+            <input type="text" id="fullName" name="fullName" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Mật khẩu</label>
+            <input type="password" id="password" name="password" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="confirmPassword">Xác nhận mật khẩu</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>
+        </div>
+        
+        <div class="form-group" style="display: flex; align-items: center;">
+            <input type="checkbox" id="terms" style="margin-right: 0.5rem;" required>
+            <label for="terms" style="margin-bottom: 0;">Tôi đồng ý với <a href="/Home/Terms">Điều khoản sử dụng</a> và <a href="/Home/Privacy">Chính sách bảo mật</a></label>
+        </div>
+        
+        <button type="submit" class="auth-btn">Đăng ký</button>
+    </form>
+    
+    <div class="social-auth">
+        <p>Hoặc đăng ký với</p>
+        
+        <div class="social-buttons">
+            <a href="#" class="social-btn facebook">
+                <i class="fab fa-facebook-f"></i> Facebook
+            </a>
+            <a href="#" class="social-btn google">
+                <i class="fab fa-google"></i> Google
+            </a>
+        </div>
+    </div>
+    
+    <div class="auth-footer">
+        <p>Đã có tài khoản? <a href="@Url.Action("Login", "Account")">Đăng nhập</a></p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // JavaScript để kiểm tra khớp mật khẩu
+        document.getElementById('password').addEventListener('input', validatePassword);
+        document.getElementById('confirmPassword').addEventListener('input', validatePassword);
+        
+        function validatePassword() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password && confirmPassword) {
+                if (password !== confirmPassword) {
+                    document.getElementById('confirmPassword').setCustomValidity('Mật khẩu không khớp!');
+                } else {
+                    document.getElementById('confirmPassword').setCustomValidity('');
+                }
+            }
+        }
+    </script>
+} 

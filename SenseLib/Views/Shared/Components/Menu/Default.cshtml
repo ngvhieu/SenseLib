@@ -1,0 +1,35 @@
+@model IEnumerable<SenseLib.Models.Menu>
+
+@{
+    var parentItems = Model.Where(i => i.ParentID == 0).OrderBy(i => i.MenuOrder);
+}
+
+<nav>
+    <ul>
+        @foreach (var item in parentItems)
+        {
+            var childItems = Model.Where(i => i.ParentID == item.MenuID).OrderBy(i => i.MenuOrder);
+            var hasChildren = childItems.Any();
+            var active = Context.Request.Path.ToString().Contains(item.Link) ? "active" : "";
+            
+            <li class="@(hasChildren ? "dropdown" : "")">
+                @if (hasChildren)
+                {
+                    <a href="@item.Link" class="@active dropdown-toggle">@item.MenuName</a>
+                    <ul class="dropdown-menu">
+                        @foreach (var child in childItems)
+                        {
+                            <li>
+                                <a href="@child.Link">@child.MenuName</a>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <a href="@item.Link" class="@active">@item.MenuName</a>
+                }
+            </li>
+        }
+    </ul>
+</nav> 

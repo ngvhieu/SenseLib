@@ -1,0 +1,170 @@
+@model SenseLib.Models.ContactMessage
+@{
+    ViewData["Title"] = "Chi tiết liên hệ";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Thông tin tin nhắn</h5>
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="row mb-4">
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-sm mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Thông tin người gửi</h5>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4 fw-bold">Họ và tên:</div>
+                                        <div class="col-sm-8">@Model.Name</div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4 fw-bold">Email:</div>
+                                        <div class="col-sm-8">
+                                            <a href="mailto:@Model.Email">@Model.Email</a>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4 fw-bold">Ngày gửi:</div>
+                                        <div class="col-sm-8">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4 fw-bold">Trạng thái:</div>
+                                        <div class="col-sm-8">
+                                            @if (Model.IsRead)
+                                            {
+                                                <span class="badge bg-success">Đã đọc</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Chưa đọc</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">Nội dung tin nhắn</h5>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3 fw-bold">Tiêu đề:</div>
+                                        <div class="col-sm-9">@Model.Subject</div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-12 fw-bold">Nội dung:</div>
+                                        <div class="col-sm-12">
+                                            <div class="message-content p-3 bg-light rounded">
+                                                @Html.Raw(Model.Message.Replace(Environment.NewLine, "<br />"))
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Gửi phản hồi</h5>
+
+                            <form asp-action="Reply" method="post" id="replyForm">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <div class="form-group mb-3">
+                                    <label for="replyMessage" class="form-label">Nội dung phản hồi <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="replyMessage" name="replyMessage" rows="5" required 
+                                        oninvalid="this.setCustomValidity('Vui lòng nhập nội dung phản hồi')" 
+                                        oninput="this.setCustomValidity('')"></textarea>
+                                    <div class="invalid-feedback">
+                                        Vui lòng nhập nội dung phản hồi
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <a asp-action="Index" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left"></i> Quay lại
+                                    </a>
+                                    <div>
+                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </button>
+                                        <button type="submit" class="btn btn-primary" id="submitReply">
+                                            <i class="bi bi-send"></i> Gửi phản hồi
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal Xác nhận xóa -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa tin nhắn này?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Validate form trước khi gửi
+        document.getElementById('replyForm').addEventListener('submit', function(event) {
+            var replyMessage = document.getElementById('replyMessage').value.trim();
+            if (!replyMessage) {
+                event.preventDefault();
+                document.getElementById('replyMessage').classList.add('is-invalid');
+                return false;
+            }
+            
+            // Disable nút submit khi đã gửi để tránh submit nhiều lần
+            document.getElementById('submitReply').disabled = true;
+            document.getElementById('submitReply').innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang gửi...';
+            return true;
+        });
+
+        // Xử lý khi textarea có thay đổi
+        document.getElementById('replyMessage').addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+            }
+        });
+    </script>
+} 

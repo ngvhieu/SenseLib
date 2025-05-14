@@ -1,0 +1,71 @@
+@model SenseLib.Models.Category
+
+@{
+    ViewData["Title"] = "Thêm danh mục mới";
+    Layout = "_AdminLayout";
+}
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Thông tin danh mục</h5>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <h4>Có lỗi khi lưu thông tin:</h4>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <form asp-area="Admin" asp-controller="Category" asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="CategoryName" class="col-sm-2 col-form-label">Tên danh mục</label>
+                            <div class="col-sm-10">
+                                <input asp-for="CategoryName" class="form-control" required />
+                                <span asp-validation-for="CategoryName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="Description" class="col-sm-2 col-form-label">Mô tả</label>
+                            <div class="col-sm-10">
+                                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                                <small class="form-text text-muted">Nhập mô tả chi tiết về danh mục (không bắt buộc).</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="Status" class="col-sm-2 col-form-label">Trạng thái</label>
+                            <div class="col-sm-10">
+                                <select asp-for="Status" class="form-select" required>
+                                    <option value="">-- Chọn trạng thái --</option>
+                                    <option value="Active">Hoạt động</option>
+                                    <option value="Inactive">Không hoạt động</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-10 offset-sm-2">
+                                <button type="submit" class="btn btn-primary">Lưu danh mục</button>
+                                <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+} 

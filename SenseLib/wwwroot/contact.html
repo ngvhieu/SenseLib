@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liên Hệ - SenseLib</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .contact-hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://via.placeholder.com/1920x400?text=Contact+Us');
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+            padding: 4rem 0;
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .contact-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .contact-hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+        
+        .contact-info {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .contact-info h3 {
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .contact-info h3::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background-color: var(--secondary-color);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+        
+        .contact-details {
+            margin-bottom: 2rem;
+        }
+        
+        .contact-detail {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+        
+        .contact-detail i {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            margin-right: 1rem;
+            width: 24px;
+        }
+        
+        .contact-detail div {
+            flex: 1;
+        }
+        
+        .contact-detail h4 {
+            margin-bottom: 0.25rem;
+        }
+        
+        .contact-detail p {
+            color: #777;
+            line-height: 1.6;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .contact-form {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        .contact-form h3 {
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .contact-form h3::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background-color: var(--secondary-color);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 150px;
+        }
+        
+        .map-container {
+            height: 400px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 4rem;
+        }
+        
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        
+        .faq-section {
+            margin-bottom: 4rem;
+        }
+        
+        .faq-item {
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        
+        .faq-question {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .faq-question:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .faq-question i {
+            transition: var(--transition);
+        }
+        
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .faq-answer p {
+            padding-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .faq-item.active .faq-question {
+            background-color: #f8f9fa;
+        }
+        
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+        
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        @media (max-width: 992px) {
+            .contact-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">SenseLib</a>
+                </div>
+                
+                <div class="search-bar">
+                    <form>
+                        <input type="text" placeholder="Tìm kiếm tài liệu...">
+                    </form>
+                </div>
+                
+                <nav>
+                    <ul>
+                        <li><a href="index.html">Trang chủ</a></li>
+                        <li><a href="documents.html">Tài liệu</a></li>
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="contact.html" class="active">Liên hệ</a></li>
+                        <li><a href="profile.html"><i class="fas fa-user"></i></a></li>
+                    </ul>
+                </nav>
+                
+                <div class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="contact-hero">
+        <div class="container">
+            <h1>Liên Hệ Với Chúng Tôi</h1>
+            <p>Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn. Hãy liên hệ với chúng tôi nếu bạn có bất kỳ câu hỏi hoặc góp ý nào.</p>
+        </div>
+    </section>
+    
+    <!-- Main Content -->
+    <div class="container">
+        <div class="contact-container">
+            <!-- Contact Info -->
+            <div class="contact-info">
+                <h3>Thông Tin Liên Hệ</h3>
+                
+                <div class="contact-details">
+                    <div class="contact-detail">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h4>Địa chỉ</h4>
+                            <p>123 Đường ABC, Quận XYZ<br>Hà Nội, Việt Nam</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-detail">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h4>Điện thoại</h4>
+                            <p>(84) 123 456 789<br>(84) 987 654 321</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-detail">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4>Email</h4>
+                            <p>contact@senselib.com<br>support@senselib.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-detail">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h4>Giờ làm việc</h4>
+                            <p>Thứ Hai - Thứ Sáu: 8:00 - 17:00<br>Thứ Bảy: 9:00 - 12:00</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 style="margin-bottom: 1rem;">Kết nối với chúng tôi</h4>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            
+            <!-- Contact Form -->
+            <div class="contact-form">
+                <h3>Gửi Tin Nhắn</h3>
+                
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Họ và tên</label>
+                        <input type="text" id="name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subject">Chủ đề</label>
+                        <input type="text" id="subject" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Tin nhắn</label>
+                        <textarea id="message" class="form-control" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn" style="width: 100%;">Gửi tin nhắn</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Map -->
+        <div class="map-container">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.0966890206866!2d105.78273007596233!3d21.02880158061267!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab4cd0c66f05%3A0xea31563511af2e54!2zMTIzIMSQLiBD4bqndSBHaeG6pXksIFF1YW4gSOG6oSwgQ-G6p3UgR2nhuqV5LCBIw6AgTuG7mWksIFZp4buHdCBOYW0!5e0!3m2!1svi!2s!4v1685080000000!5m2!1svi!2s" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <h2 class="section-title">Câu Hỏi Thường Gặp</h2>
+            
+            <div class="faq-list">
+                <!-- FAQ Item 1 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Làm thế nào để tạo tài khoản trên SenseLib?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Để tạo tài khoản trên SenseLib, bạn chỉ cần nhấp vào nút "Đăng ký" ở góc trên bên phải của trang web. Sau đó, điền thông tin cá nhân của bạn vào biểu mẫu đăng ký và làm theo hướng dẫn. Sau khi hoàn tất, bạn sẽ nhận được email xác nhận và có thể bắt đầu sử dụng dịch vụ của chúng tôi.</p>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 2 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>SenseLib có miễn phí không?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>SenseLib cung cấp cả dịch vụ miễn phí và trả phí. Với tài khoản miễn phí, bạn có thể truy cập một số lượng nhất định tài liệu mỗi tháng. Nếu bạn cần truy cập không giới hạn và các tính năng cao cấp khác, bạn có thể nâng cấp lên tài khoản Premium với mức giá phải chăng.</p>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 3 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Làm thế nào để tải xuống tài liệu?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Để tải xuống tài liệu, trước tiên bạn cần đăng nhập vào tài khoản của mình. Sau đó, tìm kiếm tài liệu bạn muốn tải xuống, mở trang chi tiết tài liệu và nhấp vào nút "Tải xuống". Tùy thuộc vào loại tài khoản của bạn, có thể có giới hạn về số lượng tài liệu bạn có thể tải xuống trong một khoảng thời gian nhất định.</p>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 4 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Làm thế nào để đóng góp tài liệu lên SenseLib?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Chúng tôi rất hoan nghênh sự đóng góp từ cộng đồng. Để đóng góp tài liệu, bạn cần đăng nhập vào tài khoản của mình, sau đó nhấp vào "Đóng góp tài liệu" trong menu người dùng. Điền thông tin chi tiết về tài liệu và tải lên file của bạn. Tài liệu sẽ được đội ngũ của chúng tôi xem xét trước khi được đăng công khai.</p>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 5 -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Tôi quên mật khẩu, phải làm thế nào?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Nếu bạn quên mật khẩu, hãy nhấp vào liên kết "Quên mật khẩu" trên trang đăng nhập. Nhập địa chỉ email đã đăng ký của bạn, và chúng tôi sẽ gửi cho bạn hướng dẫn đặt lại mật khẩu. Nếu bạn vẫn gặp vấn đề, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi qua email support@senselib.com.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>SenseLib</h3>
+                    <p>Kho tàng tri thức số dành cho mọi người. Chúng tôi cung cấp truy cập đến hàng ngàn tài liệu học thuật và nguồn tài nguyên giáo dục.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên kết nhanh</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Trang chủ</a></li>
+                        <li><a href="documents.html">Tài liệu</a></li>
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="contact.html">Liên hệ</a></li>
+                        <li><a href="privacy.html">Chính sách bảo mật</a></li>
+                        <li><a href="terms.html">Điều khoản sử dụng</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Danh mục</h3>
+                    <ul class="footer-links">
+                        <li><a href="documents.html?category=technology">Công nghệ</a></li>
+                        <li><a href="documents.html?category=business">Kinh doanh</a></li>
+                        <li><a href="documents.html?category=education">Giáo dục</a></li>
+                        <li><a href="documents.html?category=science">Khoa học</a></li>
+                        <li><a href="documents.html?category=health">Y tế</a></li>
+                        <li><a href="documents.html?category=literature">Văn học</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên hệ</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> contact@senselib.com</li>
+                        <li><i class="fas fa-phone"></i> (84) 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, Hà Nội</li>
+                    </ul>
+                    <div style="margin-top: 1rem;">
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-twitter"></i></a>
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 SenseLib. Tất cả các quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script src="js/main.js"></script>
+    <script>
+        // Xử lý form liên hệ
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Trong một ứng dụng thực, bạn sẽ gửi dữ liệu form đến máy chủ
+            // Ở đây, chúng ta chỉ giả lập việc gửi thành công
+            
+            // Hiển thị thông báo
+            const notification = document.getElementById('notification');
+            notification.textContent = 'Tin nhắn của bạn đã được gửi thành công!';
+            notification.classList.add('show');
+            
+            // Ẩn thông báo sau 3 giây
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+            
+            // Đặt lại form
+            this.reset();
+        });
+        
+        // Xử lý FAQ
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            
+            question.addEventListener('click', () => {
+                // Đóng tất cả các câu hỏi khác
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.classList.remove('active');
+                    }
+                });
+                
+                // Chuyển đổi trạng thái của câu hỏi hiện tại
+                item.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html> 

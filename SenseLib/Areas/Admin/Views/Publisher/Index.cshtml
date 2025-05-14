@@ -1,0 +1,58 @@
+@model IEnumerable<SenseLib.Models.Publisher>
+
+@{
+    ViewData["Title"] = "Quản lý nhà xuất bản";
+    Layout = "_AdminLayout";
+    
+    // Chuẩn bị dữ liệu cho mẫu thiết kế bảng
+    ViewBag.TableTitle = "Danh sách nhà xuất bản";
+    ViewBag.AddButtonText = "Thêm nhà xuất bản mới";
+    
+    // Các cột trong bảng
+    ViewBag.TableColumns = new string[] { "#", "Tên nhà xuất bản", "Địa chỉ", "Điện thoại", "Số lượng tài liệu", "Thao tác" };
+    
+    // Nội dung bảng (partial view)
+    ViewBag.TableContent = "_PublisherTable";
+    
+    // Thống kê
+    ViewBag.StatsCards = new List<dynamic> {
+        new {
+            Title = "Tổng số nhà xuất bản",
+            Value = ViewBag.TotalPublishers,
+            Icon = "bi-buildings",
+            ColorClass = "sales-card",
+            Width = 4
+        }
+    };
+}
+
+<partial name="_TableTemplate" model="Model" />
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.datatable').DataTable({
+                "language": {
+                    "lengthMenu": "Hiển thị _MENU_ mục",
+                    "zeroRecords": "Không tìm thấy dữ liệu",
+                    "info": "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+                    "infoEmpty": "Không có dữ liệu",
+                    "infoFiltered": "(lọc từ _MAX_ mục)",
+                    "search": "Tìm kiếm:",
+                    "paginate": {
+                        "first": "Đầu",
+                        "last": "Cuối",
+                        "next": "Sau",
+                        "previous": "Trước"
+                    }
+                },
+                "responsive": true
+            });
+            
+            // Tự động đóng thông báo sau 5 giây
+            setTimeout(function() {
+                $(".alert").alert('close');
+            }, 5000);
+        });
+    </script>
+} 

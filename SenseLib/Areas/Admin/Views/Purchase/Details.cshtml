@@ -1,0 +1,230 @@
+@model SenseLib.Models.Purchase
+
+@{
+    ViewData["Title"] = "Chi tiết giao dịch #" + Model.PurchaseID;
+    Layout = "_AdminLayout";
+}
+
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title">Chi tiết giao dịch #@Model.PurchaseID</h5>
+                        <a asp-area="Admin" asp-controller="Purchase" asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                    
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle me-1"></i>
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Thông tin giao dịch</h5>
+                                    
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered">
+                                            <tbody>
+                                                <tr>
+                                                    <th style="width: 35%">Mã giao dịch:</th>
+                                                    <td>@Model.TransactionCode</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Thời gian:</th>
+                                                    <td>@Model.PurchaseDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Số tiền:</th>
+                                                    <td class="fw-bold">@Model.Amount.ToString("N0") ₫</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Trạng thái:</th>
+                                                    <td>
+                                                        @if (Model.Status == "Completed")
+                                                        {
+                                                            <span class="badge bg-success">Hoàn thành</span>
+                                                        }
+                                                        else if (Model.Status == "Pending")
+                                                        {
+                                                            <span class="badge bg-warning text-dark">Đang xử lý</span>
+                                                        }
+                                                        else if (Model.Status == "Failed")
+                                                        {
+                                                            <span class="badge bg-danger">Thất bại</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-secondary">@Model.Status</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <h5 class="card-title">Cập nhật trạng thái</h5>
+                                    <form asp-action="UpdateStatus" asp-route-id="@Model.PurchaseID" method="post" class="row g-3 align-items-end">
+                                        @Html.AntiForgeryToken()
+                                        <div class="col-md-8">
+                                            <select name="status" class="form-select">
+                                                @if (Model.Status == "Completed")
+                                                {
+                                                    <option value="Completed" selected="selected">Hoàn thành</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="Completed">Hoàn thành</option>
+                                                }
+                                                
+                                                @if (Model.Status == "Pending")
+                                                {
+                                                    <option value="Pending" selected="selected">Đang xử lý</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="Pending">Đang xử lý</option>
+                                                }
+                                                
+                                                @if (Model.Status == "Failed")
+                                                {
+                                                    <option value="Failed" selected="selected">Thất bại</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="Failed">Thất bại</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-check-lg"></i> Cập nhật
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Thông tin người dùng</h5>
+                                    
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div style="width: 50px; height: 50px; overflow: hidden; border-radius: 50%; margin-right: 15px;">
+                                            <img src="@(string.IsNullOrEmpty(Model.User.ProfileImage) ? "/uploads/profiles/smile.jpg" : "/uploads/profiles/" + Model.User.ProfileImage)" alt="@Model.User.Username" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0">@Model.User.Username</h5>
+                                            <p class="text-muted mb-0">ID: @Model.User.UserID</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered">
+                                            <tbody>
+                                                <tr>
+                                                    <th style="width: 35%">Email:</th>
+                                                    <td>@Model.User.Email</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Họ tên:</th>
+                                                    <td>@Model.User.FullName</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Vai trò:</th>
+                                                    <td>@Model.User.Role</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <a asp-area="Admin" asp-controller="Purchase" asp-action="UserPurchases" asp-route-id="@Model.User.UserID" class="btn btn-outline-primary">
+                                            <i class="bi bi-clock-history"></i> Xem lịch sử giao dịch
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Thông tin tài liệu</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-2 text-center">
+                                    <div style="height: 150px; overflow: hidden; margin-bottom: 10px; border-radius: 5px;">
+                                        <img src="@(string.IsNullOrEmpty(Model.Document.ImagePath) ? "/images/document-placeholder.jpg" : Model.Document.ImagePath)" 
+                                            alt="@Model.Document.Title" class="img-fluid" style="max-height: 150px; width: auto; max-width: 100%;">
+                                    </div>
+                                </div>
+                                <div class="col-md-10">
+                                    <h5>@Model.Document.Title</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-bordered">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th style="width: 35%">Tác giả:</th>
+                                                            <td>@Model.Document.Author?.AuthorName</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Danh mục:</th>
+                                                            <td>@Model.Document.Category?.CategoryName</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Ngày đăng:</th>
+                                                            <td>@Model.Document.UploadDate.ToString("dd/MM/yyyy")</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-bordered">
+                                                    <tbody>
+                                                        <tr>
+                                                            <th style="width: 35%">Loại:</th>
+                                                            <td>@(Model.Document.IsPaid ? "Trả phí" : "Miễn phí")</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Giá:</th>
+                                                            <td>@(Model.Document.IsPaid ? Model.Document.Price?.ToString("N0") + " ₫" : "Miễn phí")</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Nhà xuất bản:</th>
+                                                            <td>@Model.Document.Publisher?.PublisherName</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <a href="@Url.Action("Details", "Document", new { id = Model.Document.DocumentID, area = "" })" target="_blank" class="btn btn-primary">
+                                            <i class="bi bi-eye"></i> Xem tài liệu
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 

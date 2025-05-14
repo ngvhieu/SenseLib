@@ -1,0 +1,33 @@
+@model IEnumerable<SenseLib.Models.Category>
+
+@foreach (var item in Model)
+{
+    <tr>
+        <td>@item.CategoryID</td>
+        <td>@item.CategoryName</td>
+        <td>@(string.IsNullOrEmpty(item.Description) ? "Không có mô tả" : (item.Description.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description))</td>
+        <td>
+            @if (item.Status == "Active")
+            {
+                <span class="badge bg-success">Hoạt động</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Không hoạt động</span>
+            }
+        </td>
+        <td>
+            <div class="btn-group" role="group">
+                <a asp-action="Edit" asp-route-id="@item.CategoryID" class="btn btn-primary btn-sm" title="Chỉnh sửa">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <a asp-action="Details" asp-route-id="@item.CategoryID" class="btn btn-info btn-sm" title="Chi tiết">
+                    <i class="bi bi-info-circle"></i>
+                </a>
+                <a asp-action="Delete" asp-route-id="@item.CategoryID" class="btn btn-danger btn-sm" title="Xóa">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </div>
+        </td>
+    </tr>
+} 

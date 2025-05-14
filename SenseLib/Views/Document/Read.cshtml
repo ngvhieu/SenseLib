@@ -1,0 +1,393 @@
+@{
+    ViewData["Title"] = "Đọc tài liệu - " + ViewBag.DocumentTitle;
+    Layout = null; // Sử dụng layout rỗng cho trang đọc tài liệu (toàn màn hình)
+    
+    var document = ViewBag.Document;
+    var currentPage = ViewBag.CurrentPage;
+    var totalPages = ViewBag.TotalPages;
+    var allowedPages = ViewBag.AllowedPages;
+    var hasPurchased = ViewBag.HasPurchased;
+    var isPaid = ViewBag.IsPaid;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - SenseLib</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .reader-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .reader-header {
+            background-color: #333;
+            color: #fff;
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .reader-title {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            max-width: 60%;
+        }
+
+        .reader-title h1 {
+            font-size: 1.2rem;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            color: #ddd;
+        }
+
+        .reader-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-control {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem 0.8rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-control:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-control i {
+            margin-right: 0.5rem;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 0.2rem;
+        }
+
+        .zoom-btn {
+            background-color: transparent;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            border-radius: 3px;
+        }
+
+        .zoom-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .zoom-text {
+            color: white;
+            margin: 0 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .viewer-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: #525659;
+        }
+
+        #pdf-viewer {
+            width: 100%;
+            height: 100%;
+        }
+
+        #pdf-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+        }
+
+        .loader-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #pdf-fallback {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        #pdf-fallback a {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        #pdf-fallback a:hover {
+            text-decoration: underline;
+        }
+
+        @@media (max-width: 768px) {
+            .reader-title h1 {
+                max-width: 150px;
+            }
+            
+            .reader-controls {
+                gap: 0.5rem;
+            }
+            
+            .zoom-controls .zoom-text {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="reader-container">
+        <div class="reader-header">
+            <div class="reader-title">
+                <a href="javascript:history.back()" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1>@ViewBag.DocumentTitle</h1>
+            </div>
+            
+            <div class="reader-controls">
+                <div class="page-navigation" style="display: flex; align-items: center; margin-right: 1rem; color: white;">
+                    <button id="prev-page" class="page-btn" style="background-color: transparent; color: white; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.3rem 0.6rem;" @(currentPage <= 1 ? "disabled" : "")>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="page-indicator" style="margin: 0 0.5rem; font-size: 0.9rem; white-space: nowrap;">
+                        Trang <span id="current-page">@currentPage</span> / 
+                        <span id="total-pages">@allowedPages</span>
+                        @if (allowedPages < totalPages)
+                        {
+                            <span> (giới hạn)</span>
+                        }
+                    </span>
+                    <button id="next-page" class="page-btn" style="background-color: transparent; color: white; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.3rem 0.6rem;" @(currentPage >= allowedPages ? "disabled" : "")>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoom-out">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <span class="zoom-text" id="zoom-level">100%</span>
+                    <button class="zoom-btn" id="zoom-in">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                </div>
+                
+                @if (!isPaid || hasPurchased)
+                {
+                    <form asp-action="Download" asp-route-id="@Context.Request.Query["id"]" method="post" id="download-form">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-control">
+                            <i class="fas fa-download"></i> Tải xuống
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+        
+        <div class="viewer-container">
+            <div id="pdf-loader">
+                <div class="loader-spinner"></div>
+                <p>Đang tải tài liệu...</p>
+            </div>
+            <div id="pdf-viewer"></div>
+            <div id="pdf-fallback">
+                <p>Không thể hiển thị tài liệu trực tiếp. <a id="pdf-download-link" href="#" download>Tải xuống</a> để xem.</p>
+            </div>
+            
+            @if (isPaid && !hasPurchased)
+            {
+                <div class="purchase-notice" style="position: absolute; bottom: 0; left: 0; right: 0; background-color: rgba(0, 0, 0, 0.8); color: white; padding: 1rem; text-align: center;">
+                    Bạn đang xem bản xem trước (tối đa @allowedPages trang). 
+                    <a href="/Purchase/CheckoutDocument/@Context.Request.Query["id"]" style="display: inline-block; background-color: #4CAF50; color: white; padding: 0.5rem 1rem; border-radius: 5px; text-decoration: none; margin-left: 1rem;">
+                        <i class="fas fa-shopping-cart"></i> Mua tài liệu để xem toàn bộ và tải xuống
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <!-- PDFObject Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfobject/2.2.8/pdfobject.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pdfPath = '@ViewBag.FilePath';
+            const pdfViewer = document.getElementById('pdf-viewer');
+            const pdfLoader = document.getElementById('pdf-loader');
+            const pdfFallback = document.getElementById('pdf-fallback');
+            const pdfDownloadLink = document.getElementById('pdf-download-link');
+            const zoomInBtn = document.getElementById('zoom-in');
+            const zoomOutBtn = document.getElementById('zoom-out');
+            const zoomLevel = document.getElementById('zoom-level');
+            const prevPageBtn = document.getElementById('prev-page');
+            const nextPageBtn = document.getElementById('next-page');
+            const currentPageEl = document.getElementById('current-page');
+            
+            let currentPage = @currentPage;
+            const allowedPages = @allowedPages;
+            
+            // Thiết lập link tải xuống
+            pdfDownloadLink.href = pdfPath;
+            
+            // Theo dõi mức zoom
+            let currentZoom = 100;
+            
+            // Xử lý phóng to
+            zoomInBtn.addEventListener('click', function() {
+                if (currentZoom < 200) {
+                    currentZoom += 25;
+                    updateZoom();
+                }
+            });
+            
+            // Xử lý thu nhỏ
+            zoomOutBtn.addEventListener('click', function() {
+                if (currentZoom > 50) {
+                    currentZoom -= 25;
+                    updateZoom();
+                }
+            });
+            
+            // Cập nhật mức zoom
+            function updateZoom() {
+                zoomLevel.textContent = currentZoom + '%';
+                
+                // Nếu PDFObject đã được khởi tạo
+                const iframe = document.querySelector('#pdf-viewer iframe');
+                if (iframe) {
+                    // Thay đổi scale trong iframe
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const pdfViewer = iframeDoc.querySelector('.pdfViewer');
+                    
+                    if (pdfViewer) {
+                        pdfViewer.style.transform = `scale(${currentZoom/100})`;
+                        pdfViewer.style.transformOrigin = 'top center';
+                    }
+                }
+            }
+            
+            // Hiển thị PDF
+            if (PDFObject.supportsPDFs) {
+                PDFObject.embed(pdfPath, '#pdf-viewer', {
+                    fallbackLink: false,
+                    pdfOpenParams: {
+                        view: 'FitH'
+                    }
+                });
+                
+                // Ẩn loader sau khi PDF tải xong
+                const iframe = document.querySelector('#pdf-viewer iframe');
+                if (iframe) {
+                    iframe.onload = function() {
+                        pdfLoader.style.display = 'none';
+                    };
+                }
+            } else {
+                // Hiển thị fallback nếu trình duyệt không hỗ trợ PDF
+                pdfLoader.style.display = 'none';
+                pdfFallback.style.display = 'block';
+            }
+            
+            // Cập nhật UI khi chuyển trang
+            function updatePageNavigation() {
+                currentPageEl.textContent = currentPage;
+                prevPageBtn.disabled = currentPage <= 1;
+                nextPageBtn.disabled = currentPage >= allowedPages;
+                
+                // Cập nhật URL để lưu trạng thái trang
+                const url = new URL(window.location.href);
+                url.searchParams.set('page', currentPage);
+                window.history.replaceState({}, '', url.toString());
+            }
+            
+            // Xử lý sự kiện nút chuyển trang
+            if (prevPageBtn) {
+                prevPageBtn.addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        updatePageNavigation();
+                        window.location.href = window.location.pathname + '?id=@Context.Request.Query["id"]&page=' + currentPage;
+                    }
+                });
+            }
+            
+            if (nextPageBtn) {
+                nextPageBtn.addEventListener('click', function() {
+                    if (currentPage < allowedPages) {
+                        currentPage++;
+                        updatePageNavigation();
+                        window.location.href = window.location.pathname + '?id=@Context.Request.Query["id"]&page=' + currentPage;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

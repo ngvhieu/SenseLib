@@ -1,0 +1,255 @@
+@model SenseLib.Models.User
+@{
+    ViewData["Title"] = "Hồ Sơ Người Dùng";
+}
+
+<div class="container" style="padding: 2rem 0;">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="profile-avatar">
+                        @{
+                            string imagePath = string.IsNullOrEmpty(Model.ProfileImage) || Model.ProfileImage == "smile.jpg" 
+                                ? "/uploads/profiles/smile.jpg" 
+                                : $"/uploads/profiles/{Model.ProfileImage}";
+                        }
+                        <div style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; margin: 0 auto; border: 3px solid #3498db; display: flex; justify-content: center; align-items: center; position: relative;">
+                            <img src="@imagePath" alt="@Model.FullName" style="position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#changeAvatarModal">
+                                <i class="fas fa-camera"></i> Đổi ảnh đại diện
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item active">
+                            <a href="#" class="text-white"><i class="fas fa-user"></i> Thông tin cá nhân</a>
+                        </li>
+                        <li class="list-group-item">
+                            <a asp-controller="User" asp-action="Favorites"><i class="fas fa-book"></i> Tài liệu yêu thích</a>
+                        </li>
+                        <li class="list-group-item">
+                            <a asp-controller="User" asp-action="Downloads"><i class="fas fa-download"></i> Tài liệu đã tải</a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="#"><i class="fas fa-comment"></i> Bình luận của tôi</a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="#"><i class="fas fa-history"></i> Lịch sử giao dịch</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a asp-action="Logout" asp-controller="Account" class="btn btn-danger">
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-user"></i> Thông tin cá nhân</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateProfile" asp-controller="Account" method="post">
+                        <input type="hidden" name="userId" value="@Model.UserID" />
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="fullName">Họ và tên</label>
+                                    <input type="text" class="form-control" id="fullName" name="fullName" value="@Model.FullName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="username">Tên đăng nhập</label>
+                                    <input type="text" class="form-control" id="username" value="@Model.Username" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="email">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="@Model.Email" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="phone">Số điện thoại</label>
+                                    <input type="text" class="form-control" id="phone" value="">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 text-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5><i class="fas fa-lock"></i> Đổi mật khẩu</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="ChangePassword" asp-controller="Account" method="post">
+                        <input type="hidden" name="userId" value="@Model.UserID" />
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="currentPassword">Mật khẩu hiện tại</label>
+                                    <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="newPassword">Mật khẩu mới</label>
+                                    <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="confirmPassword">Xác nhận mật khẩu</label>
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 text-center">
+                            <button type="submit" class="btn btn-secondary">
+                                <i class="fas fa-key"></i> Đổi mật khẩu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-chart-line"></i> Thống kê hoạt động</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card text-center bg-primary text-white">
+                                <div class="card-body">
+                                    <h1>@Model.Favorites.Count</h1>
+                                    <p>Tài liệu yêu thích</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center bg-success text-white">
+                                <div class="card-body">
+                                    <h1>@Model.Downloads.Count</h1>
+                                    <p>Tài liệu đã tải</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center bg-warning text-white">
+                                <div class="card-body">
+                                    <h1>@Model.Comments.Count</h1>
+                                    <p>Bình luận</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center bg-danger text-white">
+                                <div class="card-body">
+                                    <h1>@Model.Ratings.Count</h1>
+                                    <p>Đánh giá</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Đổi Ảnh Đại Diện -->
+<div class="modal fade" id="changeAvatarModal" tabindex="-1" aria-labelledby="changeAvatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="UpdateProfile" asp-controller="Account" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="userId" value="@Model.UserID" />
+                <input type="hidden" name="fullName" value="@Model.FullName" />
+                <input type="hidden" name="email" value="@Model.Email" />
+                
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeAvatarModalLabel">Đổi ảnh đại diện</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; margin: 0 auto; border: 3px solid #3498db; display: flex; justify-content: center; align-items: center; position: relative;">
+                            <img id="avatarPreview" src="@imagePath" alt="@Model.FullName" style="position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="profileImage" class="form-label">Chọn ảnh mới</label>
+                        <input class="form-control" type="file" id="profileImage" name="profileImage" accept="image/*" onchange="previewImage(this)">
+                        <div class="form-text">Chỉ chấp nhận các định dạng: JPG, JPEG, PNG, GIF. Kích thước tối đa: 5MB.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Xem trước ảnh khi tải lên
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                
+                reader.onload = function (e) {
+                    document.getElementById('avatarPreview').src = e.target.result;
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+} 

@@ -1,0 +1,52 @@
+@model IEnumerable<SenseLib.Models.Author>
+
+@{
+    ViewData["Title"] = "Quản lý tác giả";
+    Layout = "_AdminLayout";
+    
+    // Chuẩn bị dữ liệu cho mẫu thiết kế bảng
+    ViewBag.TableTitle = "Danh sách tác giả";
+    ViewBag.AddButtonText = "Thêm tác giả mới";
+    
+    // Các cột trong bảng
+    ViewBag.TableColumns = new string[] { "#", "Tên tác giả", "Tiểu sử", "Số tài liệu", "Thao tác" };
+    
+    // Nội dung bảng (partial view)
+    ViewBag.TableContent = "_AuthorTable";
+    
+    // Thống kê
+    ViewBag.StatsCards = new List<dynamic> {
+        new {
+            Title = "Tổng số tác giả",
+            Value = ViewBag.TotalAuthors,
+            Icon = "bi-people",
+            ColorClass = "customers-card",
+            Width = 4
+        }
+    };
+}
+
+<partial name="_TableTemplate" model="Model" />
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.datatable').DataTable({
+                "language": {
+                    "lengthMenu": "Hiển thị _MENU_ mục",
+                    "zeroRecords": "Không tìm thấy dữ liệu",
+                    "info": "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+                    "infoEmpty": "Không có dữ liệu",
+                    "infoFiltered": "(lọc từ _MAX_ mục)",
+                    "search": "Tìm kiếm:",
+                    "paginate": {
+                        "first": "Đầu",
+                        "last": "Cuối",
+                        "next": "Sau",
+                        "previous": "Trước"
+                    }
+                }
+            });
+        });
+    </script>
+} 

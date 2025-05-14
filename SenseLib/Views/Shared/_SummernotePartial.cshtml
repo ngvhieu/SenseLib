@@ -1,0 +1,132 @@
+@model string
+
+@{
+    var fieldId = ViewData["FieldId"] as string ?? "content";
+    var placeholderText = ViewData["PlaceholderText"] as string ?? "Nhập nội dung...";
+    var height = ViewData["Height"] as string ?? "300";
+}
+
+@* Thêm thư viện CSS của Summernote nếu chưa tồn tại trên trang *@
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+
+<style>
+    .note-editor {
+        margin-bottom: 20px;
+    }
+    .note-toolbar {
+        background-color: #f5f5f5;
+    }
+    .note-btn-group .note-btn {
+        padding: 0.25rem 0.5rem;
+    }
+    .summernote-container {
+        position: relative;
+    }
+    .summernote-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+</style>
+
+<div class="summernote-container">
+    <div class="summernote-loading d-none">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+    </div>
+    <textarea id="@fieldId" name="@fieldId" class="form-control summernote">@Html.Raw(Model)</textarea>
+</div>
+
+@* Thêm thư viện JS của Summernote nếu chưa tồn tại trên trang *@
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-vi-VN.min.js"></script>
+
+<script>
+    // Hàm toàn cục để chèn hình ảnh từ popup browser
+    function insertImageFromBrowser(imageUrl) {
+        $('#@fieldId').summernote('insertImage', imageUrl, function($image) {
+            $image.css('max-width', '100%');
+        });
+    }
+    
+    $(document).ready(function() {
+        $('#@fieldId').summernote({
+            placeholder: '@placeholderText',
+            tabsize: 2,
+            height: @height,
+            lang: 'vi-VN',
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ],
+            callbacks: {
+                onImageUpload: function(files) {
+                    if (files.length > 0) {
+                        uploadImage(files[0], this);
+                    }
+                }
+            },
+            buttons: {
+                picture: function(context) {
+                    var ui = $.summernote.ui;
+                    var button = ui.button({
+                        contents: '<i class="note-icon-picture"></i>',
+                        tooltip: 'Chèn hình ảnh',
+                        click: function() {
+                            // Mở popup browser để chọn hình ảnh
+                            window.open('@Url.Action("Browser", "FileManager", new { area = "Admin", callback = "summernote" })', 
+                                'FileBrowser', 
+                                'width=900,height=600');
+                        }
+                    });
+                    return button.render();
+                }
+            }
+        });
+    });
+    
+    function uploadImage(file, editor) {
+        var formData = new FormData();
+        formData.append('upload', file);
+        
+        $('.summernote-loading').removeClass('d-none');
+        
+        $.ajax({
+            url: '@Url.Action("Upload", "FileManager", new { area = "Admin" })',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.error) {
+                    alert('Lỗi khi tải lên hình ảnh: ' + response.error.message);
+                } else {
+                    // Chèn hình ảnh vào editor
+                    $(editor).summernote('insertImage', response.url, function($image) {
+                        $image.css('max-width', '100%');
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+                alert('Đã xảy ra lỗi khi tải lên hình ảnh. Vui lòng thử lại sau.');
+            },
+            complete: function() {
+                $('.summernote-loading').addClass('d-none');
+            }
+        });
+    }
+</script> 

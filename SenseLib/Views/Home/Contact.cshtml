@@ -1,0 +1,111 @@
+@model SenseLib.Models.ContactMessage
+@{
+    ViewData["Title"] = "Liên hệ";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="text-center mb-4">Liên hệ với chúng tôi</h1>
+            <p class="text-center mb-4">Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn. Hãy liên hệ với chúng tôi qua các kênh dưới đây.</p>
+            
+            <div class="row">
+                <!-- Thông tin liên hệ -->
+                <div class="col-lg-5 mb-4">
+                    <h4 class="mb-3">Thông tin liên hệ</h4>
+                    
+                    <div class="mb-3">
+                        <p><strong><i class="fas fa-map-marker-alt"></i> Địa chỉ:</strong><br>
+                        123 Đường ABC, Quận XYZ<br>
+                        Hà Nội, Việt Nam</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p><strong><i class="fas fa-envelope"></i> Email:</strong><br>
+                        contact@senselib.com<br>
+                        support@senselib.com</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p><strong><i class="fas fa-phone"></i> Điện thoại:</strong><br>
+                        (84) 123 456 789<br>
+                        (84) 987 654 321</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p><strong><i class="fas fa-clock"></i> Giờ làm việc:</strong><br>
+                        Thứ Hai - Thứ Sáu: 8:00 - 17:00<br>
+                        Thứ Bảy: 8:00 - 12:00</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h5 class="mb-2">Kết nối với chúng tôi</h5>
+                        <a href="#" class="me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Form liên hệ -->
+                <div class="col-lg-7">
+                    <h4 class="mb-3">Gửi tin nhắn cho chúng tôi</h4>
+                    
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <form id="contactForm" method="post" asp-action="Contact">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" required>
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input asp-for="Email" class="form-control" required>
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Subject" class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                            <input asp-for="Subject" class="form-control" required>
+                            <span asp-validation-for="Subject" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Message" class="form-label">Nội dung <span class="text-danger">*</span></label>
+                            <textarea asp-for="Message" class="form-control" rows="5" required></textarea>
+                            <span asp-validation-for="Message" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                Tôi đồng ý với <a href="#">Điều khoản dịch vụ</a> và <a href="#">Chính sách bảo mật</a>
+                            </label>
+                        </div>
+                        
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Gửi tin nhắn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

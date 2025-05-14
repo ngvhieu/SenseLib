@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SenseLib - Thư Viện Số</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Style riêng cho trang chủ */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+        }
+        
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card p {
+            color: #777;
+        }
+        
+        @media (max-width: 992px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">SenseLib</a>
+                </div>
+                
+                <div class="search-bar">
+                    <form>
+                        <input type="text" placeholder="Tìm kiếm tài liệu...">
+                    </form>
+                </div>
+                
+                <nav>
+                    <ul>
+                        <li><a href="index.html" class="active">Trang chủ</a></li>
+                        <li><a href="documents.html">Tài liệu</a></li>
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="contact.html">Liên hệ</a></li>
+                        <li><a href="profile.html"><i class="fas fa-user"></i></a></li>
+                    </ul>
+                </nav>
+                
+                <div class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Khám Phá Kho Tàng Tri Thức</h1>
+                <p>Truy cập hàng nghìn tài liệu học thuật, sách điện tử và tài nguyên giáo dục miễn phí.</p>
+                <a href="documents.html" class="btn">Khám phá ngay</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Stats Section -->
+    <section class="section">
+        <div class="container">
+            <div class="stats">
+                <div class="stat-card">
+                    <i class="fas fa-book"></i>
+                    <h3>10,000+</h3>
+                    <p>Tài liệu</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <h3>5,000+</h3>
+                    <p>Người dùng</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-download"></i>
+                    <h3>25,000+</h3>
+                    <p>Lượt tải</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h3>50+</h3>
+                    <p>Danh mục</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Popular Documents Section -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Tài Liệu Phổ Biến</h2>
+            
+            <div class="documents-grid">
+                <!-- Document 1 -->
+                <div class="document-card" data-category="technology">
+                    <img src="https://via.placeholder.com/300x200?text=Công+Nghệ" alt="Tài liệu công nghệ">
+                    <div class="document-card-content">
+                        <h3>Trí Tuệ Nhân Tạo Trong Thời Đại Số</h3>
+                        <div class="document-meta">
+                            <span>Tác giả: Nguyễn Văn A</span>
+                            <span>22/05/2023</span>
+                        </div>
+                        <p>Khám phá những ứng dụng hiện đại của AI trong việc chuyển đổi số các doanh nghiệp...</p>
+                        <a href="document-details.html?id=1" class="btn">Xem chi tiết</a>
+                    </div>
+                </div>
+                
+                <!-- Document 2 -->
+                <div class="document-card" data-category="business">
+                    <img src="https://via.placeholder.com/300x200?text=Kinh+Doanh" alt="Tài liệu kinh doanh">
+                    <div class="document-card-content">
+                        <h3>Chiến Lược Marketing Kỷ Nguyên Số</h3>
+                        <div class="document-meta">
+                            <span>Tác giả: Trần Thị B</span>
+                            <span>15/04/2023</span>
+                        </div>
+                        <p>Hướng dẫn toàn diện về các chiến lược marketing hiệu quả trong thời đại số...</p>
+                        <a href="document-details.html?id=2" class="btn">Xem chi tiết</a>
+                    </div>
+                </div>
+                
+                <!-- Document 3 -->
+                <div class="document-card" data-category="education">
+                    <img src="https://via.placeholder.com/300x200?text=Giáo+Dục" alt="Tài liệu giáo dục">
+                    <div class="document-card-content">
+                        <h3>Phương Pháp Học Tập Hiệu Quả</h3>
+                        <div class="document-meta">
+                            <span>Tác giả: Lê Văn C</span>
+                            <span>10/03/2023</span>
+                        </div>
+                        <p>Khám phá các phương pháp học tập hiệu quả giúp cải thiện kết quả học tập...</p>
+                        <a href="document-details.html?id=3" class="btn">Xem chi tiết</a>
+                    </div>
+                </div>
+                
+                <!-- Document 4 -->
+                <div class="document-card" data-category="science">
+                    <img src="https://via.placeholder.com/300x200?text=Khoa+Học" alt="Tài liệu khoa học">
+                    <div class="document-card-content">
+                        <h3>Khám Phá Vũ Trụ Lượng Tử</h3>
+                        <div class="document-meta">
+                            <span>Tác giả: Phạm Thị D</span>
+                            <span>05/02/2023</span>
+                        </div>
+                        <p>Giới thiệu về các nguyên lý cơ bản của vật lý lượng tử và ứng dụng của nó...</p>
+                        <a href="document-details.html?id=4" class="btn">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Latest Documents Section -->
+    <section class="section" style="background-color: #f0f4f8;">
+        <div class="container">
+            <h2 class="section-title">Tài Liệu Mới Nhất</h2>
+            
+            <div class="documents-grid">
+                <!-- Document 1 -->
+                <div class="document-card" data-category="health">
+                    <img src="https://via.placeholder.com/300x200?text=Y+Tế" alt="Tài liệu y tế">
+                    <div class="document-card-content">
+                        <h3>Dinh Dưỡng Và Sức Khỏe</h3>
+                        <div class="document-meta">
+                            <span>Tác giả: Hoàng Văn E</span>
+                            <span>29/05/2023</span>
+                        </div>
+                        <p>Hướng dẫn chi tiết về dinh dưỡng cân bằng và tác động của nó đến sức khỏe...</p>
+                        <a href="document-details.html?id=5" class="btn">Xem chi tiết</a>
+                    </div>
+                </div>
+                
+                <!-- Document 2 -->
+                <div class="document-card" data-category="art">
+                    <img src="https://via.placeholder.com/300x200?text=Nghệ+Thuật" alt="Tài liệu nghệ thuật">
+                    <div class="document-card-content">
+                        <h3>Lịch Sử Nghệ Thuật Đông Nam Á</h3>
+                        <div class="document-meta">
+                            <span>Tác giả: Ngô Thị F</span>
+                            <span>27/05/2023</span>
+                        </div>
+                        <p>Tìm hiểu về lịch sử phát triển của nghệ thuật tại các quốc gia Đông Nam Á...</p>
+                        <a href="document-details.html?id=6" class="btn">Xem chi tiết</a>
+                    </div>
+                </div>
+                
+                <!-- Document 3 -->
+                <div class="document-card" data-category="technology">
+                    <img src="https://via.placeholder.com/300x200?text=Blockchain" alt="Tài liệu blockchain">
+                    <div class="document-card-content">
+                        <h3>Blockchain Và Tài Chính Phi Tập Trung</h3>
+                        <div class="document-meta">
+                            <span>Tác giả: Đặng Văn G</span>
+                            <span>25/05/2023</span>
+                        </div>
+                        <p>Khám phá cách blockchain đang cách mạng hóa ngành tài chính toàn cầu...</p>
+                        <a href="document-details.html?id=7" class="btn">Xem chi tiết</a>
+                    </div>
+                </div>
+                
+                <!-- Document 4 -->
+                <div class="document-card" data-category="literature">
+                    <img src="https://via.placeholder.com/300x200?text=Văn+Học" alt="Tài liệu văn học">
+                    <div class="document-card-content">
+                        <h3>Văn Học Việt Nam Đương Đại</h3>
+                        <div class="document-meta">
+                            <span>Tác giả: Bùi Thị H</span>
+                            <span>23/05/2023</span>
+                        </div>
+                        <p>Phân tích các tác phẩm và tác giả tiêu biểu trong nền văn học Việt Nam hiện đại...</p>
+                        <a href="document-details.html?id=8" class="btn">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Categories Section -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Danh Mục Tài Liệu</h2>
+            
+            <div class="categories">
+                <button class="category-btn active" data-category="all">Tất cả</button>
+                <button class="category-btn" data-category="technology">Công nghệ</button>
+                <button class="category-btn" data-category="business">Kinh doanh</button>
+                <button class="category-btn" data-category="education">Giáo dục</button>
+                <button class="category-btn" data-category="science">Khoa học</button>
+                <button class="category-btn" data-category="health">Y tế</button>
+                <button class="category-btn" data-category="art">Nghệ thuật</button>
+                <button class="category-btn" data-category="literature">Văn học</button>
+            </div>
+            
+            <div class="text-center" style="margin-top: 2rem;">
+                <a href="documents.html" class="btn">Xem tất cả danh mục</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="section" style="background-color: var(--primary-color); color: var(--light-text);">
+        <div class="container" style="text-align: center;">
+            <h2 style="margin-bottom: 1.5rem;">Bắt Đầu Khám Phá Ngay Hôm Nay</h2>
+            <p style="margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">Đăng ký tài khoản miễn phí để truy cập đến kho tàng tri thức đồ sộ và tận hưởng những tiện ích độc quyền dành cho người dùng SenseLib.</p>
+            <a href="signup.html" class="btn" style="background-color: #fff; color: var(--primary-color);">Đăng ký miễn phí</a>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>SenseLib</h3>
+                    <p>Kho tàng tri thức số dành cho mọi người. Chúng tôi cung cấp truy cập đến hàng ngàn tài liệu học thuật và nguồn tài nguyên giáo dục.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên kết nhanh</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Trang chủ</a></li>
+                        <li><a href="documents.html">Tài liệu</a></li>
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="contact.html">Liên hệ</a></li>
+                        <li><a href="privacy.html">Chính sách bảo mật</a></li>
+                        <li><a href="terms.html">Điều khoản sử dụng</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Danh mục</h3>
+                    <ul class="footer-links">
+                        <li><a href="documents.html?category=technology">Công nghệ</a></li>
+                        <li><a href="documents.html?category=business">Kinh doanh</a></li>
+                        <li><a href="documents.html?category=education">Giáo dục</a></li>
+                        <li><a href="documents.html?category=science">Khoa học</a></li>
+                        <li><a href="documents.html?category=health">Y tế</a></li>
+                        <li><a href="documents.html?category=literature">Văn học</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên hệ</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> contact@senselib.com</li>
+                        <li><i class="fas fa-phone"></i> (84) 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, Hà Nội</li>
+                    </ul>
+                    <div style="margin-top: 1rem;">
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-twitter"></i></a>
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 SenseLib. Tất cả các quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="js/main.js"></script>
+</body>
+</html> 

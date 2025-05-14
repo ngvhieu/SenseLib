@@ -1,0 +1,230 @@
+@model IEnumerable<SenseLib.Models.Download>
+@{
+    ViewData["Title"] = "Lịch sử tải xuống";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    int totalItems = ViewBag.TotalItems;
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="fa fa-download text-success me-2"></i> Lịch sử tải xuống
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item active">Lịch sử tải xuống</li>
+                    </ol>
+                </nav>
+            </div>
+            <p class="text-muted">
+                Danh sách tài liệu bạn đã tải xuống (<strong>@totalItems</strong> lượt tải)
+            </p>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Tên tài liệu</th>
+                                <th>Danh mục</th>
+                                <th>Thời gian tải</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int index = (currentPage - 1) * 12 + 1;
+                            }
+                            @foreach (var download in Model)
+                            {
+                                <tr>
+                                    <td>@(index++)</td>
+                                    <td>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <div class="document-image">
+                                                <img src="@(string.IsNullOrEmpty(download.Document.ImagePath) ? 
+                                                          "/img/document-placeholder.jpg" : 
+                                                          download.Document.ImagePath)" 
+                                                          alt="@download.Document.Title" width="60" height="60"
+                                                          style="object-fit: cover; border-radius: 8px;">
+                                            </div>
+                                            <div class="document-info">
+                                                <h6 class="mb-0">@download.Document.Title</h6>
+                                                <small class="text-muted">@download.Document.Author?.AuthorName</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@(download.Document.Category?.CategoryName ?? "Không xác định")</td>
+                                    <td>@download.DownloadDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="Details" asp-route-id="@download.DocumentID" class="btn btn-outline-primary">
+                                                <i class="fa fa-info-circle"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-success download-btn" data-document-id="@download.DocumentID">
+                                                <i class="fa fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phân trang -->
+        @if (totalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="DownloadHistory" asp-route-page="@(currentPage - 1)">
+                            <i class="fa fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    
+                    @{
+                        int startPage = Math.Max(1, currentPage - 2);
+                        int endPage = Math.Min(totalPages, startPage + 4);
+                        
+                        if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-action="DownloadHistory" asp-route-page="1">1</a>
+                            </li>
+                            if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+                        
+                        for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" asp-action="DownloadHistory" asp-route-page="@i">@i</a>
+                            </li>
+                        }
+                        
+                        if (endPage < totalPages)
+                        {
+                            if (endPage < totalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" asp-action="DownloadHistory" asp-route-page="@totalPages">@totalPages</a>
+                            </li>
+                        }
+                    }
+                    
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link" asp-action="DownloadHistory" asp-route-page="@(currentPage + 1)">
+                            <i class="fa fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-3">
+                    <i class="fa fa-download fa-3x text-success"></i>
+                </div>
+                <h5 class="mb-3">Bạn chưa tải xuống tài liệu nào</h5>
+                <p class="text-muted">Bạn có thể tìm và tải xuống các tài liệu để đọc offline</p>
+                <a asp-action="Index" class="btn btn-primary mt-2">
+                    <i class="fa fa-list me-1"></i> Xem danh sách tài liệu
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Xử lý tải xuống
+            $('.download-btn').click(function() {
+                var btn = $(this);
+                var documentId = btn.data('document-id');
+                var originalHtml = btn.html();
+                
+                btn.html('<i class="fa fa-spinner fa-spin"></i>');
+                btn.prop('disabled', true);
+                
+                $.ajax({
+                    url: '@Url.Action("DownloadAjax", "Document")',
+                    type: 'POST',
+                    data: {
+                        id: documentId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(result) {
+                        if (result.success) {
+                            console.log("Tải xuống thành công:", result);
+                            
+                            // Hiệu ứng thành công
+                            btn.html('<i class="fa fa-check"></i>');
+                            setTimeout(function() {
+                                btn.html(originalHtml);
+                                btn.prop('disabled', false);
+                            }, 2000);
+                            
+                            // Tạo thẻ a để tải xuống
+                            var link = document.createElement('a');
+                            link.href = result.fileUrl;
+                            link.download = result.fileName || '';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        } else {
+                            console.error("Lỗi tải xuống:", result);
+                            var errorMsg = result.message;
+                            
+                            // Hiển thị lỗi
+                            btn.html('<i class="fa fa-times"></i>');
+                            setTimeout(function() {
+                                btn.html(originalHtml);
+                                btn.prop('disabled', false);
+                                alert('Đã xảy ra lỗi: ' + errorMsg);
+                            }, 1000);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Lỗi AJAX:", xhr.responseText);
+                        
+                        // Hiển thị lỗi
+                        btn.html('<i class="fa fa-times"></i>');
+                        setTimeout(function() {
+                            btn.html(originalHtml);
+                            btn.prop('disabled', false);
+                            alert('Đã xảy ra lỗi khi kết nối với máy chủ: ' + error);
+                        }, 1000);
+                    }
+                });
+            });
+        });
+    </script>
+    
+    @* Thêm Anti-Forgery Token *@
+    @Html.AntiForgeryToken()
+} 

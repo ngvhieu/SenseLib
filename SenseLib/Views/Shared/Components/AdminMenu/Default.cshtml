@@ -1,0 +1,51 @@
+@model List<SenseLib.Models.AdminMenu>
+
+<ul class="sidebar-nav" id="sidebar-nav">
+    @{
+        // Nhóm menu theo cấp độ
+        var parentMenus = Model.Where(m => m.ParentLevel == 0).OrderBy(m => m.ItemOrder).ToList();
+    }
+
+    @foreach (var parentItem in parentMenus)
+    {
+        var childItems = Model.Where(m => m.ParentLevel == parentItem.MenuID).OrderBy(m => m.ItemOrder).ToList();
+        var hasChildren = childItems.Any();
+        
+        if (!hasChildren)
+        {
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == parentItem.ControllerName ? "" : "collapsed")" 
+                   href="@Url.Action(parentItem.ActionName ?? "Index", parentItem.ControllerName, new { area = parentItem.AreaName })">
+                    <i class="@(string.IsNullOrEmpty(parentItem.Icon) ? "bi bi-grid" : parentItem.Icon)"></i>
+                    <span>@parentItem.MenuName</span>
+                </a>
+            </li>
+        }
+        else
+        {
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == parentItem.ControllerName ? "" : "collapsed")" 
+                   data-bs-target="#@(string.IsNullOrEmpty(parentItem.IdName) ? $"menu-{parentItem.MenuID}" : parentItem.IdName)" 
+                   data-bs-toggle="collapse" href="#">
+                    <i class="@(string.IsNullOrEmpty(parentItem.Icon) ? "bi bi-menu-button-wide" : parentItem.Icon)"></i>
+                    <span>@parentItem.MenuName</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="@(string.IsNullOrEmpty(parentItem.IdName) ? $"menu-{parentItem.MenuID}" : parentItem.IdName)" 
+                    class="nav-content collapse @(ViewContext.RouteData.Values["controller"]?.ToString() == parentItem.ControllerName ? "show" : "")" 
+                    data-bs-parent="#sidebar-nav">
+                    @foreach (var childItem in childItems)
+                    {
+                        <li>
+                            <a href="@Url.Action(childItem.ActionName ?? "Index", childItem.ControllerName, new { area = childItem.AreaName })"
+                               class="@(ViewContext.RouteData.Values["action"]?.ToString() == childItem.ActionName ? "active" : "")">
+                                <i class="@(string.IsNullOrEmpty(childItem.Icon) ? "bi bi-circle" : childItem.Icon)"></i>
+                                <span>@childItem.MenuName</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+    }
+</ul> 

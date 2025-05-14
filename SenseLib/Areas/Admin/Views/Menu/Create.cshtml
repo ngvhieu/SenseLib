@@ -1,0 +1,131 @@
+@model SenseLib.Models.Menu
+
+@{
+    ViewData["Title"] = "Thêm mới Menu";
+    Layout = "_AdminLayout";
+}
+
+
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Thông tin Menu</h5>
+                    
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="MenuName" class="col-sm-2 col-form-label">Tên Menu</label>
+                            <div class="col-sm-10">
+                                <input asp-for="MenuName" class="form-control" required />
+                                <span asp-validation-for="MenuName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="IsActive" class="col-sm-2 col-form-label">Trạng thái</label>
+                            <div class="col-sm-10">
+                                <div class="form-check form-switch">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                    <label class="form-check-label">Kích hoạt menu này</label>
+                                </div>
+                                <span asp-validation-for="IsActive" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="ControllerName" class="col-sm-2 col-form-label">Controller</label>
+                            <div class="col-sm-10">
+                                <input asp-for="ControllerName" class="form-control" />
+                                <span asp-validation-for="ControllerName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="ActionName" class="col-sm-2 col-form-label">Action</label>
+                            <div class="col-sm-10">
+                                <input asp-for="ActionName" class="form-control" />
+                                <span asp-validation-for="ActionName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="Levels" class="col-sm-2 col-form-label">Cấp độ</label>
+                            <div class="col-sm-10">
+                                <select asp-for="Levels" class="form-select">
+                                    <option value="1">Cấp 1 (Menu chính)</option>
+                                    <option value="2">Cấp 2 (Menu con)</option>
+                                    <option value="3">Cấp 3 (Menu cháu)</option>
+                                </select>
+                                <span asp-validation-for="Levels" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="ParentID" class="col-sm-2 col-form-label">Menu cha</label>
+                            <div class="col-sm-10">
+                                <select asp-for="ParentID" class="form-select">
+                                    <option value="0">Không có (Menu gốc)</option>
+                                    @if (ViewBag.ParentMenus != null)
+                                    {
+                                        foreach (var item in ViewBag.ParentMenus)
+                                        {
+                                            <option value="@item.MenuID">@item.MenuName</option>
+                                        }
+                                    }
+                                </select>
+                                <span asp-validation-for="ParentID" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="Link" class="col-sm-2 col-form-label">Đường dẫn</label>
+                            <div class="col-sm-10">
+                                <input asp-for="Link" class="form-control" />
+                                <span asp-validation-for="Link" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="MenuOrder" class="col-sm-2 col-form-label">Thứ tự</label>
+                            <div class="col-sm-10">
+                                <input asp-for="MenuOrder" class="form-control" type="number" min="0" required />
+                                <span asp-validation-for="MenuOrder" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="Position" class="col-sm-2 col-form-label">Vị trí</label>
+                            <div class="col-sm-10">
+                                <select asp-for="Position" class="form-select">
+                                    <option value="1">Menu chính (Header)</option>
+                                    <option value="2">Liên kết nhanh (Footer)</option>
+                                    <option value="3">Danh mục (Footer)</option>
+                                    <option value="4">Khác</option>
+                                </select>
+                                <span asp-validation-for="Position" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-10 offset-sm-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Lưu lại
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Quay lại
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

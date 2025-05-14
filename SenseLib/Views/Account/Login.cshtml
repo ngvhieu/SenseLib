@@ -1,0 +1,73 @@
+@{
+    ViewData["Title"] = "Đăng Nhập";
+}
+
+<div class="auth-container">
+    <div class="auth-header">
+        <h1>Đăng Nhập</h1>
+        <p>Chào mừng bạn quay trở lại với SenseLib</p>
+    </div>
+    
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+    
+    <form asp-action="Login" asp-controller="Account" method="post">
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Mật khẩu</label>
+            <input type="password" id="password" name="password" class="form-control" required>
+        </div>
+        
+        <div class="remember-forgot">
+            <div class="remember-me">
+                <input type="checkbox" id="remember-me" name="rememberMe" value="true">
+                <label for="remember-me">Ghi nhớ đăng nhập</label>
+            </div>
+            <a href="@Url.Action("ForgotPassword", "Account")">Quên mật khẩu?</a>
+        </div>
+        
+        <button type="submit" class="auth-btn">Đăng nhập</button>
+    </form>
+    
+    <div class="social-auth">
+        <p>Hoặc đăng nhập với</p>
+        
+        <div class="social-buttons">
+            <a href="#" class="social-btn facebook">
+                <i class="fab fa-facebook-f"></i> Facebook
+            </a>
+            <a href="#" class="social-btn google">
+                <i class="fab fa-google"></i> Google
+            </a>
+        </div>
+    </div>
+    
+    <div class="auth-footer">
+        <p>Chưa có tài khoản? <a href="@Url.Action("Register", "Account")">Đăng ký</a></p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // JavaScript cho hiển thị thông báo
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            // Ẩn thông báo sau 3 giây
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+} 

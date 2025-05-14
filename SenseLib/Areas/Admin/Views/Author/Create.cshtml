@@ -1,0 +1,60 @@
+@model SenseLib.Models.Author
+
+@{
+    ViewData["Title"] = "Thêm tác giả mới";
+    Layout = "_AdminLayout";
+}
+
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Thông tin tác giả</h5>
+                    
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <h4>Có lỗi khi lưu thông tin:</h4>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <form asp-area="Admin" asp-controller="Author" asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="AuthorName" class="col-sm-2 col-form-label">Tên tác giả</label>
+                            <div class="col-sm-10">
+                                <input asp-for="AuthorName" class="form-control" required />
+                                <span asp-validation-for="AuthorName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="Bio" class="col-sm-2 col-form-label">Tiểu sử</label>
+                            <div class="col-sm-10">
+                                <textarea asp-for="Bio" class="form-control" rows="5"></textarea>
+                                <span asp-validation-for="Bio" class="text-danger"></span>
+                                <small class="form-text text-muted">Nhập thông tin tiểu sử hoặc giới thiệu ngắn về tác giả (không bắt buộc).</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-10 offset-sm-2">
+                                <button type="submit" class="btn btn-primary">Lưu tác giả</button>
+                                <a asp-area="Admin" asp-controller="Author" asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+} 

@@ -1,0 +1,444 @@
+@model SenseLib.Models.Document
+@{
+    ViewData["Title"] = "Chỉnh sửa tài liệu";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">@ViewData["Title"]</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Sau khi chỉnh sửa, tài liệu của bạn sẽ được chuyển về trạng thái chờ duyệt
+                    </div>
+
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="DocumentID" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label asp-for="Title" class="form-label fw-semibold">Tiêu đề tài liệu <span class="text-danger">*</span></label>
+                                    <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề tài liệu" required />
+                                    <span asp-validation-for="Title" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label fw-semibold">Mô tả</label>
+                                    <textarea asp-for="Description" class="form-control" rows="5" placeholder="Mô tả chi tiết về nội dung tài liệu"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label asp-for="CategoryID" class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <select asp-for="CategoryID" class="form-select" asp-items="ViewBag.CategoryID" id="categorySelect" required>
+                                                <option value="">-- Chọn danh mục --</option>
+                                            </select>
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#categoryModal">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="CategoryID" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label asp-for="AuthorID" class="form-label fw-semibold">Tác giả</label>
+                                        <div class="input-group">
+                                            <select asp-for="AuthorID" class="form-select" asp-items="ViewBag.AuthorID" id="authorSelect">
+                                                <option value="">-- Chọn tác giả --</option>
+                                            </select>
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#authorModal">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="AuthorID" class="text-danger"></span>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" id="setAsAuthor" name="setAsAuthor" value="true">
+                                            <label class="form-check-label" for="setAsAuthor">
+                                                Đặt tôi làm tác giả
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label asp-for="PublisherID" class="form-label fw-semibold">Nhà xuất bản</label>
+                                        <div class="input-group">
+                                            <select asp-for="PublisherID" class="form-select" asp-items="ViewBag.PublisherID" id="publisherSelect">
+                                                <option value="">-- Chọn NXB --</option>
+                                            </select>
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#publisherModal">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="PublisherID" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold d-block">Loại tài liệu <span class="text-danger">*</span></label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="isPaid" id="documentTypeFree" value="false" @(Model.IsPaid ? "" : "checked") onclick="togglePriceField(false)">
+                                        <label class="form-check-label" for="documentTypeFree">Miễn phí</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="isPaid" id="documentTypePaid" value="true" @(Model.IsPaid ? "checked" : "") onclick="togglePriceField(true)">
+                                        <label class="form-check-label" for="documentTypePaid">Có phí</label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3" id="priceField" style="display: @(Model.IsPaid ? "block" : "none");">
+                                    <label class="form-label fw-semibold">Giá (VNĐ) <span class="text-danger">*</span></label>
+                                    <input type="number" name="price" value="@(Model.Price?.ToString() ?? "")" class="form-control" min="1000" step="1000" placeholder="Nhập giá tài liệu" />
+                                    <small class="form-text text-muted">Giá tối thiểu 1,000 VNĐ</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Tệp tài liệu hiện tại</label>
+                                    <div class="current-file p-3 text-center border rounded bg-light mb-2">
+                                        <i class="bi bi-file-earmark-pdf" style="font-size: 2.5rem; color: #dc3545;"></i>
+                                        <p class="mt-2 mb-1">@(Model.FilePath?.Split('/').Last() ?? "file.pdf")</p>
+                                        <small class="text-muted d-block">Đã tải lên @Model.UploadDate.ToString("dd/MM/yyyy HH:mm")</small>
+                                    </div>
+                                    
+                                    <label class="form-label fw-semibold mt-3">Tải lên tệp mới (tùy chọn)</label>
+                                    <div class="upload-area p-3 text-center border rounded bg-light mb-2">
+                                        <i class="bi bi-file-earmark-arrow-up" style="font-size: 2rem; color: #0d6efd;"></i>
+                                        <p class="mt-2 mb-2">Tải lên tệp mới để thay thế</p>
+                                        <input type="file" name="file" id="documentFile" class="form-control" accept=".pdf" />
+                                    </div>
+                                    <small class="form-text text-muted">Chỉ hỗ trợ file PDF, kích thước tối đa 10MB</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Ảnh bìa hiện tại</label>
+                                    @if (!string.IsNullOrEmpty(Model.ImagePath))
+                                    {
+                                        <div class="current-image p-3 text-center border rounded bg-light mb-2">
+                                            <img src="@Model.ImagePath" alt="@Model.Title" style="max-height: 120px; max-width: 100%;" class="mb-2">
+                                            <small class="text-muted d-block">Ảnh bìa hiện tại</small>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="current-image p-3 text-center border rounded bg-light mb-2">
+                                            <i class="bi bi-card-image" style="font-size: 2.5rem; color: #6c757d;"></i>
+                                            <p class="mt-2 mb-1">Chưa có ảnh bìa</p>
+                                        </div>
+                                    }
+                                    
+                                    <label class="form-label fw-semibold mt-3">Tải lên ảnh mới (tùy chọn)</label>
+                                    <div class="upload-area p-3 text-center border rounded bg-light mb-2">
+                                        <i class="bi bi-image" style="font-size: 2rem; color: #0d6efd;"></i>
+                                        <p class="mt-2 mb-2">Tải lên ảnh mới</p>
+                                        <input type="file" name="imageFile" id="coverImage" class="form-control" accept="image/*" />
+                                    </div>
+                                    <small class="form-text text-muted">Khuyên dùng ảnh JPG/PNG, kích thước tối đa 2MB</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo mới danh mục -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="categoryModalLabel">Thêm danh mục mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="categoryName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryDescription" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="saveCategory">Lưu danh mục</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo mới tác giả -->
+<div class="modal fade" id="authorModal" tabindex="-1" aria-labelledby="authorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="authorModalLabel">Thêm tác giả mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="authorForm">
+                    <div class="mb-3">
+                        <label for="authorName" class="form-label">Tên tác giả <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="authorName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="authorBio" class="form-label">Tiểu sử</label>
+                        <textarea class="form-control" id="authorBio" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="saveAuthor">Lưu tác giả</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo mới nhà xuất bản -->
+<div class="modal fade" id="publisherModal" tabindex="-1" aria-labelledby="publisherModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="publisherModalLabel">Thêm nhà xuất bản mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="publisherForm">
+                    <div class="mb-3">
+                        <label for="publisherName" class="form-label">Tên nhà xuất bản <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="publisherName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="publisherAddress" class="form-label">Địa chỉ</label>
+                        <input type="text" class="form-control" id="publisherAddress">
+                    </div>
+                    <div class="mb-3">
+                        <label for="publisherPhone" class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" id="publisherPhone">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="savePublisher">Lưu nhà xuất bản</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function togglePriceField(show) {
+            document.getElementById('priceField').style.display = show ? 'block' : 'none';
+            if (!show) {
+                document.querySelector('input[name="price"]').value = '';
+            }
+        }
+        
+        // Hiển thị tên file đã chọn
+        document.getElementById('documentFile').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                let fileName = e.target.files[0].name;
+                let fileSize = Math.round(e.target.files[0].size / 1024) + ' KB';
+                e.target.parentElement.querySelector('p').innerHTML = fileName + ' (' + fileSize + ')';
+            }
+        });
+        
+        document.getElementById('coverImage').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                let fileName = e.target.files[0].name;
+                let fileSize = Math.round(e.target.files[0].size / 1024) + ' KB';
+                e.target.parentElement.querySelector('p').innerHTML = fileName + ' (' + fileSize + ')';
+                
+                // Hiển thị preview ảnh
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const icon = e.target.parentElement.querySelector('i');
+                    icon.outerHTML = `<img src="${event.target.result}" style="max-height: 100px; max-width: 100%;" class="mb-2">`;
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+        
+        // Lấy thông tin token antiforgery để gửi các request AJAX
+        const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        
+        // Xử lý tạo mới danh mục
+        document.getElementById('saveCategory').addEventListener('click', function() {
+            const categoryName = document.getElementById('categoryName').value;
+            const categoryDescription = document.getElementById('categoryDescription').value;
+            
+            if (!categoryName) {
+                alert('Vui lòng nhập tên danh mục');
+                return;
+            }
+            
+            // Gửi request tạo danh mục mới
+            fetch('/Upload/CreateCategory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': antiForgeryToken
+                },
+                body: `categoryName=${encodeURIComponent(categoryName)}&description=${encodeURIComponent(categoryDescription)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Thêm danh mục mới vào dropdown
+                    const option = new Option(data.category.categoryName, data.category.categoryID);
+                    document.getElementById('categorySelect').add(option);
+                    
+                    // Chọn danh mục mới tạo
+                    document.getElementById('categorySelect').value = data.category.categoryID;
+                    
+                    // Đóng modal
+                    $('#categoryModal').modal('hide');
+                    
+                    // Reset form
+                    document.getElementById('categoryForm').reset();
+                    
+                    // Thông báo thành công
+                    alert('Đã tạo danh mục mới thành công');
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra khi tạo danh mục');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi tạo danh mục');
+            });
+        });
+        
+        // Xử lý tạo mới tác giả
+        document.getElementById('saveAuthor').addEventListener('click', function() {
+            const authorName = document.getElementById('authorName').value;
+            const authorBio = document.getElementById('authorBio').value;
+            
+            if (!authorName) {
+                alert('Vui lòng nhập tên tác giả');
+                return;
+            }
+            
+            // Gửi request tạo tác giả mới
+            fetch('/Upload/CreateAuthor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': antiForgeryToken
+                },
+                body: `authorName=${encodeURIComponent(authorName)}&authorBio=${encodeURIComponent(authorBio)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Thêm tác giả mới vào dropdown
+                    const option = new Option(data.author.authorName, data.author.authorID);
+                    document.getElementById('authorSelect').add(option);
+                    
+                    // Chọn tác giả mới tạo
+                    document.getElementById('authorSelect').value = data.author.authorID;
+                    
+                    // Đóng modal
+                    $('#authorModal').modal('hide');
+                    
+                    // Reset form
+                    document.getElementById('authorForm').reset();
+                    
+                    // Thông báo thành công
+                    alert('Đã tạo tác giả mới thành công');
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra khi tạo tác giả');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi tạo tác giả');
+            });
+        });
+        
+        // Xử lý tạo mới nhà xuất bản
+        document.getElementById('savePublisher').addEventListener('click', function() {
+            const publisherName = document.getElementById('publisherName').value;
+            const publisherAddress = document.getElementById('publisherAddress').value;
+            const publisherPhone = document.getElementById('publisherPhone').value;
+            
+            if (!publisherName) {
+                alert('Vui lòng nhập tên nhà xuất bản');
+                return;
+            }
+            
+            // Gửi request tạo nhà xuất bản mới
+            fetch('/Upload/CreatePublisher', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': antiForgeryToken
+                },
+                body: `publisherName=${encodeURIComponent(publisherName)}&address=${encodeURIComponent(publisherAddress)}&phone=${encodeURIComponent(publisherPhone)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Thêm nhà xuất bản mới vào dropdown
+                    const option = new Option(data.publisher.publisherName, data.publisher.publisherID);
+                    document.getElementById('publisherSelect').add(option);
+                    
+                    // Chọn nhà xuất bản mới tạo
+                    document.getElementById('publisherSelect').value = data.publisher.publisherID;
+                    
+                    // Đóng modal
+                    $('#publisherModal').modal('hide');
+                    
+                    // Reset form
+                    document.getElementById('publisherForm').reset();
+                    
+                    // Thông báo thành công
+                    alert('Đã tạo nhà xuất bản mới thành công');
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra khi tạo nhà xuất bản');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi tạo nhà xuất bản');
+            });
+        });
+        
+        // Xử lý khi chọn đặt mình làm tác giả
+        document.getElementById('setAsAuthor').addEventListener('change', function() {
+            if (this.checked) {
+                // Vô hiệu hóa dropdown tác giả
+                document.getElementById('authorSelect').disabled = true;
+                document.getElementById('authorSelect').value = '';
+            } else {
+                // Kích hoạt lại dropdown tác giả
+                document.getElementById('authorSelect').disabled = false;
+            }
+        });
+    </script>
+} 

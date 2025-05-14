@@ -1,0 +1,81 @@
+@model SenseLib.Models.User
+
+@{
+    ViewData["Title"] = "Xóa tài khoản";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Xác nhận xóa tài khoản</h5>
+                    
+                    <div class="alert alert-danger">
+                        <h5>Bạn có chắc chắn muốn xóa tài khoản này không?</h5>
+                        <p>Hành động này không thể hoàn tác.</p>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-3 fw-bold">Tên đăng nhập:</div>
+                        <div class="col-sm-9">@Model.Username</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-3 fw-bold">Email:</div>
+                        <div class="col-sm-9">@Model.Email</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-3 fw-bold">Họ tên:</div>
+                        <div class="col-sm-9">@Model.FullName</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-3 fw-bold">Quyền:</div>
+                        <div class="col-sm-9">
+                            @if (Model.Role == "Admin")
+                            {
+                                <span class="badge bg-primary">Quản trị viên</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Người dùng</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-sm-3 fw-bold">Trạng thái:</div>
+                        <div class="col-sm-9">
+                            @if (Model.Status == "Active")
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Vô hiệu</span>
+                            }
+                        </div>
+                    </div>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="UserID" />
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> Xác nhận xóa
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Quay lại
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 

@@ -1,0 +1,155 @@
+@{
+    ViewData["Title"] = "Thống kê tài liệu";
+}
+
+
+
+<section class="section">
+    <div class="row">
+        <!-- Thống kê tổng quan -->
+        <div class="col-xxl-4 col-md-6">
+            <div class="card info-card sales-card">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng tài liệu</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@ViewBag.TotalDocuments</h6>
+                            <span class="text-muted small pt-2 ps-1">Tài liệu</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xxl-4 col-md-6">
+            <div class="card info-card revenue-card">
+                <div class="card-body">
+                    <h5 class="card-title">Đã xuất bản</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-journal-check"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@ViewBag.PublishedDocuments</h6>
+                            <span class="text-muted small pt-2 ps-1">Tài liệu</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xxl-4 col-md-6">
+            <div class="card info-card downloads-card">
+                <div class="card-body">
+                    <h5 class="card-title">Lượt tải</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-cloud-download"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@ViewBag.TotalDownloads</h6>
+                            <span class="text-muted small pt-2 ps-1">Lượt tải</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Top 10 tài liệu được tải nhiều nhất -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Top 10 tài liệu được tải nhiều nhất</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tiêu đề</th>
+                                    <th>Danh mục</th>
+                                    <th>Tác giả</th>
+                                    <th>Lượt tải</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.TopDownloadedDocuments != null)
+                                {
+                                    @foreach (var item in ViewBag.TopDownloadedDocuments)
+                                    {
+                                        <tr>
+                                            <td>@item.Document.DocumentID</td>
+                                            <td>@item.Document.Title</td>
+                                            <td>@(item.Document.Category?.CategoryName ?? "Không có")</td>
+                                            <td>@(item.Document.Author?.AuthorName ?? "Không có")</td>
+                                            <td>
+                                                <span class="badge bg-success">@item.DownloadCount lượt tải</span>
+                                            </td>
+                                            <td>
+                                                <a asp-action="Details" asp-route-id="@item.Document.DocumentID" class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye"></i> Xem
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center">Không có dữ liệu</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Thống kê theo danh mục -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Thống kê theo danh mục</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Danh mục</th>
+                                    <th>Số tài liệu</th>
+                                    <th>Lượt tải</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.CategoriesStats != null)
+                                {
+                                    @foreach (var item in ViewBag.CategoriesStats)
+                                    {
+                                        <tr>
+                                            <td>@item.Category.CategoryID</td>
+                                            <td>@item.Category.CategoryName</td>
+                                            <td>@item.DocumentCount</td>
+                                            <td>@item.DownloadCount</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center">Không có dữ liệu</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 

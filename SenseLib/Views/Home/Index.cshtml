@@ -1,0 +1,183 @@
+﻿@model IEnumerable<SenseLib.Models.Document>
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<style>
+    .document-price {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .price-tag {
+        background-color: #3498db;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .free-tag {
+        background-color: #2ecc71;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .document-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+    
+    .status-premium {
+        background-color: #f39c12;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .status-free {
+        background-color: #2ecc71;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .document-card {
+        position: relative;
+    }
+</style>
+
+<!-- Main Banner Section -->
+<section class="main-banner">
+    <div class="banner-content">
+        <!-- Slideshow Component -->
+        @await Component.InvokeAsync("Slideshow")
+        
+        <!-- Hero Content Overlay -->
+        <div class="hero-overlay">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Khám Phá Kho Tàng Tri Thức</h1>
+                    <p>Truy cập hàng nghìn tài liệu học thuật, sách điện tử và tài nguyên giáo dục.</p>
+                    <a asp-controller="Document" asp-action="Index" class="btn">Khám phá ngay</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="section stats-section">
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <i class="fas fa-book"></i>
+                <h3>@ViewBag.DocumentsCount</h3>
+                <p>Tài liệu</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <h3>@ViewBag.UsersCount</h3>
+                <p>Người dùng</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-download"></i>
+                <h3>@ViewBag.DownloadsCount</h3>
+                <p>Lượt tải</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-graduation-cap"></i>
+                <h3>@ViewBag.CategoriesCount</h3>
+                <p>Danh mục</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Documents Section -->
+<section class="section documents-section">
+    <div class="container">
+        <h2 class="section-title">Tài Liệu Mới Nhất</h2>
+        <p class="text-center mb-4">Khám phá những tài liệu mới nhất, đa dạng từ miễn phí đến tài liệu có phí</p>
+
+        <div class="documents-grid">
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var document in Model)
+                {
+                    <div class="document-card" data-category="@(document.Category?.CategoryName ?? "other")">
+                        <div class="document-status">
+                            @if (document.IsPaid)
+                            {
+                                <span class="status-premium">Premium</span>
+                            }
+                            else
+                            {
+                                <span class="status-free">Miễn phí</span>
+                            }
+                        </div>
+                        <img src="@(string.IsNullOrEmpty(document.ImagePath) ? 
+                                  (string.IsNullOrEmpty(document.FilePath) ? "/images/document-placeholder.jpg" : document.FilePath) 
+                                  : document.ImagePath)" alt="@document.Title">
+                        <div class="document-card-content">
+                            <h3>@document.Title</h3>
+                            <div class="document-meta">
+                                <span><i class="bi bi-person"></i> @(document.Author?.AuthorName ?? "Không xác định")</span>
+                                <span><i class="bi bi-calendar3"></i> @document.UploadDate.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <p>@(document.Description?.Length > 100 ? document.Description.Substring(0, 100) + "..." : document.Description)</p>
+                            <div class="document-price mb-3">
+                                @if (document.IsPaid)
+                                {
+                                    <span class="price-tag">@document.Price?.ToString("N0") ₫</span>
+                                }
+                                else
+                                {
+                                    <span class="free-tag">Miễn phí</span>
+                                }
+                            </div>
+                            <a asp-controller="Document" asp-action="Details" asp-route-id="@document.DocumentID" class="btn">Xem chi tiết</a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-center">Chưa có tài liệu nào.</p>
+            }
+        </div>
+        
+        <div class="text-center mt-4">
+            <a asp-controller="Document" asp-action="Index" class="btn btn-lg">Xem tất cả tài liệu <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section cta-section">
+    <div class="container" style="text-align: center;">
+        <h2 style="margin-bottom: 1.5rem;">Bắt Đầu Khám Phá Ngay Hôm Nay</h2>
+        <p style="margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">Đăng ký tài khoản miễn phí để truy cập đến kho tàng tri thức đồ sộ và tận hưởng những tiện ích độc quyền dành cho người dùng SenseLib.</p>
+        @if (!User.Identity.IsAuthenticated)
+        {
+            <a asp-controller="Account" asp-action="Register" class="btn" style="background-color: #fff; color: var(--primary-color);">Đăng ký miễn phí</a>
+        }
+        else
+        {
+            <a asp-controller="Document" asp-action="Index" class="btn" style="background-color: #fff; color: var(--primary-color);">Khám phá tài liệu</a>
+        }
+    </div>
+</section>

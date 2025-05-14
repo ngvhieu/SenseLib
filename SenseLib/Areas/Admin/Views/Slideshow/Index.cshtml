@@ -1,0 +1,81 @@
+@model IEnumerable<SenseLib.Models.Slideshow>
+
+@{
+    ViewData["Title"] = "Quản lý Slideshow";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Danh sách Slideshow</h5>
+                    
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle me-1"></i>
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    
+                    <p>
+                        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Thêm mới</a>
+                    </p>
+
+                    <table class="table table-striped datatable">
+                        <thead>
+                            <tr>
+                                <th>Hình ảnh</th>
+                                <th>@Html.DisplayNameFor(model => model.Title)</th>
+                                <th>@Html.DisplayNameFor(model => model.DisplayOrder)</th>
+                                <th>@Html.DisplayNameFor(model => model.IsActive)</th>
+                                <th>@Html.DisplayNameFor(model => model.CreatedDate)</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <img src="@item.ImagePath" alt="@item.Title" style="height:60px; width:auto;" />
+                                    </td>
+                                    <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.DisplayOrder)</td>
+                                    <td>
+                                        @if (item.IsActive)
+                                        {
+                                            <span class="badge bg-success">Hiển thị</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Ẩn</span>
+                                        }
+                                    </td>
+                                    <td>@item.CreatedDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Edit" asp-route-id="@item.SlideID" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <a asp-action="Details" asp-route-id="@item.SlideID" class="btn btn-info btn-sm">
+                                                <i class="bi bi-info-circle"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.SlideID" class="btn btn-danger btn-sm">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 

@@ -1,0 +1,72 @@
+@model SenseLib.Models.Publisher
+
+@{
+    ViewData["Title"] = "Thêm nhà xuất bản mới";
+    Layout = "_AdminLayout";
+}
+
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Thông tin nhà xuất bản</h5>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <h4>Có lỗi khi lưu thông tin:</h4>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <form asp-area="Admin" asp-controller="Publisher" asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="PublisherName" class="col-sm-2 col-form-label">Tên nhà xuất bản</label>
+                            <div class="col-sm-10">
+                                <input asp-for="PublisherName" class="form-control" required />
+                                <span asp-validation-for="PublisherName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="Address" class="col-sm-2 col-form-label">Địa chỉ</label>
+                            <div class="col-sm-10">
+                                <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                                <small class="form-text text-muted">Nhập địa chỉ của nhà xuất bản (không bắt buộc).</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <label asp-for="Phone" class="col-sm-2 col-form-label">Điện thoại</label>
+                            <div class="col-sm-10">
+                                <input asp-for="Phone" class="form-control" placeholder="VD: 0123456789" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-10 offset-sm-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save"></i> Lưu nhà xuất bản
+                                </button>
+                                <a asp-area="Admin" asp-controller="Publisher" asp-action="Index" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Quay lại
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+} 

@@ -1,0 +1,82 @@
+@model SenseLib.Models.User
+
+@{
+    ViewData["Title"] = "Chi tiết tài khoản";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+<section class="section profile">
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="tab-content pt-2">
+                        <div class="tab-pane fade show active profile-overview">
+                            <h5 class="card-title">Thông tin tài khoản</h5>
+
+                            <div class="row">
+                                <div class="col-lg-3 col-md-4 label">Mã người dùng</div>
+                                <div class="col-lg-9 col-md-8">@Model.UserID</div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-3 col-md-4 label">Tên đăng nhập</div>
+                                <div class="col-lg-9 col-md-8">@Model.Username</div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-3 col-md-4 label">Email</div>
+                                <div class="col-lg-9 col-md-8">@Model.Email</div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-3 col-md-4 label">Họ tên</div>
+                                <div class="col-lg-9 col-md-8">@Model.FullName</div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-3 col-md-4 label">Quyền</div>
+                                <div class="col-lg-9 col-md-8">
+                                    @if (Model.Role == "Admin")
+                                    {
+                                        <span class="badge bg-primary">Quản trị viên</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Người dùng</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-3 col-md-4 label">Trạng thái</div>
+                                <div class="col-lg-9 col-md-8">
+                                    @if (Model.Status == "Active")
+                                    {
+                                        <span class="badge bg-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Vô hiệu</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <a asp-action="Edit" asp-route-id="@Model.UserID" class="btn btn-primary">
+                                        <i class="bi bi-pencil-square"></i> Chỉnh sửa
+                                    </a>
+                                    <a asp-action="Index" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left"></i> Quay lại
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 

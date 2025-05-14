@@ -1,0 +1,554 @@
+@model IEnumerable<SenseLib.Models.Document>
+@{
+    ViewData["Title"] = "Danh Sách Tài Liệu";
+}
+
+<style>
+    .page-banner {
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        padding: 3rem 0;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-banner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('/img/pattern.png');
+        opacity: 0.1;
+    }
+    
+    .page-banner h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        position: relative;
+    }
+    
+    .page-banner p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        max-width: 600px;
+        position: relative;
+    }
+    
+    .content-wrapper {
+        background-color: #f8f9fa;
+        padding: 3rem 0;
+        min-height: 600px;
+    }
+    
+    .filter-sidebar {
+        background-color: #fff;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 1.5rem;
+        position: sticky;
+        top: 90px;
+    }
+    
+    .filter-title {
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 2px solid var(--secondary-color);
+        position: relative;
+    }
+    
+    .filter-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .filter-group-title {
+        font-weight: 500;
+        margin-bottom: 0.8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .filter-options {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .filter-checkbox {
+        display: block;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+    }
+    
+    .filter-checkbox input {
+        margin-right: 0.5rem;
+    }
+    
+    .documents-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        background-color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+    }
+    
+    .documents-count {
+        font-size: 1rem;
+        color: var(--primary-color);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .documents-count i {
+        margin-right: 5px;
+        color: var(--secondary-color);
+    }
+    
+    .documents-count span {
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .mx-2 {
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+    }
+    
+    .sort-options {
+        display: flex;
+        align-items: center;
+    }
+    
+    .sort-options label {
+        margin-right: 0.8rem;
+        color: #777;
+    }
+    
+    .sort-options select {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .sort-options select:focus {
+        outline: none;
+        border-color: var(--secondary-color);
+    }
+    
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .document-card {
+        background-color: #fff;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+        box-shadow: var(--box-shadow);
+        position: relative;
+    }
+    
+    .document-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .document-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .document-card-content {
+        padding: 1.2rem;
+    }
+    
+    .document-card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+        color: var(--primary-color);
+    }
+    
+    .document-meta {
+        display: flex;
+        justify-content: space-between;
+        color: #777;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .document-card p {
+        color: #555;
+        margin-bottom: 1.2rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .document-price {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .price-tag {
+        background-color: #3498db;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .free-tag {
+        background-color: #2ecc71;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .document-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+    
+    .status-premium {
+        background-color: #f39c12;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .status-free {
+        background-color: #2ecc71;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .pager {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .pager a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        margin: 0 5px;
+        border-radius: 50%;
+        background-color: #fff;
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: all 0.3s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .pager a:hover, .pager a.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .pager a.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    @@media (max-width: 992px) {
+        .documents-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .documents-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .documents-count {
+            margin-bottom: 1rem;
+        }
+        
+        .documents-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .purchased-tag {
+        background-color: #28a745;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.85rem;
+        margin-right: 8px;
+        display: inline-block;
+    }
+</style>
+
+<!-- Page Banner -->
+<section class="page-banner">
+    <div class="container">
+        <h1>Thư Viện Tài Liệu</h1>
+        <p>Khám phá kho tàng tri thức đa dạng của SenseLib với hàng nghìn tài liệu chất lượng cao</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="content-wrapper">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar Filters -->
+            <div class="col-lg-3">
+                <div class="filter-sidebar">
+                    <h3 class="filter-title">
+                        <i class="bi bi-sliders2"></i> Bộ lọc tìm kiếm
+                    </h3>
+                    
+                    <form id="filter-form" method="get" asp-action="Index">
+                        <div class="filter-group">
+                            <div class="filter-group-title">
+                                <span><i class="bi bi-search"></i> Tìm kiếm</span>
+                            </div>
+                            <div class="filter-options">
+                                <div class="form-group">
+                                    <input type="text" name="searchString" id="searchString" class="form-control" 
+                                           placeholder="Nhập từ khóa..." value="@ViewBag.CurrentSearch">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <div class="filter-group-title">
+                                <span><i class="bi bi-folder"></i> Danh mục</span>
+                            </div>
+                            <div class="filter-options">
+                                <label class="filter-checkbox">
+                                    <input type="radio" name="categoryId" value="0" @(ViewBag.CategoryId == null || ViewBag.CategoryId == 0 ? "checked" : "")> Tất cả
+                                </label>
+                                @if (ViewBag.Categories != null)
+                                {
+                                    foreach (var category in ViewBag.Categories)
+                                    {
+                                        <label class="filter-checkbox">
+                                            <input type="radio" name="categoryId" value="@category.CategoryID" 
+                                                   @(ViewBag.CategoryId == category.CategoryID ? "checked" : "")> @category.CategoryName
+                                        </label>
+                                    }
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <div class="filter-group-title">
+                                <span><i class="bi bi-tag"></i> Loại tài liệu</span>
+                            </div>
+                            <div class="filter-options">
+                                <label class="filter-checkbox">
+                                    <input type="radio" name="priceType" value="all" @(ViewBag.PriceType == "all" || ViewBag.PriceType == null ? "checked" : "")> Tất cả
+                                </label>
+                                <label class="filter-checkbox">
+                                    <input type="radio" name="priceType" value="free" @(ViewBag.PriceType == "free" ? "checked" : "")> Miễn phí
+                                </label>
+                                <label class="filter-checkbox">
+                                    <input type="radio" name="priceType" value="paid" @(ViewBag.PriceType == "paid" ? "checked" : "")> Có phí
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <div class="filter-group-title">
+                                <span><i class="bi bi-sort-down"></i> Sắp xếp theo</span>
+                            </div>
+                            <div class="filter-options">
+                                <select name="sortOrder" id="sortOrder" class="form-select">
+                                    <option value="date_desc" selected="@(ViewBag.SortOrder == "date_desc")">Mới nhất</option>
+                                    <option value="date" selected="@(ViewBag.SortOrder == "date")">Cũ nhất</option>
+                                    <option value="title" selected="@(ViewBag.SortOrder == "title")">Tên A-Z</option>
+                                    <option value="title_desc" selected="@(ViewBag.SortOrder == "title_desc")">Tên Z-A</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-actions mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-funnel"></i> Lọc
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Documents List -->
+            <div class="col-lg-9">
+                <div class="documents-header">
+                    <div class="documents-count">
+                        <span><i class="bi bi-files"></i> @Model.Count() tài liệu</span>
+                        @if (!string.IsNullOrEmpty(ViewBag.CurrentSearch))
+                        {
+                            <span class="mx-2">| <i class="bi bi-search"></i> "@ViewBag.CurrentSearch"</span>
+                        }
+                        @if (ViewBag.CategoryId != null && ViewBag.CategoryId > 0)
+                        {
+                            var categories = ViewBag.Categories as IEnumerable<SenseLib.Models.Category>;
+                            var categoryName = categories?.FirstOrDefault(c => c.CategoryID == ViewBag.CategoryId)?.CategoryName;
+                            if (!string.IsNullOrEmpty(categoryName))
+                            {
+                                <span class="mx-2">| <i class="bi bi-folder"></i> @categoryName</span>
+                            }
+                        }
+                        @if (!string.IsNullOrEmpty(ViewBag.PriceType) && ViewBag.PriceType != "all")
+                        {
+                            <span class="mx-2">| 
+                                @if (ViewBag.PriceType == "free")
+                                {
+                                    <span><i class="bi bi-tag"></i> Miễn phí</span>
+                                }
+                                else
+                                {
+                                    <span><i class="bi bi-cash"></i> Có phí</span>
+                                }
+                            </span>
+                        }
+                    </div>
+                </div>
+                
+                <div class="documents-grid">
+                    @foreach (var document in Model)
+                    {
+                        <div class="document-card" data-category="@(document.Category?.CategoryName ?? "other")">
+                            <div class="document-status">
+                                @if (document.IsPaid)
+                                {
+                                    <span class="status-premium">Premium</span>
+                                }
+                                else
+                                {
+                                    <span class="status-free">Miễn phí</span>
+                                }
+                            </div>
+                            <img src="@(string.IsNullOrEmpty(document.ImagePath) ? 
+                                      (string.IsNullOrEmpty(document.FilePath) ? "/images/document-placeholder.jpg" : document.FilePath) 
+                                      : document.ImagePath)" alt="@document.Title">
+                            <div class="document-card-content">
+                                <h3>@document.Title</h3>
+                                <div class="document-meta">
+                                    <span><i class="bi bi-person"></i> @(document.Author?.AuthorName ?? "Không xác định")</span>
+                                    <span><i class="bi bi-calendar3"></i> @document.UploadDate.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <p>@(document.Description?.Length > 100 ? document.Description.Substring(0, 100) + "..." : document.Description)</p>
+                                <div class="document-price mb-3">
+                                    @if (document.IsPaid)
+                                    {
+                                        @if (User.Identity.IsAuthenticated && ViewBag.PurchasedDocuments != null && ViewBag.PurchasedDocuments.Contains(document.DocumentID))
+                                        {
+                                            <span class="purchased-tag">Đã mua</span>
+                                            <a asp-action="Read" asp-route-id="@document.DocumentID" class="btn btn-sm btn-success">
+                                                <i class="bi bi-book"></i> Đọc ngay
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="price-tag">@document.Price?.ToString("N0") ₫</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="free-tag">Miễn phí</span>
+                                    }
+                                </div>
+                                <a asp-action="Details" asp-route-id="@document.DocumentID" class="btn">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                @if (ViewBag.TotalPages > 1)
+                {
+                    <div class="pager">
+                        @{
+                            var prevDisabled = ViewBag.CurrentPage == 1 ? "disabled" : "";
+                            var nextDisabled = ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "";
+                        }
+                        
+                        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, searchString = ViewBag.CurrentSearch, categoryId = ViewBag.CategoryId, sortOrder = ViewBag.SortOrder, priceType = ViewBag.PriceType })" 
+                           class="@prevDisabled">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                        
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <a href="@Url.Action("Index", new { page = i, searchString = ViewBag.CurrentSearch, categoryId = ViewBag.CategoryId, sortOrder = ViewBag.SortOrder, priceType = ViewBag.PriceType })" 
+                               class="@(i == ViewBag.CurrentPage ? "active" : "")">
+                                @i
+                            </a>
+                        }
+                        
+                        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, searchString = ViewBag.CurrentSearch, categoryId = ViewBag.CategoryId, sortOrder = ViewBag.SortOrder, priceType = ViewBag.PriceType })" 
+                           class="@nextDisabled">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </div>
+                }
+                else if (Model.Count() == 0)
+                {
+                    <div class="text-center my-5">
+                        <div class="empty-state mb-4">
+                            <i class="bi bi-file-earmark-x" style="font-size: 4rem; color: #ddd;"></i>
+                        </div>
+                        <h3>Không tìm thấy tài liệu nào</h3>
+                        <p class="text-muted">Vui lòng thử lại với từ khóa hoặc bộ lọc khác</p>
+                        <a href="@Url.Action("Index")" class="btn btn-outline-primary mt-3">
+                            <i class="bi bi-arrow-counterclockwise"></i> Đặt lại bộ lọc
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tự động submit form khi thay đổi select
+            document.getElementById('sortOrder').addEventListener('change', function() {
+                document.getElementById('filter-form').submit();
+            });
+        });
+    </script>
+} 

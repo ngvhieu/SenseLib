@@ -1,0 +1,8 @@
+@model IEnumerable<SenseLib.Models.Menu>
+
+<ul class="footer-links">
+    @foreach (var item in Model)
+    {
+        <li><a href="@item.Link">@item.MenuName</a></li>
+    }
+</ul> 

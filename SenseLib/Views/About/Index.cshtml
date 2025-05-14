@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Giới thiệu";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="text-center mb-4">Giới thiệu SenseLib</h1>
+            
+            <div class="text-center mb-5">
+                <img src="~/img/library-bg.jpg" alt="Thư viện SenseLib" class="img-fluid rounded" style="max-height: 300px;" onerror="this.src='/img/banner.jpg'; this.onerror='';">
+            </div>
+            
+            <div class="mb-4">
+                <h3>Tầm nhìn</h3>
+                <p>SenseLib ra đời với sứ mệnh số hóa và phổ biến tri thức đến mọi người, mọi lúc, mọi nơi. Chúng tôi tin rằng tri thức là chìa khóa để phát triển cá nhân và xã hội, và việc tiếp cận tri thức một cách bình đẳng là quyền cơ bản của mọi người.</p>
+            </div>
+            
+            <div class="mb-4">
+                <h3>Lịch sử phát triển</h3>
+                <p>SenseLib được thành lập vào năm @ViewBag.FoundedYear bởi một nhóm các chuyên gia công nghệ và giáo dục với mong muốn tạo ra một thư viện số đa dạng, phong phú và dễ tiếp cận. Từ những ngày đầu với vài trăm tài liệu, đến nay SenseLib đã có hơn 10.000 tài liệu thuộc nhiều lĩnh vực khác nhau.</p>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-3 text-center mb-3">
+                    <h3>10K+</h3>
+                    <p>Tài liệu</p>
+                </div>
+                <div class="col-md-3 text-center mb-3">
+                    <h3>@(ViewBag.CurrentUserCount ?? 5)K+</h3>
+                    <p>Người dùng</p>
+                </div>
+                <div class="col-md-3 text-center mb-3">
+                    <h3>20+</h3>
+                    <p>Danh mục</p>
+                </div>
+                <div class="col-md-3 text-center mb-3">
+                    <h3>1K+</h3>
+                    <p>Tải xuống/ngày</p>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h3>Tính năng nổi bật</h3>
+                <ul>
+                    <li><strong>Tìm kiếm thông minh:</strong> Tìm kiếm tài liệu nhanh chóng theo nhiều tiêu chí</li>
+                    <li><strong>Tải xuống dễ dàng:</strong> Tải tài liệu với tốc độ cao và không giới hạn</li>
+                    <li><strong>Đánh dấu yêu thích:</strong> Lưu lại các tài liệu quan trọng để truy cập sau</li>
+                    <li><strong>Truy cập đa nền tảng:</strong> Sử dụng trên máy tính, điện thoại và máy tính bảng</li>
+                    <li><strong>Cộng đồng người dùng:</strong> Bình luận và đánh giá tài liệu</li>
+                </ul>
+            </div>
+            
+            <div class="mb-4">
+                <h3>Đối tác của chúng tôi</h3>
+                <p>SenseLib tự hào hợp tác với các trường đại học, viện nghiên cứu và nhà xuất bản hàng đầu để mang đến cho người dùng nguồn tài liệu chất lượng và đa dạng.</p>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a asp-controller="Contact" asp-action="Index" class="btn btn-primary">Liên hệ với chúng tôi</a>
+            </div>
+        </div>
+    </div>
+</div> 

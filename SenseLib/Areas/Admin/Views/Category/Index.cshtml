@@ -1,0 +1,59 @@
+@model IEnumerable<SenseLib.Models.Category>
+
+@{
+    ViewData["Title"] = "Quản lý danh mục";
+    Layout = "_AdminLayout";
+    
+    // Chuẩn bị dữ liệu cho mẫu thiết kế bảng
+    ViewBag.TableTitle = "Danh sách danh mục";
+    ViewBag.AddButtonText = "Thêm danh mục mới";
+    
+    // Các cột trong bảng
+    ViewBag.TableColumns = new string[] { "#", "Tên danh mục", "Mô tả", "Trạng thái", "Thao tác" };
+    
+    // Nội dung bảng (partial view)
+    ViewBag.TableContent = "_CategoryTable";
+    
+    // Thống kê
+    ViewBag.StatsCards = new List<dynamic> {
+        new {
+            Title = "Tổng số danh mục",
+            Value = ViewBag.TotalCategories,
+            Icon = "bi-folder",
+            ColorClass = "sales-card",
+            Width = 4
+        },
+        new {
+            Title = "Danh mục hoạt động",
+            Value = ViewBag.ActiveCategories,
+            Icon = "bi-folder-check",
+            ColorClass = "revenue-card",
+            Width = 4
+        }
+    };
+}
+
+<partial name="_TableTemplate" model="Model" />
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.datatable').DataTable({
+                "language": {
+                    "lengthMenu": "Hiển thị _MENU_ mục",
+                    "zeroRecords": "Không tìm thấy dữ liệu",
+                    "info": "Hiển thị _START_ đến _END_ của _TOTAL_ mục",
+                    "infoEmpty": "Không có dữ liệu",
+                    "infoFiltered": "(lọc từ _MAX_ mục)",
+                    "search": "Tìm kiếm:",
+                    "paginate": {
+                        "first": "Đầu",
+                        "last": "Cuối",
+                        "next": "Sau",
+                        "previous": "Trước"
+                    }
+                }
+            });
+        });
+    </script>
+} 

@@ -1,0 +1,113 @@
+@model SenseLib.Models.Document
+
+@{
+    ViewData["Title"] = "Thanh toán tài liệu";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Thanh toán tài liệu</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <img src="@(string.IsNullOrEmpty(Model.ImagePath) ? "/images/document-placeholder.jpg" : Model.ImagePath)" 
+                                 class="img-fluid rounded" alt="@Model.Title">
+                        </div>
+                        <div class="col-md-9">
+                            <h4>@Model.Title</h4>
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-person"></i> @(Model.Author?.AuthorName ?? "Không xác định")
+                            </p>
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-folder"></i> @(Model.Category?.CategoryName ?? "Không phân loại")
+                            </p>
+                            <div class="mb-3">
+                                <span class="badge bg-info text-white p-2">
+                                    <i class="bi bi-tag"></i> Giá: @Model.Price?.ToString("N0") ₫
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading"><i class="bi bi-info-circle"></i> Quyền lợi khi mua tài liệu</h5>
+                        <ul class="mb-0">
+                            <li>Đọc toàn bộ nội dung tài liệu không giới hạn số trang</li>
+                            <li>Tải tài liệu về máy để xem offline</li>
+                            <li>Quyền truy cập vĩnh viễn vào tài liệu đã mua</li>
+                            <li>Nhận thông báo khi có cập nhật về tài liệu</li>
+                        </ul>
+                    </div>
+                    
+                    <form asp-action="ConfirmPurchase" asp-route-id="@Model.DocumentID" method="post">
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Thông tin thanh toán</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Tài liệu:</strong> @Model.Title</p>
+                                        <p><strong>Giá:</strong> @Model.Price?.ToString("N0") ₫</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Phương thức thanh toán:</strong> Thanh toán trực tiếp</p>
+                                        <p><strong>Tổng thanh toán:</strong> <span class="text-danger fw-bold">@Model.Price?.ToString("N0") ₫</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="acceptTerms" required>
+                            <label class="form-check-label" for="acceptTerms">
+                                Tôi đồng ý với <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Điều khoản và Điều kiện</a> của SenseLib
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-controller="Document" asp-action="Details" asp-route-id="@Model.DocumentID" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-credit-card"></i> Xác nhận thanh toán
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Điều khoản -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Điều khoản và Điều kiện</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Quyền sở hữu trí tuệ</h6>
+                <p>Tất cả các tài liệu cung cấp trên SenseLib đều được bảo vệ bởi luật sở hữu trí tuệ và bản quyền.</p>
+                
+                <h6>2. Quyền sử dụng</h6>
+                <p>Khi mua tài liệu trên SenseLib, bạn được cấp quyền sử dụng cá nhân, không độc quyền và không thể chuyển nhượng để xem và tải tài liệu đó.</p>
+                
+                <h6>3. Hạn chế</h6>
+                <p>Bạn không được phân phối lại, bán, cho thuê, xuất bản hoặc cung cấp công khai tài liệu đã mua dưới bất kỳ hình thức nào.</p>
+                
+                <h6>4. Chính sách hoàn tiền</h6>
+                <p>SenseLib không hỗ trợ hoàn tiền một khi bạn đã hoàn tất thanh toán và được cấp quyền truy cập vào tài liệu.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đã hiểu</button>
+            </div>
+        </div>
+    </div>
+</div> 

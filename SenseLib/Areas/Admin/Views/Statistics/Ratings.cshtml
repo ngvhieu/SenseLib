@@ -1,0 +1,394 @@
+@model SenseLib.Areas.Admin.Controllers.PaginatedList<SenseLib.Models.Rating>
+@{
+    ViewData["Title"] = "Thống kê đánh giá";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Thống kê tổng quan</h5>
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card info-card sales-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng số <span>| Đánh giá</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-star"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.TotalRatings</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card info-card revenue-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Đánh giá <span>| Trung bình</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-award"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.AverageRating.ToString("0.0")/5</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card info-card customers-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng số <span>| Tài liệu được đánh giá</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.TotalDocumentsRated</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card info-card sales-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng số <span>| Người dùng đánh giá</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.TotalUsersRated</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Phân bố đánh giá</h5>
+                
+                <div class="progress-list">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>5 sao (@ViewBag.Rating5Count đánh giá)</span>
+                        <span>@(ViewBag.TotalRatings > 0 ? (ViewBag.Rating5Count * 100 / ViewBag.TotalRatings).ToString("0.0") : "0")%</span>
+                    </div>
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: @(ViewBag.TotalRatings > 0 ? (ViewBag.Rating5Count * 100 / ViewBag.TotalRatings) : 0)%" aria-valuenow="@(ViewBag.TotalRatings > 0 ? (ViewBag.Rating5Count * 100 / ViewBag.TotalRatings) : 0)" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>4 sao (@ViewBag.Rating4Count đánh giá)</span>
+                        <span>@(ViewBag.TotalRatings > 0 ? (ViewBag.Rating4Count * 100 / ViewBag.TotalRatings).ToString("0.0") : "0")%</span>
+                    </div>
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: @(ViewBag.TotalRatings > 0 ? (ViewBag.Rating4Count * 100 / ViewBag.TotalRatings) : 0)%" aria-valuenow="@(ViewBag.TotalRatings > 0 ? (ViewBag.Rating4Count * 100 / ViewBag.TotalRatings) : 0)" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>3 sao (@ViewBag.Rating3Count đánh giá)</span>
+                        <span>@(ViewBag.TotalRatings > 0 ? (ViewBag.Rating3Count * 100 / ViewBag.TotalRatings).ToString("0.0") : "0")%</span>
+                    </div>
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: @(ViewBag.TotalRatings > 0 ? (ViewBag.Rating3Count * 100 / ViewBag.TotalRatings) : 0)%" aria-valuenow="@(ViewBag.TotalRatings > 0 ? (ViewBag.Rating3Count * 100 / ViewBag.TotalRatings) : 0)" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>2 sao (@ViewBag.Rating2Count đánh giá)</span>
+                        <span>@(ViewBag.TotalRatings > 0 ? (ViewBag.Rating2Count * 100 / ViewBag.TotalRatings).ToString("0.0") : "0")%</span>
+                    </div>
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: @(ViewBag.TotalRatings > 0 ? (ViewBag.Rating2Count * 100 / ViewBag.TotalRatings) : 0)%" aria-valuenow="@(ViewBag.TotalRatings > 0 ? (ViewBag.Rating2Count * 100 / ViewBag.TotalRatings) : 0)" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>1 sao (@ViewBag.Rating1Count đánh giá)</span>
+                        <span>@(ViewBag.TotalRatings > 0 ? (ViewBag.Rating1Count * 100 / ViewBag.TotalRatings).ToString("0.0") : "0")%</span>
+                    </div>
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: @(ViewBag.TotalRatings > 0 ? (ViewBag.Rating1Count * 100 / ViewBag.TotalRatings) : 0)%" aria-valuenow="@(ViewBag.TotalRatings > 0 ? (ViewBag.Rating1Count * 100 / ViewBag.TotalRatings) : 0)" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Đánh giá theo số sao</h5>
+                <div class="chart-container" style="position: relative; height:300px; width:100%; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="ratingChart"></canvas>
+                    <div id="ratingChartLoading" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                        <p class="mt-2">Đang tải dữ liệu...</p>
+                    </div>
+                    <div id="ratingChartError" class="text-center" style="display:none;">
+                        <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
+                        <p class="mt-2">Không thể tải dữ liệu biểu đồ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Danh sách đánh giá</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form asp-action="Ratings" method="get" class="row g-3">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Tìm kiếm..." name="searchString" value="@ViewData["CurrentFilter"]">
+                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <a asp-action="Ratings" class="btn btn-outline-secondary">Xóa bộ lọc</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>
+                                    <a asp-action="Ratings" asp-route-sortOrder="@ViewData["RatingSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                        Đánh giá
+                                    </a>
+                                </th>
+                                <th>
+                                    <a asp-action="Ratings" asp-route-sortOrder="@ViewData["UserSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                        Người dùng
+                                    </a>
+                                </th>
+                                <th>
+                                    <a asp-action="Ratings" asp-route-sortOrder="@ViewData["DocumentSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                        Tài liệu
+                                    </a>
+                                </th>
+                                <th>
+                                    <a asp-action="Ratings" asp-route-sortOrder="@ViewData["DateSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                        Ngày đánh giá
+                                    </a>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.RatingID</td>
+                                    <td>
+                                        @for (int i = 0; i < item.RatingValue; i++)
+                                        {
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        }
+                                        @for (int i = item.RatingValue; i < 5; i++)
+                                        {
+                                            <i class="bi bi-star text-muted"></i>
+                                        }
+                                    </td>
+                                    <td>@item.User?.Username</td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })" target="_blank">
+                                            @item.Document?.Title
+                                        </a>
+                                    </td>
+                                    <td>@item.RatingDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @{
+                    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+                    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+                }
+
+                <div class="row">
+                    <div class="col-sm-12 col-md-5">
+                        <div class="dataTables_info" role="status">
+                            Hiển thị @(((Model.PageIndex - 1) * 10) + 1) đến @(((Model.PageIndex - 1) * 10) + Model.Count) trong tổng số @Model.TotalItems kết quả
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-7">
+                        <div class="dataTables_paginate paging_simple_numbers">
+                            <ul class="pagination">
+                                <li class="paginate_button page-item previous @prevDisabled">
+                                    <a asp-action="Ratings"
+                                       asp-route-pageNumber="@(Model.PageIndex - 1)"
+                                       asp-route-sortOrder="@ViewData["CurrentSort"]"
+                                       asp-route-searchString="@ViewData["CurrentFilter"]"
+                                       class="page-link">Trước</a>
+                                </li>
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="paginate_button page-item @(i == Model.PageIndex ? "active" : "")">
+                                        <a asp-action="Ratings"
+                                           asp-route-pageNumber="@i"
+                                           asp-route-sortOrder="@ViewData["CurrentSort"]"
+                                           asp-route-searchString="@ViewData["CurrentFilter"]"
+                                           class="page-link">@i</a>
+                                    </li>
+                                }
+                                <li class="paginate_button page-item next @nextDisabled">
+                                    <a asp-action="Ratings"
+                                       asp-route-pageNumber="@(Model.PageIndex + 1)"
+                                       asp-route-sortOrder="@ViewData["CurrentSort"]"
+                                       asp-route-searchString="@ViewData["CurrentFilter"]"
+                                       class="page-link">Tiếp</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Biểu đồ đánh giá
+            var ratingCtx = document.getElementById('ratingChart');
+            var ratingChartLoading = document.getElementById('ratingChartLoading');
+            var ratingChartError = document.getElementById('ratingChartError');
+            
+            // Ẩn canvas ban đầu
+            ratingCtx.style.display = 'none';
+            
+            // Đợi một chút để DOM được render đầy đủ
+            setTimeout(function() {
+                try {
+                    // Hiển thị canvas và ẩn loading
+                    ratingCtx.style.display = 'block';
+                    ratingChartLoading.style.display = 'none';
+                    
+                    var ratingCtxObj = ratingCtx.getContext('2d');
+                    var ratingData = [@ViewBag.Rating5Count, @ViewBag.Rating4Count, @ViewBag.Rating3Count, @ViewBag.Rating2Count, @ViewBag.Rating1Count];
+                    
+                    // Kiểm tra dữ liệu trước khi vẽ biểu đồ
+                    var hasData = ratingData.some(function(val) { return val > 0; });
+                    
+                    var ratingChart = new Chart(ratingCtxObj, {
+                        type: 'doughnut', // Sử dụng doughnut thay vì pie cho hiển thị đẹp hơn
+                        data: {
+                            labels: ['5 sao', '4 sao', '3 sao', '2 sao', '1 sao'],
+                            datasets: [{
+                                data: ratingData,
+                                backgroundColor: [
+                                    '#2eca6a', // 5 sao - success
+                                    '#4154f1', // 4 sao - primary
+                                    '#36b9cc', // 3 sao - info
+                                    '#f6c23e', // 2 sao - warning
+                                    '#e74a3b'  // 1 sao - danger
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '65%', // Tạo khoảng trống ở giữa
+                            layout: {
+                                padding: 20
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 15,
+                                        padding: 15
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            var label = context.label || '';
+                                            var value = context.raw || 0;
+                                            var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            var percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                            return label + ': ' + value + ' (' + percentage + '%)';
+                                        }
+                                    }
+                                }
+                            },
+                            animation: {
+                                animateScale: true,
+                                animateRotate: true,
+                                duration: 1000
+                            }
+                        }
+                    });
+                    
+                    // Hiển thị thông báo nếu không có dữ liệu
+                    if (!hasData) {
+                        new Chart(ratingCtxObj, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Không có dữ liệu'],
+                                datasets: [{
+                                    data: [1],
+                                    backgroundColor: ['#f2f2f2'],
+                                    borderWidth: 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    },
+                                    tooltip: {
+                                        enabled: false
+                                    }
+                                }
+                            }
+                        });
+                        
+                        // Hiển thị thông báo trong biểu đồ
+                        document.querySelector('.chart-container').insertAdjacentHTML('beforeend', 
+                            '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center;">' +
+                            '<p>Không có dữ liệu đánh giá</p></div>');
+                    }
+                } catch (error) {
+                    console.error("Lỗi khi tạo biểu đồ:", error);
+                    ratingCtx.style.display = 'none';
+                    ratingChartLoading.style.display = 'none';
+                    ratingChartError.style.display = 'block';
+                }
+            }, 300); // Đợi 300ms để đảm bảo DOM đã sẵn sàng
+        });
+    </script>
+} 

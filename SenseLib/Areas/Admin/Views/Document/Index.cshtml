@@ -1,0 +1,72 @@
+@model IEnumerable<SenseLib.Models.Document>
+@{
+    ViewData["Title"] = "Quản lý tài liệu";
+    Layout = "_AdminLayout";
+    
+    // Chuẩn bị dữ liệu cho mẫu thiết kế bảng
+    ViewBag.TableTitle = "Danh sách tài liệu";
+    ViewBag.AddButtonText = "Thêm tài liệu mới";
+    
+    // Các cột trong bảng
+    ViewBag.TableColumns = new string[] 
+    { 
+        "ID", 
+        "Tiêu đề", 
+        "Danh mục", 
+        "Loại", 
+        "Người tải", 
+        "Ngày tải", 
+        "Trạng thái", 
+        "Thao tác" 
+    };
+    
+    // Nội dung bảng (partial view)
+    ViewBag.TableContent = "_DocumentTable";
+    
+    // Hiển thị bộ lọc
+    ViewBag.ShowFilters = true;
+    ViewBag.FilterContent = "_DocumentFilter";
+    
+    // Dữ liệu cho phân trang
+    ViewBag.RouteData = new Dictionary<string, string>
+    {
+        { "searchString", ViewBag.CurrentSearch },
+        { "status", ViewBag.CurrentStatus },
+        { "categoryId", ViewBag.CurrentCategoryId?.ToString() },
+        { "isPaid", ViewBag.CurrentIsPaid?.ToString() }
+    };
+    
+    // Thống kê
+    ViewBag.StatsCards = new List<dynamic> {
+        new {
+            Title = "Tổng tài liệu",
+            Value = ViewBag.TotalCount,
+            Icon = "bi-file-earmark-text",
+            ColorClass = "sales-card",
+            Width = 3
+        },
+        new {
+            Title = "Chờ duyệt",
+            Value = ViewBag.PendingCount,
+            Icon = "bi-hourglass-split",
+            ColorClass = "warning-card",
+            Width = 3
+        },
+        new {
+            Title = "Đã duyệt",
+            Value = ViewBag.ApprovedCount,
+            Icon = "bi-check-circle",
+            ColorClass = "success-card",
+            Width = 3
+        },
+        new {
+            Title = "Từ chối",
+            Value = ViewBag.RejectedCount,
+            Icon = "bi-x-circle",
+            ColorClass = "danger-card",
+            Width = 3
+        }
+    };
+}
+
+<partial name="_TableTemplate" model="Model" />

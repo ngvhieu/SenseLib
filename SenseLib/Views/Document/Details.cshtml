@@ -1,0 +1,571 @@
+@model SenseLib.Models.Document
+@{
+    ViewData["Title"] = Model.Title;
+    var averageRating = ViewBag.AverageRating;
+    var userRating = ViewBag.UserRating ?? 0;
+    var isFavorite = ViewBag.IsFavorite ?? false;
+    
+    // Kiểm tra xem người dùng đã mua tài liệu chưa
+    var hasPurchased = ViewBag.HasPurchased ?? false;
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<div class="container py-4">
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="fa fa-check-circle me-2"></i> @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="fa fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (TempData["Error"] != null || TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="fa fa-exclamation-triangle me-2"></i> @(TempData["Error"] ?? TempData["ErrorMessage"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    <div class="row g-4">
+        <!-- Cột trái: Ảnh và thông tin ngắn -->
+        <div class="col-lg-4 col-md-5">
+            <div class="card shadow-sm mb-4">
+                <img src="@(string.IsNullOrEmpty(Model.ImagePath) ? 
+                              (string.IsNullOrEmpty(Model.FilePath) ? "/img/document-placeholder.jpg" : Model.FilePath) 
+                            : Model.ImagePath)" 
+                     class="card-img-top img-fluid" alt="@Model.Title" style="object-fit:cover;max-height:320px;border-radius: 8px;">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">@Model.Title</h5>
+                    <ul class="list-unstyled mb-3">
+                        <li><i class="fa fa-user me-2 text-secondary"></i> <b>Tác giả:</b> @(Model.Author?.AuthorName ?? "Không xác định")</li>
+                        <li><i class="fa fa-building me-2 text-secondary"></i> <b>NXB:</b> @(Model.Publisher?.PublisherName ?? "Không xác định")</li>
+                        <li><i class="fa fa-folder-open me-2 text-secondary"></i> <b>Danh mục:</b> @(Model.Category?.CategoryName ?? "Không xác định")</li>
+                        <li><i class="fa fa-calendar-alt me-2 text-secondary"></i> <b>Ngày đăng:</b> @Model.UploadDate.ToString("dd/MM/yyyy")</li>
+                        <li><i class="fa fa-eye me-2 text-secondary"></i> <b>Lượt xem:</b> @(Model.Statistics?.ViewCount ?? 0)</li>
+                        <li><i class="fa fa-download me-2 text-secondary"></i> <b>Lượt tải:</b> @Model.Downloads.Count</li>
+                        <li class="mt-2">
+                            @if (Model.IsPaid)
+                            {
+                                @if (User.Identity.IsAuthenticated && hasPurchased)
+                                {
+                                    <span class="badge bg-success p-2"><i class="fa fa-check-circle me-1"></i> Đã mua</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-primary p-2"><i class="fa fa-tag me-1"></i> Giá: @Model.Price?.ToString("N0") ₫</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge bg-success p-2"><i class="fa fa-check-circle me-1"></i> Miễn phí</span>
+                            }
+                        </li>
+                    </ul>
+                    
+                    @if (Model.IsPaid && User.Identity.IsAuthenticated && !hasPurchased)
+                    {
+                        <div class="alert alert-warning py-2 mb-3">
+                            <i class="fa fa-info-circle me-1"></i> Tài liệu này yêu cầu mua để đọc toàn bộ và tải xuống. Bạn chỉ được xem 5 trang đầu tiên.
+                        </div>
+                    }
+                    
+                    <div class="d-grid gap-2 mb-2">
+                        <a asp-action="Read" asp-route-id="@Model.DocumentID" class="btn btn-outline-primary">
+                            <i class="fa fa-book-open me-1"></i> Đọc tài liệu
+                            @if (Model.IsPaid && !(User.Identity.IsAuthenticated && hasPurchased))
+                            {
+                                <span class="badge bg-secondary ms-1">5 trang</span>
+                            }
+                        </a>
+                        
+                        @if (Model.IsPaid && User.Identity.IsAuthenticated && !hasPurchased)
+                        {
+                            <a asp-controller="Purchase" asp-action="CheckoutDocument" asp-route-id="@Model.DocumentID" class="btn btn-primary">
+                                <i class="fa fa-shopping-cart me-1"></i> Mua tài liệu - @Model.Price?.ToString("N0") ₫
+                            </a>
+                        }
+                        
+                        @if (!Model.IsPaid || (User.Identity.IsAuthenticated && hasPurchased))
+                        {
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <button type="button" class="btn btn-outline-success download-btn" data-document-id="@Model.DocumentID">
+                                    <i class="fa fa-download me-1"></i> <span>Tải xuống</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Document", new { id = Model.DocumentID })" class="btn btn-outline-success">
+                                    <i class="fa fa-download me-1"></i> Đăng nhập để tải xuống
+                                </a>
+                            }
+                        }
+                    </div>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="d-grid">
+                            <!-- Nút yêu thích dùng form trực tiếp -->
+                            <form asp-controller="Document" asp-action="ToggleFavorite" asp-route-id="@Model.DocumentID" method="post" class="direct-form">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn @(isFavorite ? "btn-danger" : "btn-outline-danger") favorite-btn" data-document-id="@Model.DocumentID" data-is-favorite="@isFavorite.ToString().ToLower()">
+                                    <i class="fa @(isFavorite ? "fa-heart" : "fa-heart-broken") me-1"></i> <span class="favorite-text">@(isFavorite ? "Bỏ yêu thích" : "Yêu thích")</span>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-outline-danger"><i class="fa fa-heart me-1"></i> Đăng nhập để yêu thích</a>
+                    }
+                </div>
+            </div>
+            <!-- Đánh giá trung bình -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <div class="mb-2">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <i class="fa-star @(i <= Math.Round(averageRating) ? "fas text-warning" : "far text-secondary")"></i>
+                        }
+                    </div>
+                    <div class="small text-muted">Đánh giá trung bình: <b>@String.Format("{0:0.0}", averageRating)/5</b></div>
+                    <div class="small text-muted">(@Model.Ratings.Count đánh giá)</div>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <form asp-action="Rate" method="post" class="mt-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.DocumentID" />
+                            <div class="d-flex justify-content-center align-items-center gap-1">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <button type="submit" name="ratingValue" value="@i" class="btn btn-link p-0 @(i <= userRating ? "text-warning" : "text-secondary")" title="@i sao">
+                                        <i class="fa fa-star"></i>
+                                    </button>
+                                }
+                            </div>
+                            <div class="small text-muted mt-1">Đánh giá của bạn: <b>@userRating</b></div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="small mt-2"><a asp-controller="Account" asp-action="Login">Đăng nhập để đánh giá</a></div>
+                    }
+                </div>
+            </div>
+        </div>
+        <!-- Cột phải: Mô tả, bình luận -->
+        <div class="col-lg-8 col-md-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h4 class="mb-3"><i class="fa fa-info-circle me-2 text-primary"></i> Mô tả tài liệu</h4>
+                    <div class="mb-2" style="white-space:pre-line;">@Html.Raw(Model.Description)</div>
+                </div>
+            </div>
+            <!-- Bình luận -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="mb-3"><i class="fa fa-comments me-2 text-primary"></i> Bình luận (@Model.Comments.Count(c => c.ParentCommentID == null))</h4>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <form asp-action="Comment" method="post" class="mb-4">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.DocumentID" />
+                            <div class="mb-2">
+                                <textarea name="commentText" class="form-control" rows="3" placeholder="Viết bình luận của bạn..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane me-1"></i> Gửi bình luận</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info py-2">Vui lòng <a asp-controller="Account" asp-action="Login">đăng nhập</a> để bình luận.</div>
+                    }
+                    
+                    <div class="comments-list mt-3">
+                        @{
+                            var rootComments = Model.Comments.Where(c => c.ParentCommentID == null).OrderByDescending(c => c.CommentDate).ToList();
+                        }
+                        
+                        @if (rootComments.Any())
+                        {
+                            foreach (var comment in rootComments)
+                            {
+                                <div class="comment-item border-bottom pb-3 mb-3" id="comment-@comment.CommentID">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <img src="@(string.IsNullOrEmpty(comment.User?.ProfileImage) || comment.User.ProfileImage == "smile.jpg" 
+                                                      ? "/uploads/profiles/smile.jpg" 
+                                                      : "/uploads/profiles/" + comment.User.ProfileImage)" 
+                                                 alt="@comment.User?.Username" class="rounded-circle me-2" width="40" height="40" 
+                                                 style="object-fit: cover; background-color: #f8f9fa;">
+                                            <div>
+                                                <div class="fw-bold">@comment.User?.Username</div>
+                                                <div class="text-muted small">@comment.CommentDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                            </div>
+                                        </div>
+                                        
+                                        @if (User.Identity.IsAuthenticated && (ViewBag.UserID == comment.UserID || User.IsInRole("Admin")))
+                                        {
+                                            <form asp-action="DeleteComment" asp-route-documentId="@Model.DocumentID" asp-route-commentId="@comment.CommentID" method="post" 
+                                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa bình luận này không?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn-link text-danger border-0 bg-transparent p-0">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                    <div class="comment-text mb-2">@comment.CommentText</div>
+                                    
+                                    <div class="comment-actions d-flex align-items-center">
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            <span class="like-button me-3 @(ViewBag.LikedCommentIds != null && ViewBag.LikedCommentIds.Contains(comment.CommentID) ? "text-primary" : "text-secondary")" 
+                                                  data-comment-id="@comment.CommentID" style="cursor: pointer;">
+                                                <i class="fa fa-thumbs-up me-1"></i> 
+                                                <span class="like-count">@comment.LikeCount</span>
+                                            </span>
+                                            
+                                            <span class="reply-button text-secondary me-3" 
+                                                  data-comment-id="@comment.CommentID" style="cursor: pointer;">
+                                                <i class="fa fa-reply me-1"></i> Trả lời
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-secondary me-3">
+                                                <i class="fa fa-thumbs-up me-1"></i> @comment.LikeCount
+                                            </span>
+                                        }
+                                        
+                                        <span class="text-secondary show-replies-button @(comment.Replies.Any() ? "" : "d-none")" 
+                                              data-comment-id="@comment.CommentID" style="cursor: pointer;">
+                                            <i class="fa fa-comments me-1"></i> <span class="replies-count">@comment.Replies.Count</span> trả lời
+                                        </span>
+                                    </div>   
+                                    
+                                    <!-- Phần form trả lời, mặc định ẩn -->
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <div class="reply-form mt-3 d-none" id="reply-form-@comment.CommentID">
+                                            <form asp-action="ReplyComment" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="documentId" value="@Model.DocumentID" />
+                                                <input type="hidden" name="parentCommentId" value="@comment.CommentID" />
+                                                <div class="input-group">
+                                                    <input type="text" name="replyText" class="form-control form-control-sm" 
+                                                           placeholder="Viết trả lời của bạn..." required>
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        <i class="fa fa-paper-plane"></i>
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    }
+                                    
+                                    <!-- Phần hiển thị các trả lời, mặc định ẩn -->
+                                    @if (comment.Replies.Any())
+                                    {
+                                        <div class="replies-list mt-3 ms-4 d-none" id="replies-@comment.CommentID">
+                                            @foreach (var reply in comment.Replies.OrderBy(r => r.CommentDate))
+                                            {
+                                                <div class="reply-item border-top pt-3 pb-2">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <div class="d-flex align-items-center">
+                                                            <img src="@(string.IsNullOrEmpty(reply.User?.ProfileImage) || reply.User.ProfileImage == "smile.jpg" 
+                                                                      ? "/uploads/profiles/smile.jpg" 
+                                                                      : "/uploads/profiles/" + reply.User.ProfileImage)" 
+                                                                 alt="@reply.User?.Username" class="rounded-circle me-2" width="30" height="30" 
+                                                                 style="object-fit: cover; background-color: #f8f9fa;">
+                                                            <div>
+                                                                <div class="fw-bold small">@reply.User?.Username</div>
+                                                                <div class="text-muted small">@reply.CommentDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        @if (User.Identity.IsAuthenticated && (ViewBag.UserID == reply.UserID || User.IsInRole("Admin")))
+                                                        {
+                                                            <form asp-action="DeleteComment" asp-route-documentId="@Model.DocumentID" asp-route-commentId="@reply.CommentID" method="post" 
+                                                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa trả lời này không?');">
+                                                                @Html.AntiForgeryToken()
+                                                                <button type="submit" class="btn-link text-danger border-0 bg-transparent p-0">
+                                                                    <i class="fa fa-trash-alt"></i>
+                                                                </button>
+                                                            </form>
+                                                        }
+                                                    </div>
+                                                    <div class="reply-text ms-4 mb-1 small">@reply.CommentText</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted py-4">
+                                <i class="fa fa-comments fa-2x mb-2"></i>
+                                <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Nút yêu thích tài liệu
+            $('.favorite-btn').on('click', function(e) {
+                e.preventDefault();
+                
+                var btn = $(this);
+                var documentId = btn.data('document-id');
+                var isFavorite = btn.data('is-favorite') === 'true';
+                
+                // Hiển thị trạng thái đang xử lý
+                var originalHtml = btn.html();
+                btn.html('<i class="fa fa-spinner fa-spin me-1"></i> <span>Đang xử lý...</span>');
+                btn.prop('disabled', true);
+                
+                $.ajax({
+                    url: '@Url.Action("ToggleFavoriteAjax", "Document")',
+                    type: 'POST',
+                    data: {
+                        id: documentId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(result) {
+                        if (result.success) {
+                            // Cập nhật trạng thái dựa vào kết quả từ server
+                            isFavorite = result.isFavorite;
+                            btn.data('is-favorite', isFavorite);
+                            
+                            // Thay đổi UI dựa trên trạng thái mới
+                            if (isFavorite) {
+                                btn.removeClass('btn-outline-danger').addClass('btn-danger');
+                                btn.find('i').removeClass('fa-heart-broken').addClass('fa-heart');
+                                btn.find('.favorite-text').text('Bỏ yêu thích');
+                                
+                                // Hiển thị thông báo
+                                showAlert('success', '<i class="fa fa-check-circle me-2"></i> Đã thêm vào danh sách yêu thích!');
+                            } else {
+                                btn.removeClass('btn-danger').addClass('btn-outline-danger');
+                                btn.find('i').removeClass('fa-heart').addClass('fa-heart-broken');
+                                btn.find('.favorite-text').text('Yêu thích');
+                                
+                                // Hiển thị thông báo
+                                showAlert('info', '<i class="fa fa-info-circle me-2"></i> Đã bỏ yêu thích tài liệu này.');
+                            }
+                        } else {
+                            // Hiển thị lỗi
+                            showAlert('danger', '<i class="fa fa-exclamation-triangle me-2"></i> ' + result.message);
+                        }
+                        
+                        // Khôi phục nút
+                        btn.html(originalHtml);
+                        btn.prop('disabled', false);
+                    },
+                    error: function(xhr, status, error) {
+                        // Hiển thị thông báo lỗi
+                        showAlert('danger', '<i class="fa fa-exclamation-triangle me-2"></i> Đã xảy ra lỗi: ' + error);
+                        
+                        // Khôi phục nút
+                        btn.html(originalHtml);
+                        btn.prop('disabled', false);
+                    }
+                });
+            });
+            
+            // Tải xuống Ajax
+            $('.download-btn').click(function() {
+                var btn = $(this);
+                var documentId = btn.data('document-id');
+                var originalText = btn.html();
+                
+                btn.html('<i class="fa fa-spinner fa-spin me-1"></i> Đang xử lý...');
+                btn.prop('disabled', true);
+                
+                $.ajax({
+                    url: '@Url.Action("DownloadAjax", "Document")',
+                    type: 'POST',
+                    data: {
+                        id: documentId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(result) {
+                        if (result.success) {
+                            // Hiệu ứng thành công
+                            btn.html('<i class="fa fa-check me-1"></i> Tải thành công');
+                            setTimeout(function() {
+                                btn.html(originalText);
+                                btn.prop('disabled', false);
+                            }, 1500);
+                            
+                            // Cập nhật số lượt tải và hiển thị thông báo
+                            var downloadCount = parseInt($('li:contains("Lượt tải")').text().match(/\d+/)[0]) + 1;
+                            $('li:contains("Lượt tải")').html('<i class="fa fa-download me-2 text-secondary"></i> <b>Lượt tải:</b> ' + downloadCount);
+                            
+                            // Hiển thị thông báo thành công
+                            showAlert('success', '<i class="fa fa-check-circle me-2"></i> Đã thêm tài liệu vào lịch sử tải xuống của bạn.');
+                            
+                            // Tạo thẻ a để tải xuống
+                            var link = document.createElement('a');
+                            link.href = result.fileUrl;
+                            link.download = result.fileName || '';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        } else {
+                            btn.html(originalText);
+                            btn.prop('disabled', false);
+                            showAlert('danger', '<i class="fa fa-exclamation-triangle me-2"></i> ' + result.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        btn.html(originalText);
+                        btn.prop('disabled', false);
+                        showAlert('danger', '<i class="fa fa-exclamation-triangle me-2"></i> Đã xảy ra lỗi khi kết nối với máy chủ. Vui lòng thử lại sau.');
+                    }
+                });
+            });
+            
+            // Chức năng thích bình luận
+            $('.like-button').on('click', function() {
+                if (!$(this).hasClass('processing')) {
+                    var btn = $(this);
+                    var commentId = btn.data('comment-id');
+                    var isLiked = btn.hasClass('text-primary');
+                    var likeCountElement = btn.find('.like-count');
+                    var likeCount = parseInt(likeCountElement.text());
+                    
+                    // Đánh dấu đang xử lý
+                    btn.addClass('processing');
+                    
+                    // Cập nhật UI trước khi gọi ajax (optimistic UI)
+                    if (isLiked) {
+                        btn.removeClass('text-primary').addClass('text-secondary');
+                        likeCountElement.text(Math.max(0, likeCount - 1));
+                    } else {
+                        btn.removeClass('text-secondary').addClass('text-primary');
+                        likeCountElement.text(likeCount + 1);
+                    }
+                    
+                    // Gọi API thích bình luận
+                    $.ajax({
+                        url: '@Url.Action("LikeComment", "Document")',
+                        type: 'POST',
+                        data: {
+                            documentId: @Model.DocumentID,
+                            commentId: commentId,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(result) {
+                            if (result.success) {
+                                // Cập nhật UI theo kết quả từ server (nếu khác với UI đã cập nhật)
+                                if (result.isLiked !== btn.hasClass('text-primary')) {
+                                    if (result.isLiked) {
+                                        btn.removeClass('text-secondary').addClass('text-primary');
+                                    } else {
+                                        btn.removeClass('text-primary').addClass('text-secondary');
+                                    }
+                                }
+                                likeCountElement.text(result.likeCount);
+                            } else {
+                                // Nếu có lỗi, khôi phục UI
+                                if (isLiked) {
+                                    btn.removeClass('text-secondary').addClass('text-primary');
+                                } else {
+                                    btn.removeClass('text-primary').addClass('text-secondary');
+                                }
+                                likeCountElement.text(likeCount);
+                                showAlert('danger', '<i class="fa fa-exclamation-triangle me-2"></i> ' + (result.message || 'Đã xảy ra lỗi'));
+                            }
+                            btn.removeClass('processing');
+                        },
+                        error: function() {
+                            // Khôi phục UI khi có lỗi
+                            if (isLiked) {
+                                btn.removeClass('text-secondary').addClass('text-primary');
+                            } else {
+                                btn.removeClass('text-primary').addClass('text-secondary');
+                            }
+                            likeCountElement.text(likeCount);
+                            showAlert('danger', '<i class="fa fa-exclamation-triangle me-2"></i> Đã xảy ra lỗi khi kết nối với máy chủ');
+                            btn.removeClass('processing');
+                        }
+                    });
+                }
+            });
+            
+            // Hiển thị form trả lời khi nhấn nút trả lời
+            $('.reply-button').on('click', function() {
+                var commentId = $(this).data('comment-id');
+                $('#reply-form-' + commentId).toggleClass('d-none');
+                
+                // Focus vào input
+                if (!$('#reply-form-' + commentId).hasClass('d-none')) {
+                    $('#reply-form-' + commentId).find('input[name="replyText"]').focus();
+                }
+            });
+            
+            // Hiển thị/ẩn các trả lời khi nhấn nút
+            $('.show-replies-button').on('click', function() {
+                var commentId = $(this).data('comment-id');
+                var repliesList = $('#replies-' + commentId);
+                
+                repliesList.toggleClass('d-none');
+                
+                // Thay đổi icon và text
+                if (repliesList.hasClass('d-none')) {
+                    $(this).html('<i class="fa fa-comments me-1"></i> <span class="replies-count">' + $('#replies-' + commentId + ' .reply-item').length + '</span> trả lời');
+                } else {
+                    $(this).html('<i class="fa fa-minus-circle me-1"></i> Ẩn trả lời');
+                }
+            });
+            
+            // Hàm hiển thị thông báo
+            function showAlert(type, message) {
+                // Xóa thông báo cũ nếu có
+                $('.alert-container .alert').alert('close');
+                
+                // Tạo thông báo mới
+                var alert = $('<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
+                    message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                    '</div>');
+                
+                // Kiểm tra xem đã có container chưa
+                if ($('.alert-container').length === 0) {
+                    // Tạo container cho thông báo
+                    var container = $('<div class="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050; max-width: 350px;"></div>');
+                    $('body').append(container);
+                }
+                
+                // Thêm thông báo vào container
+                $('.alert-container').append(alert);
+                
+                // Tự động đóng thông báo sau 3 giây
+                setTimeout(function() {
+                    alert.alert('close');
+                }, 3000);
+            }
+        });
+    </script>
+
+    @* Thêm Anti-Forgery Token *@
+    @Html.AntiForgeryToken()
+}

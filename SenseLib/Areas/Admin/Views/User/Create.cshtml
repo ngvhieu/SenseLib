@@ -1,0 +1,119 @@
+@model SenseLib.Models.User
+
+@{
+    ViewData["Title"] = "Tạo mới tài khoản";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Thông tin tài khoản</h5>
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row mb-3">
+                            <label asp-for="Username" class="col-sm-3 col-form-label">Tên đăng nhập</label>
+                            <div class="col-sm-9">
+                                <input asp-for="Username" class="form-control" required />
+                                <span asp-validation-for="Username" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label asp-for="Password" class="col-sm-3 col-form-label">Mật khẩu</label>
+                            <div class="col-sm-9">
+                                <input asp-for="Password" type="password" class="form-control" required />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="ConfirmPassword" class="col-sm-3 col-form-label">Xác nhận mật khẩu</label>
+                            <div class="col-sm-9">
+                                <input type="password" name="ConfirmPassword" id="ConfirmPassword" class="form-control" required />
+                                <span id="passwordError" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label asp-for="Email" class="col-sm-3 col-form-label">Email</label>
+                            <div class="col-sm-9">
+                                <input asp-for="Email" type="email" class="form-control" required />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label asp-for="FullName" class="col-sm-3 col-form-label">Họ tên</label>
+                            <div class="col-sm-9">
+                                <input asp-for="FullName" class="form-control" required />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label asp-for="Role" class="col-sm-3 col-form-label">Quyền</label>
+                            <div class="col-sm-9">
+                                <select asp-for="Role" class="form-select">
+                                    <option value="User">Người dùng</option>
+                                    <option value="Admin">Quản trị viên</option>
+                                </select>
+                                <span asp-validation-for="Role" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label asp-for="Status" class="col-sm-3 col-form-label">Trạng thái</label>
+                            <div class="col-sm-9">
+                                <select asp-for="Status" class="form-select">
+                                    <option value="Active">Hoạt động</option>
+                                    <option value="Inactive">Vô hiệu</option>
+                                </select>
+                                <span asp-validation-for="Status" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-9 offset-sm-3">
+                                <button type="submit" class="btn btn-primary">Tạo mới</button>
+                                <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.getElementById('ConfirmPassword').addEventListener('keyup', function() {
+            var password = document.getElementById('Password').value;
+            var confirmPassword = this.value;
+            
+            if (password != confirmPassword) {
+                document.getElementById('passwordError').textContent = 'Mật khẩu không khớp';
+            } else {
+                document.getElementById('passwordError').textContent = '';
+            }
+        });
+        
+        document.querySelector('form').addEventListener('submit', function(e) {
+            var password = document.getElementById('Password').value;
+            var confirmPassword = document.getElementById('ConfirmPassword').value;
+            
+            if (password != confirmPassword) {
+                e.preventDefault();
+                document.getElementById('passwordError').textContent = 'Mật khẩu không khớp';
+            }
+        });
+    </script>
+} 

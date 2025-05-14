@@ -1,0 +1,74 @@
+@model IEnumerable<SenseLib.Models.Document>
+
+@foreach (var item in Model)
+{
+    <tr>
+        <td>@item.DocumentID</td>
+        <td>
+            <div class="d-flex align-items-center">
+                <div class="document-img me-2" style="width: 40px; height: 40px; overflow: hidden; border-radius: 4px;">
+                    @{
+                        string imagePath = string.IsNullOrEmpty(item.ImagePath) ? "/img/document-placeholder.jpg" : item.ImagePath;
+                    }
+                    <img src="@imagePath" alt="@item.Title" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div>
+                    <div class="fw-bold">@item.Title</div>
+                    <small class="text-muted">@(item.Author?.AuthorName ?? "Không có tác giả")</small>
+                </div>
+            </div>
+        </td>
+        <td>@(item.Category?.CategoryName ?? "Không có")</td>
+        <td>
+            @if (item.IsPaid)
+            {
+                <span class="badge bg-info">Có phí: @item.Price?.ToString("N0") ₫</span>
+            }
+            else
+            {
+                <span class="badge bg-light text-dark">Miễn phí</span>
+            }
+        </td>
+        <td>@(item.User?.Username ?? "N/A")</td>
+        <td>@item.UploadDate.ToString("dd/MM/yyyy")</td>
+        <td>
+            @switch (item.Status)
+            {
+                case "Pending":
+                    <span class="badge bg-warning">Chờ duyệt</span>
+                    break;
+                case "Approved":
+                    <span class="badge bg-success">Đã duyệt</span>
+                    break;
+                case "Rejected":
+                    <span class="badge bg-danger">Từ chối</span>
+                    break;
+                default:
+                    <span class="badge bg-secondary">@item.Status</span>
+                    break;
+            }
+        </td>
+        <td>
+            <div class="d-flex gap-1">
+                <a asp-action="Edit" asp-route-id="@item.DocumentID" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <a href="@item.FilePath" target="_blank" class="btn btn-sm btn-outline-info" title="Xem tài liệu">
+                    <i class="bi bi-eye"></i>
+                </a>
+                @if (item.Status == "Pending")
+                {
+                    <a asp-action="Approve" asp-route-id="@item.DocumentID" class="btn btn-sm btn-outline-success" title="Duyệt">
+                        <i class="bi bi-check-circle"></i>
+                    </a>
+                    <a asp-action="Reject" asp-route-id="@item.DocumentID" class="btn btn-sm btn-outline-danger" title="Từ chối">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                }
+                <a asp-action="Delete" asp-route-id="@item.DocumentID" class="btn btn-sm btn-outline-danger" title="Xóa">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </div>
+        </td>
+    </tr>
+} 

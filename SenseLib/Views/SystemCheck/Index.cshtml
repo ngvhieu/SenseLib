@@ -1,0 +1,111 @@
+@model SenseLib.Controllers.SystemStatusViewModel
+
+@{
+    ViewData["Title"] = "Kiểm tra hệ thống";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <h1>Kiểm tra hệ thống tải tài liệu</h1>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Trạng thái hệ thống</h2>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tr>
+                    <th>WebRootPath</th>
+                    <td>@Model.WebRootPath</td>
+                    <td>
+                        <span class="badge @(Model.WebRootExists ? "bg-success" : "bg-danger")">
+                            @(Model.WebRootExists ? "Tồn tại" : "Không tồn tại")
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Thư mục uploads</th>
+                    <td>@Model.UploadsPath</td>
+                    <td>
+                        <span class="badge @(Model.UploadsExists ? "bg-success" : "bg-danger")">
+                            @(Model.UploadsExists ? "Tồn tại" : "Không tồn tại")
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Thư mục uploads/documents</th>
+                    <td>@Model.DocumentsPath</td>
+                    <td>
+                        <span class="badge @(Model.DocumentsExists ? "bg-success" : "bg-danger")">
+                            @(Model.DocumentsExists ? "Tồn tại" : "Không tồn tại")
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Quyền ghi vào thư mục uploads/documents</th>
+                    <td colspan="2">
+                        <span class="badge @(Model.HasWritePermission ? "bg-success" : "bg-danger")">
+                            @(Model.HasWritePermission ? "Có quyền ghi" : "Không có quyền ghi")
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="card-footer">
+            <button id="btnFixDirectories" class="btn btn-primary">Sửa chữa cấu trúc thư mục</button>
+            <a href="/Admin/Document/Create" class="btn btn-secondary">Thử tạo tài liệu</a>
+            <a href="/DebugDocument/CreateTestDocument" class="btn btn-info">Tạo tài liệu test tự động</a>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Hướng dẫn khắc phục</h2>
+        </div>
+        <div class="card-body">
+            <p>Nếu bạn gặp vấn đề với việc tải tài liệu, hãy thực hiện các bước sau:</p>
+            <ol>
+                <li>Nhấn nút <strong>Sửa chữa cấu trúc thư mục</strong> để tạo các thư mục cần thiết</li>
+                <li>Kiểm tra lại trạng thái của thư mục uploads/documents và quyền ghi</li>
+                <li>Thử tải lên một tài liệu thông qua trang <a href="/Admin/Document/Create">Tạo tài liệu mới</a></li>
+                <li>Nếu vẫn gặp vấn đề, đảm bảo rằng:
+                    <ul>
+                        <li>Ứng dụng có quyền ghi vào thư mục wwwroot</li>
+                        <li>Không có tường lửa hoặc phần mềm bảo mật nào chặn việc ghi file</li>
+                        <li>Kiểm tra logs của ứng dụng để tìm lỗi chi tiết hơn</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $("#btnFixDirectories").click(function() {
+                $(this).prop("disabled", true);
+                $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+                
+                $.ajax({
+                    url: '@Url.Action("FixDirectories", "SystemCheck")',
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert("Lỗi: " + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert("Đã xảy ra lỗi khi gửi yêu cầu");
+                    },
+                    complete: function() {
+                        $("#btnFixDirectories").prop("disabled", false);
+                        $("#btnFixDirectories").html('Sửa chữa cấu trúc thư mục');
+                    }
+                });
+            });
+        });
+    </script>
+} 

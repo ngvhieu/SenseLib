@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseLib", "SenseLib.csproj", "{04501E18-8EA1-BDFE-DF02-C68A3D21A4CA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{04501E18-8EA1-BDFE-DF02-C68A3D21A4CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04501E18-8EA1-BDFE-DF02-C68A3D21A4CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04501E18-8EA1-BDFE-DF02-C68A3D21A4CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04501E18-8EA1-BDFE-DF02-C68A3D21A4CA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4BF8D09B-6A28-4B05-922C-4C3C270C78EF}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,102 @@
+@model SenseLib.Models.Document
+@{
+    ViewData["Title"] = "Duyệt tài liệu";
+    Layout = "_AdminLayout";
+}
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-check-circle-fill text-success me-2"></i>Duyệt tài liệu</h5>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Tài liệu sau khi được duyệt sẽ xuất hiện trên thư viện và người dùng có thể xem/tải xuống.
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-7">
+                            <div class="document-info mb-4">
+                                <h4>@Model.Title</h4>
+                                <div class="d-flex flex-wrap gap-3 mt-2 mb-3">
+                                    <span class="badge bg-primary">ID: @Model.DocumentID</span>
+                                    <span class="badge bg-secondary">@(Model.Category?.CategoryName ?? "Không có danh mục")</span>
+                                    <span class="badge bg-info">@(Model.IsPaid ? $"Có phí: {Model.Price?.ToString("N0")} VNĐ" : "Miễn phí")</span>
+                                    <span class="badge bg-warning">@Model.Status</span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Tác giả:</strong> @(Model.Author?.AuthorName ?? "Không có thông tin")
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Nhà xuất bản:</strong> @(Model.Publisher?.PublisherName ?? "Không có thông tin")
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Người tải lên:</strong> @(Model.User?.Username ?? "Không có thông tin")
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Ngày tải lên:</strong> @Model.UploadDate.ToString("dd/MM/yyyy HH:mm")
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Mô tả:</strong>
+                                    <p class="mt-2">@(string.IsNullOrEmpty(Model.Description) ? "Không có mô tả" : Model.Description)</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>File tài liệu:</strong>
+                                    <div class="mt-2">
+                                        <a href="@Model.FilePath" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-file-earmark-pdf me-2"></i>Xem tài liệu
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <form asp-action="Approve" method="post">
+                                <input type="hidden" asp-for="DocumentID" />
+                                <div class="d-flex gap-2 mt-4">
+                                    <a asp-action="Index" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left me-1"></i>Quay lại
+                                    </a>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check-circle me-1"></i>Duyệt tài liệu
+                                    </button>
+                                    <a asp-action="Reject" asp-route-id="@Model.DocumentID" class="btn btn-danger">
+                                        <i class="bi bi-x-circle me-1"></i>Từ chối
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="col-md-5">
+                            <div class="card">
+                                <div class="card-header">
+                                    Ảnh bìa
+                                </div>
+                                <div class="card-body text-center">
+                                    @if (!string.IsNullOrEmpty(Model.ImagePath))
+                                    {
+                                        <img src="@Model.ImagePath" alt="@Model.Title" class="img-fluid" style="max-height: 300px;">
+                                    }
+                                    else
+                                    {
+                                        <div class="no-image p-5 bg-light rounded">
+                                            <i class="bi bi-image" style="font-size: 5rem; color: #ccc;"></i>
+                                            <p class="mt-3">Không có ảnh bìa</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 

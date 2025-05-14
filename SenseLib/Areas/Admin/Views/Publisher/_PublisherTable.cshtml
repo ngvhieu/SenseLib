@@ -1,0 +1,29 @@
+@model IEnumerable<SenseLib.Models.Publisher>
+
+@foreach (var item in Model)
+{
+    <tr>
+        <td>@item.PublisherID</td>
+        <td>@item.PublisherName</td>
+        <td>@(string.IsNullOrEmpty(item.Address) ? "Chưa cập nhật" : (item.Address.Length > 50 ? item.Address.Substring(0, 50) + "..." : item.Address))</td>
+        <td>@(string.IsNullOrEmpty(item.Phone) ? "Chưa cập nhật" : item.Phone)</td>
+        <td>
+            <span class="badge bg-info rounded-pill">
+                @(ViewBag.DocumentCounts != null && ViewBag.DocumentCounts.ContainsKey(item.PublisherID) ? ViewBag.DocumentCounts[item.PublisherID] : 0)
+            </span>
+        </td>
+        <td>
+            <div class="btn-group" role="group">
+                <a asp-action="Edit" asp-route-id="@item.PublisherID" class="btn btn-primary btn-sm" title="Chỉnh sửa">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <a asp-action="Details" asp-route-id="@item.PublisherID" class="btn btn-info btn-sm" title="Chi tiết">
+                    <i class="bi bi-info-circle"></i>
+                </a>
+                <a asp-action="Delete" asp-route-id="@item.PublisherID" class="btn btn-danger btn-sm" title="Xóa">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </div>
+        </td>
+    </tr>
+} 

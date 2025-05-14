@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Tài Liệu - SenseLib</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .document-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .document-header .favorite-btn {
+            margin-left: 1rem;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #ccc;
+            transition: var(--transition);
+        }
+        
+        .document-header .favorite-btn.active {
+            color: var(--accent-color);
+        }
+        
+        .document-header h1 {
+            margin-bottom: 0;
+        }
+        
+        .document-meta {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            color: #777;
+        }
+        
+        .document-meta div {
+            display: flex;
+            align-items: center;
+        }
+        
+        .document-meta i {
+            margin-right: 0.5rem;
+        }
+
+        .document-content-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+        
+        .document-left {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .document-image {
+            width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .document-meta-table {
+            margin-bottom: 2rem;
+        }
+        
+        .document-meta-table h3 {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .document-meta-table h3::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background-color: var(--secondary-color);
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+        }
+        
+        .document-meta-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .document-meta-table th, .document-meta-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .document-meta-table th {
+            text-align: left;
+            font-weight: 500;
+            color: #555;
+            width: 35%;
+        }
+        
+        .document-content {
+            line-height: 1.8;
+        }
+        
+        .document-content p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .document-content h2 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .document-content ul, .document-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2rem;
+        }
+        
+        .document-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .document-content blockquote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            border-left: 4px solid var(--secondary-color);
+            background-color: #f9f9f9;
+            margin: 1.5rem 0;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+        
+        .document-content blockquote cite {
+            display: block;
+            margin-top: 0.75rem;
+            font-weight: 500;
+            font-style: normal;
+        }
+        
+        .document-chapters {
+            margin-top: 3rem;
+        }
+        
+        .document-chapters h2 {
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .document-chapters ol {
+            counter-reset: chapter;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .document-chapters li {
+            margin-bottom: 0.75rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+        
+        .document-chapters li::before {
+            counter-increment: chapter;
+            content: counter(chapter) ".";
+            position: absolute;
+            left: 0;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+        
+        .document-actions {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .document-actions .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+        
+        .document-actions .btn i {
+            margin-right: 0.5rem;
+        }
+        
+        .document-actions .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .document-actions .btn-primary:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .rating {
+            margin-bottom: 2rem;
+        }
+        
+        .rating h3 {
+            margin-bottom: 1rem;
+        }
+        
+        .rating-stars {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .rating-stars i {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+        
+        .rating-count {
+            color: #777;
+        }
+        
+        .comments-section {
+            margin-top: 3rem;
+        }
+        
+        .comments-section h3 {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .comments-section h3::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background-color: var(--secondary-color);
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+        }
+        
+        .comment-form {
+            margin-bottom: 2rem;
+        }
+        
+        .comment-form textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .related-documents {
+            margin-top: 3rem;
+        }
+        
+        .related-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            color: var(--primary-color);
+        }
+        
+        .related-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background-color: var(--secondary-color);
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+        }
+        
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 992px) {
+            .document-content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .document-left {
+                margin-bottom: 2rem;
+            }
+            
+            .document-image {
+                max-width: 300px;
+                margin: 0 auto 1.5rem;
+            }
+            
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .document-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .document-actions {
+                flex-direction: column;
+            }
+            
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">SenseLib</a>
+                </div>
+                
+                <div class="search-bar">
+                    <form>
+                        <input type="text" placeholder="Tìm kiếm tài liệu...">
+                    </form>
+                </div>
+                
+                <nav>
+                    <ul>
+                        <li><a href="index.html">Trang chủ</a></li>
+                        <li><a href="documents.html" class="active">Tài liệu</a></li>
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="contact.html">Liên hệ</a></li>
+                        <li><a href="profile.html"><i class="fas fa-user"></i></a></li>
+                    </ul>
+                </nav>
+                
+                <div class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <section class="section">
+        <div class="container">
+            <div class="document-detail">
+                <!-- Document Content -->
+                <div class="document-content">
+                    <div class="document-header">
+                        <h1>Trí Tuệ Nhân Tạo Trong Thời Đại Số</h1>
+                        <button class="favorite-btn" id="favorite-btn" data-id="1">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="document-meta">
+                        <div><i class="fas fa-user"></i> Tác giả: TS. Nguyễn Văn A</div>
+                        <div><i class="fas fa-calendar"></i> Xuất bản: 22/05/2022</div>
+                        <div><i class="fas fa-book"></i> Số trang: 256</div>
+                        <div><i class="fas fa-eye"></i> Lượt xem: 1,245</div>
+                        <div><i class="fas fa-download"></i> Lượt tải: 389</div>
+                    </div>
+                    
+                    
+                    
+                    <img src="img/doc-1.jpg" alt="Trí Tuệ Nhân Tạo Trong Thời Đại Số" class="document-image">
+                    
+                    <div class="document-meta-table">
+                        <h3>Thông tin chi tiết</h3>
+                        <table>
+                            <tr>
+                                <th>Tác giả</th>
+                                <td>TS. Nguyễn Văn A</td>
+                            </tr>
+                            <tr>
+                                <th>NXB</th>
+                                <td>Nhà xuất bản Khoa học Kỹ thuật</td>
+                            </tr>
+                            <tr>
+                                <th>Năm XB</th>
+                                <td>2022</td>
+                            </tr>
+                            <tr>
+                                <th>Ngôn ngữ</th>
+                                <td>Tiếng Việt</td>
+                            </tr>
+                            <tr>
+                                <th>Số trang</th>
+                                <td>256</td>
+                            </tr>
+                            <tr>
+                                <th>Kích thước</th>
+                                <td>5.2 MB</td>
+                            </tr>
+                            <tr>
+                                <th>Định dạng</th>
+                                <td>PDF</td>
+                            </tr>
+                            <tr>
+                                <th>ISBN</th>
+                                <td>978-604-XX-XXXX-X</td>
+                            </tr>
+                            <tr>
+                                <th>Danh mục</th>
+                                <td>Công nghệ, Trí tuệ nhân tạo</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="document-actions">
+                        <a class="btn btn-primary" href="reader.html?file=pdf/ai_digital_age.pdf&title=Trí%20Tuệ%20Nhân%20Tạo%20Trong%20Thời%20Đại%20Số">
+                            <i class="fas fa-book-reader"></i> Đọc tài liệu
+                        </a>
+                        <a class="btn" href="pdf/ai_digital_age.pdf" download>
+                            <i class="fas fa-download"></i> Tải xuống
+                        </a>
+                        <button class="btn" id="save-btn">
+                            <i class="fas fa-bookmark"></i> Lưu
+                        </button>
+                    </div>
+                    <div class="rating">
+                        <h3>Đánh giá (4.7/5)</h3>
+                        <div class="rating-stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="rating-count">32 đánh giá</span>
+                    </div>
+                    
+                    <div class="document-content">
+                        <h2>Tóm tắt nội dung</h2>
+                        <p>Cuốn sách "Trí Tuệ Nhân Tạo Trong Thời Đại Số" là một tài liệu toàn diện về lĩnh vực AI đang phát triển nhanh chóng và vai trò của nó trong quá trình chuyển đổi số. Tác giả, TS. Nguyễn Văn A, đã nghiên cứu trong lĩnh vực học máy và trí tuệ nhân tạo hơn 15 năm, mang đến cái nhìn sâu sắc về cách AI đang định hình tương lai của doanh nghiệp, giáo dục và xã hội.</p>
+                        
+                        <p>Cuốn sách này trình bày các khái niệm phức tạp về AI theo cách dễ tiếp cận, giúp người đọc hiểu được cả những nguyên tắc kỹ thuật cơ bản và tác động rộng lớn hơn của công nghệ này. Từ học máy đến học sâu, từ xử lý ngôn ngữ tự nhiên đến thị giác máy tính, tác giả giải thích mọi thứ một cách rõ ràng, kèm theo các ví dụ từ thế giới thực.</p>
+                        
+                        <h2>Nội dung chính</h2>
+                        <ul>
+                            <li><strong>Phần 1: Nền tảng của AI</strong> - Giới thiệu về lịch sử, các khái niệm cơ bản và các thuật toán nền tảng.</li>
+                            <li><strong>Phần 2: Các công nghệ AI hiện đại</strong> - Khám phá học máy, học sâu, mạng nơ-ron và các phương pháp tiên tiến.</li>
+                            <li><strong>Phần 3: AI trong kinh doanh</strong> - Phân tích cách doanh nghiệp đang áp dụng AI để tối ưu hóa quy trình, cá nhân hóa marketing và tự động hóa dịch vụ.</li>
+                            <li><strong>Phần 4: AI trong giáo dục và y tế</strong> - Khám phá các ứng dụng chuyển đổi trong hai lĩnh vực quan trọng này.</li>
+                            <li><strong>Phần 5: Đạo đức AI và tương lai</strong> - Thảo luận về các cân nhắc đạo đức, quyền riêng tư, và tác động xã hội của AI.</li>
+                        </ul>
+                        
+                        <h2>Đối tượng độc giả</h2>
+                        <p>Cuốn sách này được viết cho nhiều đối tượng độc giả khác nhau, từ sinh viên và giảng viên công nghệ thông tin, đến các nhà quản lý doanh nghiệp, nhà hoạch định chính sách và bất kỳ ai quan tâm đến cách AI đang định hình tương lai của chúng ta.</p>
+                        
+                        <h2>Lời khen từ chuyên gia</h2>
+                        <blockquote>
+                            "Một cuốn sách toàn diện và dễ tiếp cận về AI và ứng dụng của nó trong thời đại số. TS. Nguyễn Văn A đã làm rõ những khái niệm phức tạp và cung cấp cái nhìn sâu sắc có giá trị cho cả chuyên gia kỹ thuật và người làm quản lý."
+                            <cite>- GS. Trần Văn B, Đại học Khoa học và Công nghệ Hà Nội</cite>
+                        </blockquote>
+                    </div>
+                    
+                    <div class="document-chapters">
+                        <h2>Mục lục</h2>
+                        <ol>
+                            <li>Giới thiệu về Trí tuệ nhân tạo</li>
+                            <li>Lịch sử phát triển của AI</li>
+                            <li>Học máy: Nền tảng của AI hiện đại</li>
+                            <li>Học sâu và mạng nơ-ron nhân tạo</li>
+                            <li>Xử lý ngôn ngữ tự nhiên</li>
+                            <li>Thị giác máy tính</li>
+                            <li>AI trong phân tích dữ liệu kinh doanh</li>
+                            <li>Cá nhân hóa và hệ thống gợi ý</li>
+                            <li>Tự động hóa quy trình bằng AI</li>
+                            <li>AI trong giáo dục</li>
+                            <li>Ứng dụng AI trong y tế</li>
+                            <li>Vấn đề đạo đức trong AI</li>
+                            <li>Quyền riêng tư và bảo mật dữ liệu</li>
+                            <li>Tương lai của AI và xã hội</li>
+                            <li>Chuẩn bị cho kỷ nguyên AI</li>
+                        </ol>
+                    </div>
+                    
+                    <!-- Comments Section -->
+                    <div class="comments-section">
+                        <h3>Bình luận (5)</h3>
+                        
+                        <div class="comment-form">
+                            <textarea placeholder="Viết bình luận của bạn..."></textarea>
+                            <button class="btn">Đăng bình luận</button>
+                        </div>
+                        
+                        <div class="comments-list">
+                            <!-- Comment 1 -->
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-author">Trần Văn B</span>
+                                    <span class="comment-date">28/05/2023</span>
+                                </div>
+                                <div class="comment-body">
+                                    <p>Tài liệu rất hữu ích cho những người mới bắt đầu tìm hiểu về AI. Tôi đặc biệt thích phần giải thích về các ứng dụng thực tế trong doanh nghiệp.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Comment 2 -->
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-author">Lê Thị C</span>
+                                    <span class="comment-date">26/05/2023</span>
+                                </div>
+                                <div class="comment-body">
+                                    <p>Tài liệu cung cấp cái nhìn tổng quan rất tốt về AI trong thời đại số. Tuy nhiên, tôi mong muốn có thêm các ví dụ cụ thể và chi tiết hơn về cách triển khai các giải pháp AI.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Comment 3 -->
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-author">Phạm Văn D</span>
+                                    <span class="comment-date">25/05/2023</span>
+                                </div>
+                                <div class="comment-body">
+                                    <p>Rất hay! Tôi đã áp dụng một số giải pháp được đề cập trong tài liệu này vào doanh nghiệp của mình và thấy hiệu quả rõ rệt.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Comment 4 -->
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-author">Nguyễn Thị E</span>
+                                    <span class="comment-date">24/05/2023</span>
+                                </div>
+                                <div class="comment-body">
+                                    <p>Tài liệu rất dễ hiểu, ngay cả với người không có nền tảng kỹ thuật. Tôi đánh giá cao cách tác giả giải thích các khái niệm phức tạp một cách đơn giản.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Comment 5 -->
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-author">Hoàng Văn F</span>
+                                    <span class="comment-date">23/05/2023</span>
+                                </div>
+                                <div class="comment-body">
+                                    <p>Phần thảo luận về các thách thức khi triển khai AI rất thực tế. Tôi đã gặp nhiều vấn đề tương tự trong dự án của mình. Cảm ơn tác giả đã chia sẻ các giải pháp hữu ích.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Document Sidebar -->
+                <div class="document-sidebar">
+                    <div style="background-color: #fff; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin-bottom: 2rem;">
+                        <h3 style="margin-bottom: 1rem;">Thông tin tài liệu</h3>
+                        
+                        <ul class="document-info" style="list-style: none; padding: 0;">
+                            <li>
+                                <span>Định dạng</span>
+                                <span>PDF</span>
+                            </li>
+                            <li>
+                                <span>Số trang</span>
+                                <span>125</span>
+                            </li>
+                            <li>
+                                <span>Kích thước</span>
+                                <span>8.5 MB</span>
+                            </li>
+                            <li>
+                                <span>Ngôn ngữ</span>
+                                <span>Tiếng Việt</span>
+                            </li>
+                            <li>
+                                <span>ISBN</span>
+                                <span>978-604-1234-56-7</span>
+                            </li>
+                            <li>
+                                <span>Năm xuất bản</span>
+                                <span>2023</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background-color: #fff; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin-bottom: 2rem;">
+                        <h3 style="margin-bottom: 1rem;">Tác giả</h3>
+                        
+                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <img src="https://via.placeholder.com/80x80" alt="Tác giả" style="width: 60px; height: 60px; border-radius: 50%; margin-right: 1rem;">
+                            <div>
+                                <h4 style="margin-bottom: 0.25rem;">Nguyễn Văn A</h4>
+                                <p style="color: #777; font-size: 0.9rem;">Tiến sĩ Khoa học Máy tính</p>
+                            </div>
+                        </div>
+                        
+                        <p style="font-size: 0.9rem;">Tiến sĩ Nguyễn Văn A là chuyên gia hàng đầu về trí tuệ nhân tạo và học máy tại Đại học Công nghệ. Ông đã có hơn 15 năm kinh nghiệm nghiên cứu và giảng dạy trong lĩnh vực này.</p>
+                        
+                        <a href="#" style="display: block; text-align: center; margin-top: 1rem; color: var(--secondary-color);">Xem tất cả tài liệu của tác giả</a>
+                    </div>
+                    
+                    <div style="background-color: #fff; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
+                        <h3 style="margin-bottom: 1rem;">Tài liệu liên quan</h3>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <a href="#" style="display: flex; gap: 1rem;">
+                                <img src="https://via.placeholder.com/80x120?text=Related" alt="Tài liệu liên quan" style="width: 60px; height: 80px; object-fit: cover;">
+                                <div>
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.25rem;">Machine Learning Cơ Bản</h4>
+                                    <p style="font-size: 0.8rem; color: #777;">Trần Văn B</p>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <a href="#" style="display: flex; gap: 1rem;">
+                                <img src="https://via.placeholder.com/80x120?text=Related" alt="Tài liệu liên quan" style="width: 60px; height: 80px; object-fit: cover;">
+                                <div>
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.25rem;">Deep Learning Và Ứng Dụng</h4>
+                                    <p style="font-size: 0.8rem; color: #777;">Lê Thị C</p>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div>
+                            <a href="#" style="display: flex; gap: 1rem;">
+                                <img src="https://via.placeholder.com/80x120?text=Related" alt="Tài liệu liên quan" style="width: 60px; height: 80px; object-fit: cover;">
+                                <div>
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.25rem;">Xử Lý Ngôn Ngữ Tự Nhiên</h4>
+                                    <p style="font-size: 0.8rem; color: #777;">Phạm Văn D</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>SenseLib</h3>
+                    <p>Kho tàng tri thức số dành cho mọi người. Chúng tôi cung cấp truy cập đến hàng ngàn tài liệu học thuật và nguồn tài nguyên giáo dục.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên kết nhanh</h3>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Trang chủ</a></li>
+                        <li><a href="documents.html">Tài liệu</a></li>
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="contact.html">Liên hệ</a></li>
+                        <li><a href="privacy.html">Chính sách bảo mật</a></li>
+                        <li><a href="terms.html">Điều khoản sử dụng</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Danh mục</h3>
+                    <ul class="footer-links">
+                        <li><a href="documents.html?category=technology">Công nghệ</a></li>
+                        <li><a href="documents.html?category=business">Kinh doanh</a></li>
+                        <li><a href="documents.html?category=education">Giáo dục</a></li>
+                        <li><a href="documents.html?category=science">Khoa học</a></li>
+                        <li><a href="documents.html?category=health">Y tế</a></li>
+                        <li><a href="documents.html?category=literature">Văn học</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Liên hệ</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> contact@senselib.com</li>
+                        <li><i class="fas fa-phone"></i> (84) 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, Hà Nội</li>
+                    </ul>
+                    <div style="margin-top: 1rem;">
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-twitter"></i></a>
+                        <a href="#" style="margin-right: 1rem;"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 SenseLib. Tất cả các quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="js/main.js"></script>
+</body>
+</html> 

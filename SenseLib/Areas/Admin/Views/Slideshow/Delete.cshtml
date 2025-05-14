@@ -1,0 +1,55 @@
+@model SenseLib.Models.Slideshow
+
+@{
+    ViewData["Title"] = "Xóa Slideshow";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Xác nhận xóa Slideshow</h5>
+                    
+                    <div class="alert alert-danger">
+                        <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa Slideshow này?
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12 mb-3">
+                            <img src="@Model.ImagePath" alt="@Model.Title" style="max-height:300px" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Tiêu đề:</div>
+                        <div class="col-md-9">@Model.Title</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Mô tả:</div>
+                        <div class="col-md-9">@Model.Description</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Thứ tự hiển thị:</div>
+                        <div class="col-md-9">@Model.DisplayOrder</div>
+                    </div>
+
+                    <form asp-action="Delete">
+                        <input type="hidden" asp-for="SlideID" />
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-danger">Xóa</button>
+                                <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> 

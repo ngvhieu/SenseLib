@@ -1,0 +1,195 @@
+@model SenseLib.Areas.Admin.Controllers.PaginatedList<SenseLib.Models.Comment>
+@{
+    ViewData["Title"] = "Thống kê bình luận";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Thống kê tổng quan</h5>
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card info-card sales-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng số <span>| Bình luận</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-chat-dots"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.TotalComments</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card info-card revenue-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng số <span>| Người dùng bình luận</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.TotalUsers</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card info-card customers-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng số <span>| Tài liệu có bình luận</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.TotalDocuments</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card info-card sales-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Bình luận <span>| Hôm nay</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-calendar-check"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.CommentsToday</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Danh sách bình luận</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form asp-action="Comments" method="get" class="row g-3">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Tìm kiếm..." name="searchString" value="@ViewData["CurrentFilter"]">
+                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <a asp-action="Comments" class="btn btn-outline-secondary">Xóa bộ lọc</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>
+                                    <a asp-action="Comments" asp-route-sortOrder="@ViewData["NameSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                        Nội dung
+                                    </a>
+                                </th>
+                                <th>
+                                    <a asp-action="Comments" asp-route-sortOrder="@ViewData["UserSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                        Người dùng
+                                    </a>
+                                </th>
+                                <th>
+                                    <a asp-action="Comments" asp-route-sortOrder="@ViewData["DocumentSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                        Tài liệu
+                                    </a>
+                                </th>
+                                <th>
+                                    <a asp-action="Comments" asp-route-sortOrder="@ViewData["DateSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                        Ngày bình luận
+                                    </a>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.CommentID</td>
+                                    <td>@Html.Raw(item.CommentText.Length > 100 ? item.CommentText.Substring(0, 100) + "..." : item.CommentText)</td>
+                                    <td>@item.User?.Username</td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })" target="_blank">
+                                            @item.Document?.Title
+                                        </a>
+                                    </td>
+                                    <td>@item.CommentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @{
+                    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+                    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+                }
+
+                <div class="row">
+                    <div class="col-sm-12 col-md-5">
+                        <div class="dataTables_info" role="status">
+                            Hiển thị @(((Model.PageIndex - 1) * 10) + 1) đến @(((Model.PageIndex - 1) * 10) + Model.Count) trong tổng số @Model.TotalItems kết quả
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-7">
+                        <div class="dataTables_paginate paging_simple_numbers">
+                            <ul class="pagination">
+                                <li class="paginate_button page-item previous @prevDisabled">
+                                    <a asp-action="Comments"
+                                       asp-route-pageNumber="@(Model.PageIndex - 1)"
+                                       asp-route-sortOrder="@ViewData["CurrentSort"]"
+                                       asp-route-searchString="@ViewData["CurrentFilter"]"
+                                       class="page-link">Trước</a>
+                                </li>
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="paginate_button page-item @(i == Model.PageIndex ? "active" : "")">
+                                        <a asp-action="Comments"
+                                           asp-route-pageNumber="@i"
+                                           asp-route-sortOrder="@ViewData["CurrentSort"]"
+                                           asp-route-searchString="@ViewData["CurrentFilter"]"
+                                           class="page-link">@i</a>
+                                    </li>
+                                }
+                                <li class="paginate_button page-item next @nextDisabled">
+                                    <a asp-action="Comments"
+                                       asp-route-pageNumber="@(Model.PageIndex + 1)"
+                                       asp-route-sortOrder="@ViewData["CurrentSort"]"
+                                       asp-route-searchString="@ViewData["CurrentFilter"]"
+                                       class="page-link">Tiếp</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

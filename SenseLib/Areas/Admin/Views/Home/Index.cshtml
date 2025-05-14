@@ -1,0 +1,161 @@
+@{
+    ViewData["Title"] = "Bảng điều khiển";
+}
+
+<!-- Thẻ Main đã được đặt trong layout -->
+<div class="col-lg-12">
+    <div class="row">
+
+        <!-- Thẻ Sales -->
+        <div class="col-xxl-4 col-md-4">
+            <div class="card info-card sales-card">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng số Menu</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-menu-button-wide"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@ViewBag.MenuCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thẻ Revenue -->
+        <div class="col-xxl-4 col-md-4">
+            <div class="card info-card revenue-card">
+                <div class="card-body">
+                    <h5 class="card-title">Menu đang kích hoạt</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@ViewBag.ActiveMenuCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thẻ Customers -->
+        <div class="col-xxl-4 col-md-4">
+            <div class="card info-card customers-card">
+                <div class="card-body">
+                    <h5 class="card-title">Menu chính (Header)</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-layout-text-window"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>@ViewBag.MainMenuCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-12">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Quản lý hệ thống</h5>
+
+            <div class="row">
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title"><i class="bi bi-menu-button-wide"></i></h5>
+                            <a href="@Url.Action("Index", "Menu", new { area = "Admin" })" class="btn btn-primary">Quản lý Menu</a>
+                            <p class="card-text mt-2">Thêm, sửa, xóa các menu trên trang web</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title"><i class="bi bi-people"></i></h5>
+                            <a href="#" class="btn btn-primary">Quản lý Người dùng</a>
+                            <p class="card-text mt-2">Quản lý tài khoản người dùng</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title"><i class="bi bi-file-earmark-text"></i></h5>
+                            <a href="@Url.Action("Index", "Document", new { area = "Admin" })" class="btn btn-primary">Quản lý Tài liệu</a>
+                            <p class="card-text mt-2">Quản lý tài liệu trong thư viện</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title"><i class="bi bi-folder"></i></h5>
+                            <a href="@Url.Action("Index", "Category", new { area = "Admin" })" class="btn btn-primary">Quản lý Danh mục</a>
+                            <p class="card-text mt-2">Quản lý danh mục tài liệu</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title"><i class="bi bi-people"></i></h5>
+                            <a href="@Url.Action("Index", "Author", new { area = "Admin" })" class="btn btn-primary">Quản lý Tác giả</a>
+                            <p class="card-text mt-2">Quản lý thông tin tác giả</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title"><i class="bi bi-gear"></i></h5>
+                            <a href="#" class="btn btn-primary">Cài đặt hệ thống</a>
+                            <p class="card-text mt-2">Thay đổi cài đặt của hệ thống</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-12 mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Quản lý Menu Admin</h5>
+            <p>Thêm các mục vào thanh điều hướng bên trái:</p>
+            <div class="row">
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                    <a href="@Url.Action("AddDocumentMenuItem", "AdminMenu", new { area = "" })" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-journal-text"></i> Thêm Menu Tài liệu
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                    <a href="@Url.Action("AddDocumentStatisticsMenuItem", "AdminMenu", new { area = "" })" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-bar-chart"></i> Thêm Menu Thống kê
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                    <a href="@Url.Action("AddCategoryMenuItem", "AdminMenu", new { area = "" })" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-folder"></i> Thêm Menu Danh mục
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                    <a href="@Url.Action("AddAuthorMenuItem", "AdminMenu", new { area = "" })" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-people"></i> Thêm Menu Tác giả
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

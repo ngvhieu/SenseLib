@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Kiểm tra Upload File";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h1 class="card-title">Kiểm tra Upload File</h1>
+                    <p>@ViewBag.Message</p>
+
+                    <h4 class="mt-4 mb-3">Thông tin hệ thống file</h4>
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            WebRootPath
+                            <span>@ViewBag.WebRootPath</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            WebRootPath tồn tại
+                            <span class="badge @(ViewBag.WebRootExists ? "bg-success" : "bg-danger")">@ViewBag.WebRootExists</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            UploadsFolder
+                            <span>@ViewBag.UploadsFolder</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            UploadsFolder tồn tại
+                            <span class="badge @(ViewBag.UploadsFolderExists ? "bg-success" : "bg-danger")">@ViewBag.UploadsFolderExists</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Quyền ghi
+                            <span class="badge @(ViewBag.HasWritePermission ? "bg-success" : "bg-danger")">
+                                @ViewBag.WritePermissionMessage
+                            </span>
+                        </li>
+                    </ul>
+
+                    <h4 class="mb-3">Test Upload File</h4>
+                    <form method="post" asp-action="Upload" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Chọn file để tải lên</label>
+                            <input type="file" id="file" name="file" class="form-control" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Tải lên</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Các bước kiểm tra sửa lỗi tải file</h4>
+                    <ol class="list-group list-group-numbered">
+                        <li class="list-group-item">Kiểm tra xem thư mục uploads/documents có tồn tại không</li>
+                        <li class="list-group-item">Kiểm tra xem có quyền ghi vào thư mục này không</li>
+                        <li class="list-group-item">Thử tải lên một file để xem có lỗi gì xảy ra không</li>
+                        <li class="list-group-item">Kiểm tra các trường bắt buộc trong model Document</li>
+                        <li class="list-group-item">Đảm bảo dữ liệu form gửi lên đúng định dạng</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

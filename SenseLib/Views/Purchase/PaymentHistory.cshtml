@@ -1,0 +1,343 @@
+@model IEnumerable<SenseLib.Models.Purchase>
+
+@{
+    ViewData["Title"] = "Lịch sử thanh toán";
+    
+    var currentPage = ViewBag.CurrentPage;
+    var totalPages = ViewBag.TotalPages;
+    var totalItems = ViewBag.TotalItems;
+    var totalSpent = ViewBag.TotalSpent;
+    var statuses = ViewBag.Statuses;
+    var currentStatus = ViewBag.CurrentStatus;
+    var fromDate = ViewBag.FromDate;
+    var toDate = ViewBag.ToDate;
+}
+
+<style>
+    .payment-history-header {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1rem;
+    }
+    
+    .payment-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .summary-card {
+        padding: 1.2rem;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        border: 1px solid #eee;
+        flex: 1;
+        min-width: 200px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .summary-card h4 {
+        font-size: 1rem;
+        color: #555;
+        margin-bottom: 0.8rem;
+    }
+    
+    .summary-card p {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+    
+    .summary-card.primary p {
+        color: #007bff;
+    }
+    
+    .summary-card.success p {
+        color: #28a745;
+    }
+    
+    .summary-card.warning p {
+        color: #ffc107;
+    }
+    
+    .summary-card.danger p {
+        color: #dc3545;
+    }
+    
+    .filter-form {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .transaction-table th {
+        background-color: #f8f9fa;
+    }
+    
+    .badge-success {
+        background-color: #28a745;
+    }
+    
+    .badge-warning {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    
+    .badge-danger {
+        background-color: #dc3545;
+    }
+    
+    .pagination-container {
+        margin-top: 2rem;
+    }
+    
+    .transaction-code {
+        font-size: 0.8rem;
+        color: #6c757d;
+        word-break: break-all;
+    }
+    
+    .empty-history {
+        text-align: center;
+        padding: 3rem 0;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+    
+    .empty-history i {
+        font-size: 3rem;
+        color: #adb5bd;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-history p {
+        color: #6c757d;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="payment-history-header">
+        <h2><i class="fas fa-history me-2"></i> Lịch sử thanh toán</h2>
+        <p class="text-muted">Xem và quản lý các giao dịch mua tài liệu của bạn</p>
+    </div>
+    
+    <div class="payment-summary">
+        <div class="summary-card primary">
+            <h4>Tổng giao dịch</h4>
+            <p>@totalItems</p>
+        </div>
+        <div class="summary-card success">
+            <h4>Tổng thanh toán</h4>
+            <p>@totalSpent.ToString("N0") ₫</p>
+        </div>
+        <div class="summary-card warning">
+            <h4>Hoàn thành</h4>
+            <p>@Model.Count(p => p.Status == "Completed")</p>
+        </div>
+        <div class="summary-card danger">
+            <h4>Đang xử lý/Thất bại</h4>
+            <p>@Model.Count(p => p.Status != "Completed")</p>
+        </div>
+    </div>
+    
+    <div class="filter-form">
+        <form asp-action="PaymentHistory" method="get">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Trạng thái</label>
+                    <select class="form-select" id="status" name="status">
+                        @if (string.IsNullOrEmpty(currentStatus))
+                        {
+                            <option value="" selected>Tất cả</option>
+                        }
+                        else
+                        {
+                            <option value="">Tất cả</option>
+                        }
+                        
+                        @foreach (var status in statuses)
+                        {
+                            if (status == currentStatus)
+                            {
+                                <option value="@status" selected>
+                                    @(status == "Completed" ? "Hoàn thành" : 
+                                      status == "Pending" ? "Đang xử lý" : 
+                                      status == "Failed" ? "Thất bại" : status)
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@status">
+                                    @(status == "Completed" ? "Hoàn thành" : 
+                                      status == "Pending" ? "Đang xử lý" : 
+                                      status == "Failed" ? "Thất bại" : status)
+                                </option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="fromDate" class="form-label">Từ ngày</label>
+                    <input type="date" class="form-control" id="fromDate" name="fromDate" value="@fromDate">
+                </div>
+                <div class="col-md-3">
+                    <label for="toDate" class="form-label">Đến ngày</label>
+                    <input type="date" class="form-control" id="toDate" name="toDate" value="@toDate">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i> Lọc kết quả
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover transaction-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Mã giao dịch</th>
+                        <th scope="col">Tài liệu</th>
+                        <th scope="col">Ngày mua</th>
+                        <th scope="col">Số tiền</th>
+                        <th scope="col">Trạng thái</th>
+                        <th scope="col">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="transaction-code">@item.TransactionCode</div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div style="width: 40px; height: 40px; overflow: hidden; margin-right: 10px; border-radius: 4px;">
+                                        <img src="@(string.IsNullOrEmpty(item.Document.ImagePath) ? "/images/document-placeholder.jpg" : item.Document.ImagePath)" 
+                                             alt="@item.Document.Title" 
+                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                    <div>
+                                        <a href="@Url.Action("Details", "Document", new { id = item.DocumentID })" class="text-decoration-none">
+                                            @item.Document.Title
+                                        </a>
+                                        <div class="small text-muted">
+                                            Tác giả: @(item.Document.Author?.AuthorName ?? "Không xác định")
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@item.PurchaseDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-nowrap">@item.Amount.ToString("N0") ₫</td>
+                            <td>
+                                @if (item.Status == "Completed")
+                                {
+                                    <span class="badge bg-success">Hoàn thành</span>
+                                }
+                                else if (item.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark">Đang xử lý</span>
+                                }
+                                else if (item.Status == "Failed")
+                                {
+                                    <span class="badge bg-danger">Thất bại</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@item.Status</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.Status == "Completed")
+                                {
+                                    <a href="@Url.Action("Read", "Document", new { id = item.DocumentID })" class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="fas fa-book-open"></i> Đọc
+                                    </a>
+                                    <a href="@Url.Action("Download", "Document", new { id = item.DocumentID })" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-download"></i> Tải
+                                    </a>
+                                }
+                                else if (item.Status == "Pending")
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        <i class="fas fa-clock"></i> Chờ xử lý
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("CheckoutDocument", "Purchase", new { id = item.DocumentID })" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-sync"></i> Thử lại
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        @if (totalPages > 1)
+        {
+            <div class="d-flex justify-content-between align-items-center pagination-container">
+                <div class="text-muted">
+                    Hiển thị @(((currentPage - 1) * 10) + 1) đến @(Math.Min(((currentPage - 1) * 10) + Model.Count(), totalItems)) trong tổng số @totalItems giao dịch
+                </div>
+                <nav aria-label="Phân trang">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("PaymentHistory", new { status = currentStatus, fromDate, toDate, page = currentPage - 1 })">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        
+                        @{
+                            var startPage = Math.Max(1, currentPage - 2);
+                            var endPage = Math.Min(totalPages, startPage + 4);
+                            
+                            if (endPage - startPage < 4 && startPage > 1)
+                            {
+                                startPage = Math.Max(1, endPage - 4);
+                            }
+                        }
+                        
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("PaymentHistory", new { status = currentStatus, fromDate, toDate, page = i })">
+                                    @i
+                                </a>
+                            </li>
+                        }
+                        
+                        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("PaymentHistory", new { status = currentStatus, fromDate, toDate, page = currentPage + 1 })">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-history">
+            <i class="fas fa-receipt"></i>
+            <h4 class="mb-3">Không tìm thấy giao dịch nào</h4>
+            <p>Bạn chưa có giao dịch mua tài liệu nào trong khoảng thời gian này hoặc với bộ lọc hiện tại.</p>
+            <a asp-controller="Document" asp-action="Index" class="btn btn-primary mt-3">
+                <i class="fas fa-search"></i> Tìm tài liệu để mua
+            </a>
+        </div>
+    }
+</div> 
