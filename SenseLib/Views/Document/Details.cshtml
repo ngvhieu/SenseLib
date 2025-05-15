@@ -153,6 +153,12 @@
                 <div class="card-body">
                     <h4 class="mb-3"><i class="fa fa-info-circle me-2 text-primary"></i> Mô tả tài liệu</h4>
                     <div class="mb-2" style="white-space:pre-line;">@Html.Raw(Model.Description)</div>
+                    
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <!-- Nút tóm tắt nội dung -->
+                        <partial name="_SummaryButton" model="@Model.DocumentID" />
+                    }
                 </div>
             </div>
             <!-- Bình luận -->

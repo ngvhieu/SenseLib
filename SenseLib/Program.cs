@@ -28,6 +28,9 @@ builder.Services.AddScoped<VNPayService>();
 // Đăng ký dịch vụ Wallet
 builder.Services.AddScoped<WalletService>();
 
+// Đăng ký dịch vụ Summary (Tóm tắt AI)
+builder.Services.AddScoped<ISummaryService, SummaryService>();
+
 // Cấu hình xác thực cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

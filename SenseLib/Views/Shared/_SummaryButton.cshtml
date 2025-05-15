@@ -1,0 +1,138 @@
+@model int
+
+<button id="btnSummarize" class="btn btn-info mb-3" data-document-id="@Model">
+    <i class="fas fa-compress-alt me-2"></i> Tóm tắt nội dung
+</button>
+
+<!-- Modal hiển thị kết quả tóm tắt -->
+<div class="modal fade" id="summaryModal" tabindex="-1" aria-labelledby="summaryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="summaryModalLabel">Tóm tắt nội dung</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="summarySpinner" class="text-center my-4" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tóm tắt...</span>
+                    </div>
+                    <p class="mt-2">Đang tóm tắt nội dung, vui lòng đợi...</p>
+                    <p class="small text-muted">Quá trình này có thể mất từ 30 giây đến 1 phút</p>
+                </div>
+                <div id="summaryContent" class="border p-3 rounded bg-light"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" id="btnCopySummary" class="btn btn-primary">
+                    <i class="fas fa-copy me-1"></i> Sao chép
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnSummarize = document.getElementById('btnSummarize');
+        const summaryContent = document.getElementById('summaryContent');
+        const summarySpinner = document.getElementById('summarySpinner');
+        const btnCopySummary = document.getElementById('btnCopySummary');
+        
+        if (btnSummarize) {
+            btnSummarize.addEventListener('click', function() {
+                const documentId = this.getAttribute('data-document-id');
+                
+                // Hiển thị modal và spinner
+                $('#summaryModal').modal('show');
+                summaryContent.innerHTML = '';
+                summarySpinner.style.display = 'block';
+                
+                // Gọi API để tóm tắt
+                fetch(`/Summary/SummarizeDocument?documentId=${documentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    // Kiểm tra loại nội dung phản hồi
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        // Nếu không phải JSON, lấy text
+                        return response.text().then(text => {
+                            throw new Error(`Phản hồi không hợp lệ: ${text.substring(0, 150)}...`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    summarySpinner.style.display = 'none';
+                    
+                    if (data.success) {
+                        // Hiển thị kết quả tóm tắt
+                        summaryContent.innerHTML = data.summary.replace(/\n/g, '<br>');
+                    } else {
+                        // Hiển thị thông báo lỗi
+                        let errorMessage = data.message;
+                        
+                        // Xử lý hiển thị lỗi cụ thể
+                        if (errorMessage && errorMessage.includes("Claude API")) {
+                            summaryContent.innerHTML = `
+                                <div class="alert alert-warning">
+                                    <h5><i class="fas fa-exclamation-triangle me-2"></i> Máy chủ Claude đang bận</h5>
+                                    <p>API đang xử lý nhiều yêu cầu. Vui lòng thử lại sau vài phút.</p>
+                                    <p class="small text-muted mt-2">Chi tiết: ${errorMessage}</p>
+                                </div>`;
+                        } else if (errorMessage && errorMessage.includes("API key")) {
+                            summaryContent.innerHTML = `
+                                <div class="alert alert-danger">
+                                    <h5><i class="fas fa-exclamation-triangle me-2"></i> Lỗi cấu hình</h5>
+                                    <p>${errorMessage}</p>
+                                    <p class="small">Vui lòng liên hệ quản trị viên để kiểm tra cấu hình API key.</p>
+                                </div>`;
+                        } else if (errorMessage && errorMessage.toLowerCase().includes("error")) {
+                            summaryContent.innerHTML = `
+                                <div class="alert alert-danger">
+                                    <h5><i class="fas fa-exclamation-triangle me-2"></i> Lỗi khi tóm tắt</h5>
+                                    <p>${errorMessage}</p>
+                                    <p class="small">Vui lòng thử lại sau hoặc liên hệ quản trị viên.</p>
+                                </div>`;
+                        } else {
+                            summaryContent.innerHTML = `<div class="alert alert-danger">${errorMessage || 'Có lỗi xảy ra khi tóm tắt nội dung'}</div>`;
+                        }
+                    }
+                })
+                .catch(error => {
+                    summarySpinner.style.display = 'none';
+                    console.error('Lỗi tóm tắt:', error);
+                    summaryContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h5><i class="fas fa-exclamation-triangle me-2"></i> Lỗi khi tóm tắt</h5>
+                            <p>Quá trình tóm tắt gặp lỗi: ${error.message}</p>
+                            <p class="small">Vui lòng thử lại sau hoặc kiểm tra logs.</p>
+                        </div>`;
+                });
+            });
+        }
+        
+        // Xử lý nút sao chép
+        if (btnCopySummary) {
+            btnCopySummary.addEventListener('click', function() {
+                const summaryText = summaryContent.innerText;
+                navigator.clipboard.writeText(summaryText)
+                    .then(() => {
+                        // Thông báo đã sao chép
+                        const originalText = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-check me-1"></i> Đã sao chép';
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Lỗi khi sao chép: ', err);
+                    });
+            });
+        }
+    });
+</script> 
