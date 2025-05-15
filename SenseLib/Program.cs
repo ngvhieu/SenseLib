@@ -25,6 +25,9 @@ builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPay"));
 builder.Services.AddScoped<VNPayService>();
 
+// Đăng ký dịch vụ Wallet
+builder.Services.AddScoped<WalletService>();
+
 // Cấu hình xác thực cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

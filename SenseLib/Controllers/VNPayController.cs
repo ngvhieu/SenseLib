@@ -16,11 +16,13 @@ namespace SenseLib.Controllers
     {
         private readonly DataContext _context;
         private readonly VNPayService _vnpayService;
+        private readonly WalletService _walletService;
 
-        public VNPayController(DataContext context, VNPayService vnpayService)
+        public VNPayController(DataContext context, VNPayService vnpayService, WalletService walletService)
         {
             _context = context;
             _vnpayService = vnpayService;
+            _walletService = walletService;
         }
 
         // GET: VNPay/PaymentRequest/5
@@ -247,6 +249,19 @@ namespace SenseLib.Controllers
                 if (responseCode == "00")
                 {
                     Console.WriteLine($"Thanh toán thành công cho tài liệu: {purchase.Document.Title}");
+                    
+                    // Xử lý chuyển tiền vào ví của người đăng tài liệu
+                    try
+                    {
+                        await _walletService.ProcessPurchasePaymentAsync(purchase);
+                        Console.WriteLine("Đã chuyển tiền vào ví người đăng tải tài liệu.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Lỗi khi chuyển tiền vào ví: {ex.Message}");
+                        // Không báo lỗi cho người dùng, vì giao dịch vẫn thành công
+                    }
+                    
                     // Thêm lại thông báo TempData
                     TempData["SuccessMessage"] = $"Thanh toán thành công cho tài liệu: {purchase.Document.Title}";
                 }

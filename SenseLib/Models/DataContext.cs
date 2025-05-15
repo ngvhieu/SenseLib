@@ -25,6 +25,8 @@ namespace SenseLib.Models
 		public DbSet<PasswordResetToken> PasswordResetTokens {get; set;}
 		public DbSet<Purchase> Purchases {get; set;}
 		public DbSet<SystemConfig> SystemConfigs {get; set;}
+		public DbSet<Wallet> Wallets {get; set;}
+		public DbSet<WalletTransaction> WalletTransactions {get; set;}
 		
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -113,6 +115,63 @@ namespace SenseLib.Models
 				entity.HasIndex(e => new { e.UserID, e.DocumentID });
 			});
 			
+			// Cấu hình cho bảng Wallets
+			modelBuilder.Entity<Wallet>(entity =>
+			{
+				entity.ToTable("Wallets");
+				
+				entity.HasKey(e => e.WalletID);
+				
+				entity.Property(e => e.UserID).IsRequired();
+				entity.Property(e => e.Balance).HasColumnType("decimal(18, 2)").HasDefaultValue(0);
+				entity.Property(e => e.CreatedDate).IsRequired();
+				entity.Property(e => e.LastUpdatedDate).IsRequired();
+				
+				// Thiết lập quan hệ với User
+				entity.HasOne(e => e.User)
+					.WithMany()
+					.HasForeignKey(e => e.UserID)
+					.OnDelete(DeleteBehavior.Cascade);
+				
+				// Tạo chỉ mục cho tìm kiếm nhanh
+				entity.HasIndex(e => e.UserID).IsUnique();
+			});
+			
+			// Cấu hình cho bảng WalletTransactions
+			modelBuilder.Entity<WalletTransaction>(entity =>
+			{
+				entity.ToTable("WalletTransactions");
+				
+				entity.HasKey(e => e.TransactionID);
+				
+				entity.Property(e => e.WalletID).IsRequired();
+				entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)").IsRequired();
+				entity.Property(e => e.TransactionDate).IsRequired();
+				entity.Property(e => e.Type).HasMaxLength(50).IsRequired();
+				entity.Property(e => e.Description).HasMaxLength(255);
+				
+				// Thiết lập quan hệ với Wallet
+				entity.HasOne(e => e.Wallet)
+					.WithMany(w => w.Transactions)
+					.HasForeignKey(e => e.WalletID)
+					.OnDelete(DeleteBehavior.Cascade);
+				
+				// Thiết lập quan hệ với Document (nếu có)
+				entity.HasOne(e => e.Document)
+					.WithMany()
+					.HasForeignKey(e => e.DocumentID)
+					.OnDelete(DeleteBehavior.SetNull);
+				
+				// Thiết lập quan hệ với Purchase (nếu có) - Thay thành SetNull để cho phép xóa Purchase
+				entity.HasOne(e => e.Purchase)
+					.WithMany()
+					.HasForeignKey(e => e.PurchaseID)
+					.OnDelete(DeleteBehavior.SetNull);
+				
+				// Tạo chỉ mục cho tìm kiếm nhanh
+				entity.HasIndex(e => e.WalletID);
+			});
+			
 			// Cấu hình cho bảng SystemConfig
 			modelBuilder.Entity<SystemConfig>(entity =>
 			{
@@ -132,7 +191,8 @@ namespace SenseLib.Models
 					new SystemConfig { ConfigID = 1, ConfigKey = "MaxLoginAttempts", ConfigValue = "5", Description = "Số lần đăng nhập sai tối đa trước khi khóa tài khoản" },
 					new SystemConfig { ConfigID = 2, ConfigKey = "LockoutTimeMinutes", ConfigValue = "30", Description = "Thời gian khóa tài khoản tạm thời (phút)" },
 					new SystemConfig { ConfigID = 3, ConfigKey = "HomePagePaidDocuments", ConfigValue = "4", Description = "Số lượng tài liệu có phí hiển thị trên trang chủ" },
-					new SystemConfig { ConfigID = 4, ConfigKey = "HomePageFreeDocuments", ConfigValue = "4", Description = "Số lượng tài liệu miễn phí hiển thị trên trang chủ" }
+					new SystemConfig { ConfigID = 4, ConfigKey = "HomePageFreeDocuments", ConfigValue = "4", Description = "Số lượng tài liệu miễn phí hiển thị trên trang chủ" },
+					new SystemConfig { ConfigID = 5, ConfigKey = "AuthorCommissionPercent", ConfigValue = "80", Description = "Phần trăm hoa hồng cho tác giả khi bán tài liệu" }
 				);
 			});
 			

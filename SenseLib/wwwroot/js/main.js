@@ -116,27 +116,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Xử lý tìm kiếm
-    const searchForm = document.querySelector('.search-bar form');
+    const searchForm = document.getElementById('mainSearchForm');
 
     if (searchForm) {
+        // Đảm bảo form có action đúng
+        if (!searchForm.getAttribute('action')) {
+            searchForm.setAttribute('action', '/Document/Index');
+        }
+
         searchForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-
             const searchInput = this.querySelector('input');
-            const searchTerm = searchInput.value.trim().toLowerCase();
+            const searchTerm = searchInput.value.trim();
 
-            if (searchTerm) {
-                // Thực hiện tìm kiếm
-                searchDocuments(searchTerm);
+            // Chỉ ngăn chặn khi không có từ khóa
+            if (!searchTerm) {
+                e.preventDefault();
+                return false;
             }
         });
-    }
-
-    // Hàm tìm kiếm tài liệu
-    function searchDocuments(term) {
-        // Trong một ứng dụng thực, bạn có thể điều hướng đến trang kết quả tìm kiếm
-        // hoặc gửi yêu cầu AJAX để tìm kiếm
-        window.location.href = `documents.html?search=${encodeURIComponent(term)}`;
     }
 
     // Xử lý form bình luận

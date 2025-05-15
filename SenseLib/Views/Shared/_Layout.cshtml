@@ -495,39 +495,11 @@
 
                 <!-- Thanh tìm kiếm -->
                 <div class="search-bar">
-                    <form asp-controller="Document" asp-action="Index" method="get" class="search-form">
+                    <form asp-controller="Document" asp-action="Index" method="get" class="search-form" id="mainSearchForm">
                         <input type="text" name="searchString" placeholder="Tìm kiếm tài liệu..." id="searchInput">
-                        <button type="button" class="search-advanced-toggle" id="searchAdvancedToggle" title="Tùy chọn tìm kiếm">
-                            <i class="fas fa-sliders-h"></i>
-                        </button>
                         <button type="submit" title="Tìm kiếm">
                             <i class="fas fa-search"></i>
                         </button>
-                        <div class="search-options" id="searchOptions">
-                            <div class="search-options-content">
-                                <div class="option-group">
-                                    <label>Danh mục:</label>
-                                    <select name="categoryId" class="search-select">
-                                        <option value="">Tất cả danh mục</option>
-                                        <!-- Danh mục được tải bằng AJAX -->
-                                    </select>
-                                </div>
-                                <div class="option-group">
-                                    <label>Loại tài liệu:</label>
-                                    <div class="price-type-options">
-                                        <label>
-                                            <input type="radio" name="priceType" value="all" checked> Tất cả
-                                        </label>
-                                        <label>
-                                            <input type="radio" name="priceType" value="free"> Miễn phí
-                                        </label>
-                                        <label>
-                                            <input type="radio" name="priceType" value="paid"> Có phí
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </form>
                 </div>
 
@@ -564,6 +536,9 @@
                                 </a>
                                 <a asp-controller="Upload" asp-action="Index" class="user-dropdown-item">
                                     <i class="fas fa-file-alt"></i> Tài liệu của tôi
+                                </a>
+                                <a asp-controller="Wallet" asp-action="Index" class="user-dropdown-item">
+                                    <i class="fas fa-wallet"></i> Ví của tôi
                                 </a>
                                 <a asp-controller="Purchase" asp-action="MyPurchases" class="user-dropdown-item">
                                     <i class="fas fa-shopping-cart"></i> Tài liệu đã mua

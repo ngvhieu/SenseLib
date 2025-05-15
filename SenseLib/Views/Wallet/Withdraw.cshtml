@@ -1,0 +1,96 @@
+@model SenseLib.Models.Wallet
+@{
+    ViewData["Title"] = "Rút tiền từ ví";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Ví của tôi</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Rút tiền</li>
+                </ol>
+            </nav>
+            
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h2 class="mb-0 h5">
+                        <i class="fas fa-money-bill-wave text-primary me-2"></i>
+                        Rút tiền từ ví
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-info-circle fa-2x text-info"></i>
+                            </div>
+                            <div>
+                                <h5>Thông tin rút tiền</h5>
+                                <p class="mb-0">Số tiền rút tối thiểu là 100,000₫. Yêu cầu rút tiền sẽ được xử lý trong vòng 24-48 giờ làm việc. Quản trị viên sẽ liên hệ với bạn để xác nhận thông tin.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">Số dư hiện tại</h5>
+                                    <h3 class="text-primary mb-0">@Model.Balance.ToString("N0") ₫</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if (ViewData.ModelState.Any(x => x.Value.Errors.Any()))
+                    {
+                        <div class="alert alert-danger">
+                            <div asp-validation-summary="All" class="mb-0"></div>
+                        </div>
+                    }
+                    
+                    <form asp-action="Withdraw" method="post">
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Số tiền rút <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="amount" name="amount" min="100000" max="@Model.Balance" step="10000" required>
+                                <span class="input-group-text">₫</span>
+                            </div>
+                            <div class="form-text">Số tiền rút tối thiểu: 100,000₫</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Thông tin thanh toán <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="description" rows="3" required placeholder="Nhập thông tin tài khoản ngân hàng của bạn: Số tài khoản, Tên ngân hàng, Tên chủ tài khoản"></textarea>
+                            <div class="form-text">Vui lòng cung cấp đầy đủ thông tin để chúng tôi có thể chuyển tiền cho bạn.</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" @(Model.Balance < 100000 ? "disabled" : "")>
+                                <i class="fas fa-paper-plane me-1"></i> Gửi yêu cầu rút tiền
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="alert alert-warning mt-4">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                    </div>
+                    <div>
+                        <h5>Lưu ý quan trọng</h5>
+                        <p class="mb-0">Vui lòng kiểm tra kỹ thông tin tài khoản ngân hàng trước khi gửi yêu cầu rút tiền. Chúng tôi không chịu trách nhiệm nếu bạn cung cấp sai thông tin.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
