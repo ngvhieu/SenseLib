@@ -1,0 +1,10 @@
+# API keys và file configuration
+appsettings.json
+appsettings.*.json
+*/appsettings.json
+*/appsettings.*.json
+**/appsettings.json
+**/appsettings.*.json
+**/api-keys.json
+**/credentials.json
+**/*.env 
