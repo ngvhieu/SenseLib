@@ -1,6 +1,6 @@
-@model SenseLib.Areas.Admin.Controllers.PaginatedList<SenseLib.Models.Comment>
+@model SenseLib.Areas.Admin.Controllers.PaginatedList<SenseLib.Models.UserActivityViewModel>
 @{
-    ViewData["Title"] = "Thống kê bình luận";
+    ViewData["Title"] = "Thống kê hoạt động người dùng";
 }
 
 <section class="section dashboard">
@@ -22,26 +22,10 @@
                     <h5 class="card-title">Thống kê tổng quan <span>| Tất cả</span></h5>
                     
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="card info-card sales-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Tổng số <span>| Bình luận</span></h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-chat-dots"></i>
-                                        </div>
-                                        <div class="ps-3">
-                                            <h6>@ViewBag.TotalComments</h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-3">
-                            <div class="card info-card revenue-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Tổng số <span>| Người dùng bình luận</span></h5>
+                                    <h5 class="card-title">Tổng số <span>| Người dùng</span></h5>
                                     <div class="d-flex align-items-center">
                                         <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                             <i class="bi bi-people"></i>
@@ -54,32 +38,36 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-3">
-                            <div class="card info-card customers-card">
+                        <div class="col-md-4">
+                            <div class="card info-card revenue-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Tổng số <span>| Tài liệu có bình luận</span></h5>
+                                    <h5 class="card-title">Người dùng <span>| Đang hoạt động</span></h5>
                                     <div class="d-flex align-items-center">
                                         <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-file-earmark-text"></i>
+                                            <i class="bi bi-person-check"></i>
                                         </div>
                                         <div class="ps-3">
-                                            <h6>@ViewBag.TotalDocuments</h6>
+                                            <h6>@ViewBag.ActiveUsers</h6>
+                                            <span class="text-success small pt-1 fw-bold">@(Math.Round((double)ViewBag.ActiveUsers / ViewBag.TotalUsers * 100, 1))%</span>
+                                            <span class="text-muted small pt-2 ps-1">của tổng số</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="col-md-3">
-                            <div class="card info-card sales-card">
+                        <div class="col-md-4">
+                            <div class="card info-card customers-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Bình luận <span>| Hôm nay</span></h5>
+                                    <h5 class="card-title">Người dùng <span>| Đã khóa</span></h5>
                                     <div class="d-flex align-items-center">
                                         <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-calendar-check"></i>
+                                            <i class="bi bi-person-lock"></i>
                                         </div>
                                         <div class="ps-3">
-                                            <h6>@ViewBag.CommentsToday</h6>
+                                            <h6>@ViewBag.LockedUsers</h6>
+                                            <span class="text-danger small pt-1 fw-bold">@(Math.Round((double)ViewBag.LockedUsers / ViewBag.TotalUsers * 100, 1))%</span>
+                                            <span class="text-muted small pt-2 ps-1">của tổng số</span>
                                         </div>
                                     </div>
                                 </div>
@@ -95,23 +83,27 @@
         <div class="col-lg-6">
             <div class="card recent-sales overflow-auto">
                 <div class="card-body">
-                    <h5 class="card-title">Top 5 tài liệu được bình luận nhiều nhất</h5>
+                    <h5 class="card-title">Top 5 người dùng hoạt động nhiều nhất</h5>
                     
                     <div class="table-responsive">
                         <table class="table table-borderless datatable">
                             <thead>
                                 <tr>
                                     <th scope="col" width="5%">#</th>
-                                    <th scope="col" width="60%">Tên tài liệu</th>
-                                    <th scope="col" width="20%">Thể loại</th>
-                                    <th scope="col" width="15%">Số bình luận</th>
+                                    <th scope="col" width="25%">Tài khoản</th>
+                                    <th scope="col" width="10%">Bình luận</th>
+                                    <th scope="col" width="10%">Đánh giá</th>
+                                    <th scope="col" width="10%">Tải xuống</th>
+                                    <th scope="col" width="10%">Yêu thích</th>
+                                    <th scope="col" width="10%">Tổng</th>
+                                    <th scope="col" width="10%">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @{
                                     int rankIndex = 1;
                                 }
-                                @foreach (var item in ViewBag.MostCommentedDocuments ?? new List<dynamic>())
+                                @foreach (var item in ViewBag.MostActiveUsers)
                                 {
                                     <tr>
                                         <th scope="row">
@@ -132,25 +124,43 @@
                                             }
                                         </th>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="document-img me-2" style="width: 38px; height: 38px; overflow: hidden; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                    @{
-                                                        string imagePath = string.IsNullOrEmpty(item.Document.ImagePath) 
-                                                            ? "/img/document-placeholder.jpg" 
-                                                            : item.Document.ImagePath;
-                                                    }
-                                                    <img src="@imagePath" alt="@item.Document.Title" style="width: 100%; height: 100%; object-fit: cover;">
-                                                </div>
-                                                <a href="@Url.Action("Details", "Document", new { id = item.Document.DocumentID, area = "" })" class="text-primary fw-bold">
-                                                    @item.Document.Title
-                                                </a>
-                                            </div>
+                                            <a href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })" class="text-primary fw-bold">
+                                                @item.Username
+                                            </a>
                                         </td>
-                                        <td>@item.Document.Category?.CategoryName</td>
                                         <td class="text-center">
-                                            <span class="badge bg-primary rounded-pill">
-                                                <i class="bi bi-chat-dots"></i> @item.Count
-                                            </span>
+                                            <span class="badge bg-primary rounded-pill">@item.CommentCount</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-warning rounded-pill">@item.RatingCount</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info rounded-pill">@item.DownloadCount</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-danger rounded-pill">@item.FavoriteCount</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success rounded-pill">@item.TotalActivities</span>
+                                        </td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-gear me-1"></i>Tác vụ
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <a class="dropdown-item" href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })">
+                                                            <i class="bi bi-eye me-2"></i>Xem chi tiết
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="@Url.Action("Edit", "User", new { id = item.UserID, area = "Admin" })">
+                                                            <i class="bi bi-pencil me-2"></i>Chỉnh sửa
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
                                         </td>
                                     </tr>
                                     rankIndex++;
@@ -165,9 +175,9 @@
         <div class="col-lg-6">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Bình luận 7 ngày gần đây</h5>
+                    <h5 class="card-title">Hoạt động 7 ngày gần đây</h5>
                     <div class="chart-container" style="position: relative; height:300px; width:100%; display: flex; justify-content: center; align-items: center;">
-                        <canvas id="commentChart"></canvas>
+                        <canvas id="userActivityChart"></canvas>
                         <div id="chartLoading" class="text-center">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Đang tải...</span>
@@ -193,17 +203,17 @@
                         <li class="dropdown-header text-start">
                             <h6>Sắp xếp</h6>
                         </li>
-                        <li><a class="dropdown-item" href="@Url.Action("Comments", new { sortOrder = "date_desc", searchString = ViewData["CurrentFilter"] })">Mới nhất trước</a></li>
-                        <li><a class="dropdown-item" href="@Url.Action("Comments", new { sortOrder = "Date", searchString = ViewData["CurrentFilter"] })">Cũ nhất trước</a></li>
-                        <li><a class="dropdown-item" href="@Url.Action("Comments", new { sortOrder = "Name", searchString = ViewData["CurrentFilter"] })">Theo nội dung</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("UserActivity", new { sortOrder = "Username", searchString = ViewData["CurrentFilter"] })">Theo tên tài khoản</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("UserActivity", new { sortOrder = "comments_desc", searchString = ViewData["CurrentFilter"] })">Theo bình luận nhiều nhất</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("UserActivity", new { sortOrder = "downloads_desc", searchString = ViewData["CurrentFilter"] })">Theo lượt tải nhiều nhất</a></li>
                     </ul>
                 </div>
                 <div class="card-body">
-                    <h5 class="card-title">Danh sách bình luận</h5>
+                    <h5 class="card-title">Danh sách hoạt động người dùng</h5>
                     
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <form asp-action="Comments" method="get" class="row g-3">
+                            <form asp-action="UserActivity" method="get" class="row g-3">
                                 <div class="col-md-8">
                                     <div class="input-group">
                                         <input type="text" class="form-control" placeholder="Tìm kiếm..." name="searchString" value="@ViewData["CurrentFilter"]">
@@ -211,7 +221,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <a asp-action="Comments" class="btn btn-outline-secondary">Xóa bộ lọc</a>
+                                    <a asp-action="UserActivity" class="btn btn-outline-secondary">Xóa bộ lọc</a>
                                 </div>
                             </form>
                         </div>
@@ -223,25 +233,33 @@
                                 <tr>
                                     <th scope="col">ID</th>
                                     <th scope="col">
-                                        <a asp-action="Comments" asp-route-sortOrder="@ViewData["NameSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                            Nội dung
+                                        <a asp-action="UserActivity" asp-route-sortOrder="@ViewData["UsernameSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                            Tài khoản
+                                        </a>
+                                    </th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Trạng thái</th>
+                                    <th scope="col">
+                                        <a asp-action="UserActivity" asp-route-sortOrder="@ViewData["CommentsSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                            Bình luận
                                         </a>
                                     </th>
                                     <th scope="col">
-                                        <a asp-action="Comments" asp-route-sortOrder="@ViewData["UserSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                            Người dùng
+                                        <a asp-action="UserActivity" asp-route-sortOrder="@ViewData["RatingsSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                            Đánh giá
                                         </a>
                                     </th>
                                     <th scope="col">
-                                        <a asp-action="Comments" asp-route-sortOrder="@ViewData["DocumentSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                            Tài liệu
+                                        <a asp-action="UserActivity" asp-route-sortOrder="@ViewData["DownloadsSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                            Tải xuống
                                         </a>
                                     </th>
                                     <th scope="col">
-                                        <a asp-action="Comments" asp-route-sortOrder="@ViewData["DateSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                            Ngày bình luận
+                                        <a asp-action="UserActivity" asp-route-sortOrder="@ViewData["FavoritesSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                            Yêu thích
                                         </a>
                                     </th>
+                                    <th scope="col">Hoạt động gần nhất</th>
                                     <th scope="col">Thao tác</th>
                                 </tr>
                             </thead>
@@ -249,29 +267,49 @@
                                 @foreach (var item in Model)
                                 {
                                     <tr>
-                                        <th scope="row"><a href="#">@item.CommentID</a></th>
-                                        <td>@Html.Raw(item.CommentText.Length > 100 ? item.CommentText.Substring(0, 100) + "..." : item.CommentText)</td>
+                                        <th scope="row"><a href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })">@item.UserID</a></th>
                                         <td>
                                             <a href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })" class="text-primary fw-bold">
-                                                @item.User?.Username
+                                                @item.Username
                                             </a>
                                         </td>
+                                        <td>@item.Email</td>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="document-img me-2" style="width: 38px; height: 38px; overflow: hidden; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                    @{
-                                                        string docImagePath = string.IsNullOrEmpty(item.Document?.ImagePath) 
-                                                            ? "/img/document-placeholder.jpg" 
-                                                            : item.Document.ImagePath;
-                                                    }
-                                                    <img src="@docImagePath" alt="@item.Document?.Title" style="width: 100%; height: 100%; object-fit: cover;">
-                                                </div>
-                                                <a href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })" class="text-primary fw-bold">
-                                                    @item.Document?.Title
-                                                </a>
-                                            </div>
+                                            @if (item.Status == "Active")
+                                            {
+                                                <span class="badge bg-success">Hoạt động</span>
+                                            }
+                                            else if (item.Status == "Locked")
+                                            {
+                                                <span class="badge bg-danger">Đã khóa</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@item.Status</span>
+                                            }
                                         </td>
-                                        <td>@item.CommentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            <span class="badge bg-primary rounded-pill">@item.CommentCount</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-warning rounded-pill">@item.RatingCount</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info rounded-pill">@item.DownloadCount</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger rounded-pill">@item.FavoriteCount</span>
+                                        </td>
+                                        <td>
+                                            @if (item.LastActivityDate.HasValue)
+                                            {
+                                                @item.LastActivityDate.Value.ToString("dd/MM/yyyy HH:mm")
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Chưa có</span>
+                                            }
+                                        </td>
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -279,13 +317,13 @@
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end">
                                                     <li>
-                                                        <a class="dropdown-item" href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })">
-                                                            <i class="bi bi-file-earmark-text me-2"></i>Xem tài liệu
+                                                        <a class="dropdown-item" href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })">
+                                                            <i class="bi bi-eye me-2"></i>Xem chi tiết
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })">
-                                                            <i class="bi bi-person me-2"></i>Xem người dùng
+                                                        <a class="dropdown-item" href="@Url.Action("Edit", "User", new { id = item.UserID, area = "Admin" })">
+                                                            <i class="bi bi-pencil me-2"></i>Chỉnh sửa
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -312,7 +350,7 @@
                             <div class="dataTables_paginate paging_simple_numbers">
                                 <ul class="pagination">
                                     <li class="paginate_button page-item previous @prevDisabled">
-                                        <a asp-action="Comments"
+                                        <a asp-action="UserActivity"
                                            asp-route-pageNumber="@(Model.PageIndex - 1)"
                                            asp-route-sortOrder="@ViewData["CurrentSort"]"
                                            asp-route-searchString="@ViewData["CurrentFilter"]"
@@ -321,7 +359,7 @@
                                     @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
                                     {
                                         <li class="paginate_button page-item @(i == Model.PageIndex ? "active" : "")">
-                                            <a asp-action="Comments"
+                                            <a asp-action="UserActivity"
                                                asp-route-pageNumber="@i"
                                                asp-route-sortOrder="@ViewData["CurrentSort"]"
                                                asp-route-searchString="@ViewData["CurrentFilter"]"
@@ -329,7 +367,7 @@
                                         </li>
                                     }
                                     <li class="paginate_button page-item next @nextDisabled">
-                                        <a asp-action="Comments"
+                                        <a asp-action="UserActivity"
                                            asp-route-pageNumber="@(Model.PageIndex + 1)"
                                            asp-route-sortOrder="@ViewData["CurrentSort"]"
                                            asp-route-searchString="@ViewData["CurrentFilter"]"
@@ -349,8 +387,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         $(document).ready(function() {
-            // Biểu đồ bình luận
-            var ctx = document.getElementById('commentChart').getContext('2d');
+            // Biểu đồ hoạt động người dùng
+            var ctx = document.getElementById('userActivityChart').getContext('2d');
             var chartLoading = $('#chartLoading');
             var chartError = $('#chartError');
             
@@ -372,6 +410,30 @@
                                     data: data.commentData,
                                     backgroundColor: 'rgba(13, 110, 253, 0.2)',
                                     borderColor: 'rgba(13, 110, 253, 1)',
+                                    borderWidth: 2,
+                                    tension: 0.2
+                                },
+                                {
+                                    label: 'Tải xuống',
+                                    data: data.downloadData,
+                                    backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                                    borderColor: 'rgba(23, 162, 184, 1)',
+                                    borderWidth: 2,
+                                    tension: 0.2
+                                },
+                                {
+                                    label: 'Đánh giá',
+                                    data: data.ratingData,
+                                    backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                                    borderColor: 'rgba(255, 193, 7, 1)',
+                                    borderWidth: 2,
+                                    tension: 0.2
+                                },
+                                {
+                                    label: 'Yêu thích',
+                                    data: data.favoriteData,
+                                    backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                                    borderColor: 'rgba(220, 53, 69, 1)',
                                     borderWidth: 2,
                                     tension: 0.2
                                 }

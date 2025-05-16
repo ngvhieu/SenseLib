@@ -1,1 +1,207 @@
- 
+@{
+    ViewData["Title"] = "Thống kê tổng quan";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Thống kê tổng quan</h5>
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card info-card sales-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng số <span>| Người dùng</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.TotalUsers</h6>
+                                        <span class="text-success small pt-1 fw-bold">@ViewBag.TotalUsersToday</span> <span class="text-muted small pt-2 ps-1">người dùng mới hôm nay</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card info-card revenue-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng số <span>| Bình luận</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-chat-dots"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.TotalComments</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card info-card customers-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng số <span>| Tài liệu</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.TotalDocuments</h6>
+                                        <span class="text-success small pt-1 fw-bold">@ViewBag.TotalCategories</span> <span class="text-muted small pt-2 ps-1">thể loại</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card info-card sales-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng số <span>| Lượt tải</span></h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-download"></i>
+                                    </div>
+                                    <div class="ps-3">
+                                        <h6>@ViewBag.TotalDownloads</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Danh mục thống kê</h5>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Hoạt động người dùng</h5>
+                                <p class="card-text">Thống kê chi tiết về hoạt động của người dùng trên hệ thống</p>
+                                <a href="@Url.Action("UserActivity", "Statistics", new { area = "Admin" })" class="btn btn-primary">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Lượt tải xuống</h5>
+                                <p class="card-text">Thống kê chi tiết về lượt tải xuống tài liệu</p>
+                                <a href="@Url.Action("Downloads", "Statistics", new { area = "Admin" })" class="btn btn-info">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Bình luận</h5>
+                                <p class="card-text">Thống kê chi tiết về bình luận của người dùng</p>
+                                <a href="@Url.Action("Comments", "Statistics", new { area = "Admin" })" class="btn btn-warning">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Đánh giá</h5>
+                                <p class="card-text">Thống kê chi tiết về đánh giá của người dùng</p>
+                                <a href="@Url.Action("Ratings", "Statistics", new { area = "Admin" })" class="btn btn-danger">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Tài liệu yêu thích</h5>
+                                <p class="card-text">Thống kê chi tiết về tài liệu được yêu thích</p>
+                                <a href="@Url.Action("Favorites", "Statistics", new { area = "Admin" })" class="btn btn-success">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Top 5 tài liệu được tải nhiều nhất</h5>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th width="5%">#</th>
+                                <th width="60%">Tên tài liệu</th>
+                                <th width="20%">Thể loại</th>
+                                <th width="15%">Số lượt tải</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int rankIndex = 1;
+                            }
+                            @foreach (var item in ViewBag.TopDownloadedDocuments)
+                            {
+                                <tr>
+                                    <td class="text-center">
+                                        @switch (rankIndex)
+                                        {
+                                            case 1:
+                                                <span class="badge bg-success rounded-pill"><i class="bi bi-trophy"></i> @rankIndex</span>
+                                                break;
+                                            case 2:
+                                                <span class="badge bg-primary rounded-pill"><i class="bi bi-award"></i> @rankIndex</span>
+                                                break;
+                                            case 3:
+                                                <span class="badge bg-info rounded-pill"><i class="bi bi-award"></i> @rankIndex</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary rounded-pill">@rankIndex</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "Document", new { id = item.Document.DocumentID, area = "" })" target="_blank">
+                                            @item.Document.Title
+                                        </a>
+                                    </td>
+                                    <td>@item.Document.Category?.CategoryName</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-danger rounded-pill">
+                                            <i class="bi bi-download"></i> @item.Count
+                                        </span>
+                                    </td>
+                                </tr>
+                                rankIndex++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

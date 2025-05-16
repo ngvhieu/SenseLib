@@ -187,5 +187,141 @@ namespace SenseLib.Controllers
             // Chuyển hướng đến trang quản trị
             return RedirectToAction("Index", "Home", new { area = "Admin" });
         }
+        
+        // GET: /AdminMenu/AddUserActivityStatisticsMenuItem
+        public async Task<IActionResult> AddUserActivityStatisticsMenuItem()
+        {
+            // Kiểm tra xem menu thống kê chính đã tồn tại chưa
+            var statisticsMainMenu = await _context.AdminMenus
+                .FirstOrDefaultAsync(m => m.ControllerName == "Statistics" && m.AreaName == "Admin" && m.ParentLevel == 0);
+
+            if (statisticsMainMenu == null)
+            {
+                // Tạo menu thống kê chính
+                statisticsMainMenu = new AdminMenu
+                {
+                    MenuName = "Thống kê",
+                    ItemLevel = 1,
+                    IsActive = true,
+                    ParentLevel = 0, // Menu cấp cao nhất
+                    ItemOrder = 7, // Đặt sau các menu khác
+                    AreaName = "Admin",
+                    ControllerName = "Statistics",
+                    ActionName = "Index",
+                    Icon = "bi bi-bar-chart-line",
+                    IdName = "statistics-nav"
+                };
+
+                // Thêm vào database
+                _context.AdminMenus.Add(statisticsMainMenu);
+                await _context.SaveChangesAsync();
+                
+                TempData["SuccessMessage"] = "Đã thêm menu Thống kê vào thanh điều hướng.";
+            }
+
+            // Kiểm tra xem menu hoạt động người dùng đã tồn tại chưa
+            bool userActivityMenuExists = await _context.AdminMenus
+                .AnyAsync(m => m.ControllerName == "Statistics" && m.ActionName == "UserActivity" && m.AreaName == "Admin");
+
+            if (!userActivityMenuExists)
+            {
+                // Tạo menu con thống kê hoạt động người dùng
+                var userActivityMenu = new AdminMenu
+                {
+                    MenuName = "Hoạt động người dùng",
+                    ItemLevel = 2,
+                    IsActive = true,
+                    ParentLevel = statisticsMainMenu.MenuID, // Là menu con của Thống kê
+                    ItemOrder = 1, // Đặt đầu tiên trong danh sách con
+                    AreaName = "Admin",
+                    ControllerName = "Statistics",
+                    ActionName = "UserActivity",
+                    Icon = "bi bi-people-fill"
+                };
+
+                // Thêm vào database
+                _context.AdminMenus.Add(userActivityMenu);
+                
+                // Thêm các menu con khác nếu chưa có
+                if (!await _context.AdminMenus.AnyAsync(m => m.ControllerName == "Statistics" && m.ActionName == "Downloads" && m.AreaName == "Admin"))
+                {
+                    var downloadsMenu = new AdminMenu
+                    {
+                        MenuName = "Thống kê tải xuống",
+                        ItemLevel = 2,
+                        IsActive = true,
+                        ParentLevel = statisticsMainMenu.MenuID,
+                        ItemOrder = 2,
+                        AreaName = "Admin",
+                        ControllerName = "Statistics",
+                        ActionName = "Downloads",
+                        Icon = "bi bi-download"
+                    };
+                    _context.AdminMenus.Add(downloadsMenu);
+                }
+                
+                if (!await _context.AdminMenus.AnyAsync(m => m.ControllerName == "Statistics" && m.ActionName == "Comments" && m.AreaName == "Admin"))
+                {
+                    var commentsMenu = new AdminMenu
+                    {
+                        MenuName = "Thống kê bình luận",
+                        ItemLevel = 2,
+                        IsActive = true,
+                        ParentLevel = statisticsMainMenu.MenuID,
+                        ItemOrder = 3,
+                        AreaName = "Admin",
+                        ControllerName = "Statistics",
+                        ActionName = "Comments",
+                        Icon = "bi bi-chat-dots"
+                    };
+                    _context.AdminMenus.Add(commentsMenu);
+                }
+                
+                if (!await _context.AdminMenus.AnyAsync(m => m.ControllerName == "Statistics" && m.ActionName == "Ratings" && m.AreaName == "Admin"))
+                {
+                    var ratingsMenu = new AdminMenu
+                    {
+                        MenuName = "Thống kê đánh giá",
+                        ItemLevel = 2,
+                        IsActive = true,
+                        ParentLevel = statisticsMainMenu.MenuID,
+                        ItemOrder = 4,
+                        AreaName = "Admin",
+                        ControllerName = "Statistics",
+                        ActionName = "Ratings",
+                        Icon = "bi bi-star"
+                    };
+                    _context.AdminMenus.Add(ratingsMenu);
+                }
+                
+                if (!await _context.AdminMenus.AnyAsync(m => m.ControllerName == "Statistics" && m.ActionName == "Favorites" && m.AreaName == "Admin"))
+                {
+                    var favoritesMenu = new AdminMenu
+                    {
+                        MenuName = "Thống kê yêu thích",
+                        ItemLevel = 2,
+                        IsActive = true,
+                        ParentLevel = statisticsMainMenu.MenuID,
+                        ItemOrder = 5,
+                        AreaName = "Admin",
+                        ControllerName = "Statistics",
+                        ActionName = "Favorites",
+                        Icon = "bi bi-heart"
+                    };
+                    _context.AdminMenus.Add(favoritesMenu);
+                }
+                
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Đã thêm menu Thống kê hoạt động người dùng vào thanh điều hướng.";
+            }
+            else
+            {
+                TempData["InfoMessage"] = "Menu Thống kê hoạt động người dùng đã tồn tại.";
+            }
+
+            // Chuyển hướng đến trang quản trị
+            return RedirectToAction("Index", "Home", new { area = "Admin" });
+        }
     }
 } 

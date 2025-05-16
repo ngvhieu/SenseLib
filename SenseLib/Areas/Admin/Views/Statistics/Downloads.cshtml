@@ -3,71 +3,86 @@
     ViewData["Title"] = "Thống kê lượt tải xuống";
 }
 
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Thống kê tổng quan</h5>
-                
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="card info-card sales-card">
-                            <div class="card-body">
-                                <h5 class="card-title">Tổng số <span>| Lượt tải xuống</span></h5>
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-download"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6>@ViewBag.TotalDownloads</h6>
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Bộ lọc</h6>
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="filter-today">Hôm nay</a></li>
+                        <li><a class="dropdown-item" href="#" id="filter-month">Tháng này</a></li>
+                        <li><a class="dropdown-item" href="#" id="filter-year">Năm nay</a></li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Thống kê tổng quan <span>| Tất cả</span></h5>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tổng số <span>| Lượt tải xuống</span></h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-download"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.TotalDownloads</h6>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <div class="card info-card revenue-card">
-                            <div class="card-body">
-                                <h5 class="card-title">Lượt tải xuống <span>| Hôm nay</span></h5>
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-calendar-day"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6>@ViewBag.DownloadsToday</h6>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <div class="card info-card customers-card">
-                            <div class="card-body">
-                                <h5 class="card-title">Tổng số <span>| Tài liệu được tải</span></h5>
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-file-earmark-text"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6>@ViewBag.TotalDocumentsDownloaded</h6>
+                        
+                        <div class="col-md-3">
+                            <div class="card info-card revenue-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Lượt tải xuống <span>| Hôm nay</span></h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-calendar-day"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.DownloadsToday</h6>
+                                            <span class="text-success small pt-1 fw-bold">@(ViewBag.TotalDownloads > 0 ? Math.Round((double)ViewBag.DownloadsToday / ViewBag.TotalDownloads * 100, 1) : 0)%</span>
+                                            <span class="text-muted small pt-2 ps-1">của tổng số</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <div class="card info-card sales-card">
-                            <div class="card-body">
-                                <h5 class="card-title">Tổng số <span>| Người dùng tải xuống</span></h5>
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-people"></i>
+                        
+                        <div class="col-md-3">
+                            <div class="card info-card customers-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tổng số <span>| Tài liệu được tải</span></h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-file-earmark-text"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.TotalDocumentsDownloaded</h6>
+                                        </div>
                                     </div>
-                                    <div class="ps-3">
-                                        <h6>@ViewBag.TotalUsersDownloaded</h6>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tổng số <span>| Người dùng tải xuống</span></h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-people"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.TotalUsersDownloaded</h6>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -77,205 +92,262 @@
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Top 5 tài liệu được tải nhiều nhất</h5>
-                
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th width="5%">#</th>
-                                <th width="60%">Tên tài liệu</th>
-                                <th width="20%">Thể loại</th>
-                                <th width="15%">Số lượt tải</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @{
-                                int rankIndex = 1;
-                            }
-                            @foreach (var item in ViewBag.TopDownloadedDocuments)
-                            {
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card recent-sales overflow-auto">
+                <div class="card-body">
+                    <h5 class="card-title">Top 5 tài liệu được tải nhiều nhất</h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-borderless datatable">
+                            <thead>
                                 <tr>
-                                    <td class="text-center">
-                                        @switch (rankIndex)
-                                        {
-                                            case 1:
-                                                <span class="badge bg-success rounded-pill"><i class="bi bi-trophy"></i> @rankIndex</span>
-                                                break;
-                                            case 2:
-                                                <span class="badge bg-primary rounded-pill"><i class="bi bi-award"></i> @rankIndex</span>
-                                                break;
-                                            case 3:
-                                                <span class="badge bg-info rounded-pill"><i class="bi bi-award"></i> @rankIndex</span>
-                                                break;
-                                            default:
-                                                <span class="badge bg-secondary rounded-pill">@rankIndex</span>
-                                                break;
-                                        }
-                                    </td>
-                                    <td>
-                                        <a href="@Url.Action("Details", "Document", new { id = item.Document.DocumentID, area = "" })" target="_blank">
-                                            @item.Document.Title
-                                        </a>
-                                    </td>
-                                    <td>@item.Document.Category?.CategoryName</td>
-                                    <td class="text-center">
-                                        <span class="badge bg-danger rounded-pill">
-                                            <i class="bi bi-download"></i> @item.Count
-                                        </span>
-                                    </td>
+                                    <th scope="col" width="5%">#</th>
+                                    <th scope="col" width="60%">Tên tài liệu</th>
+                                    <th scope="col" width="20%">Thể loại</th>
+                                    <th scope="col" width="15%">Số lượt tải</th>
                                 </tr>
-                                rankIndex++;
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Lượt tải xuống 7 ngày gần đây</h5>
-                <div class="chart-container" style="position: relative; height:300px; width:100%; display: flex; justify-content: center; align-items: center;">
-                    <canvas id="downloadChart"></canvas>
-                    <div id="chartLoading" class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Đang tải...</span>
-                        </div>
-                        <p class="mt-2">Đang tải dữ liệu...</p>
-                    </div>
-                    <div id="chartError" class="text-center" style="display:none;">
-                        <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
-                        <p class="mt-2">Không thể tải dữ liệu biểu đồ</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Danh sách lượt tải xuống</h5>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <form asp-action="Downloads" method="get" class="row g-3">
-                            <div class="col-md-8">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Tìm kiếm..." name="searchString" value="@ViewData["CurrentFilter"]">
-                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <a asp-action="Downloads" class="btn btn-outline-secondary">Xóa bộ lọc</a>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>
-                                    <a asp-action="Downloads" asp-route-sortOrder="@ViewData["DocumentSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                        Tài liệu
-                                    </a>
-                                </th>
-                                <th>
-                                    <a asp-action="Downloads" asp-route-sortOrder="@ViewData["UserSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                        Người dùng
-                                    </a>
-                                </th>
-                                <th>
-                                    <a asp-action="Downloads" asp-route-sortOrder="@ViewData["DateSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                        Ngày tải xuống
-                                    </a>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td>@item.DownloadID</td>
-                                    <td>
-                                        <a href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })" target="_blank">
-                                            @item.Document?.Title
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })" target="_blank">
-                                            @item.User?.Username
-                                        </a>
-                                    </td>
-                                    <td>@item.DownloadDate.ToString("dd/MM/yyyy HH:mm")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                @{
-                    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
-                    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
-                }
-
-                <div class="row">
-                    <div class="col-sm-12 col-md-5">
-                        <div class="dataTables_info" role="status">
-                            Hiển thị @(((Model.PageIndex - 1) * 10) + 1) đến @(((Model.PageIndex - 1) * 10) + Model.Count) trong tổng số @Model.TotalItems kết quả
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-md-7">
-                        <div class="dataTables_paginate paging_simple_numbers">
-                            <ul class="pagination">
-                                <li class="paginate_button page-item previous @prevDisabled">
-                                    <a asp-action="Downloads"
-                                       asp-route-pageNumber="@(Model.PageIndex - 1)"
-                                       asp-route-sortOrder="@ViewData["CurrentSort"]"
-                                       asp-route-searchString="@ViewData["CurrentFilter"]"
-                                       class="page-link">Trước</a>
-                                </li>
-                                @for (int i = 1; i <= Model.TotalPages; i++)
+                            </thead>
+                            <tbody>
+                                @{
+                                    int rankIndex = 1;
+                                }
+                                @foreach (var item in ViewBag.TopDownloadedDocuments)
                                 {
-                                    <li class="paginate_button page-item @(i == Model.PageIndex ? "active" : "")">
+                                    <tr>
+                                        <th scope="row">
+                                            @switch (rankIndex)
+                                            {
+                                                case 1:
+                                                    <span class="badge bg-success rounded-pill"><i class="bi bi-trophy"></i> @rankIndex</span>
+                                                    break;
+                                                case 2:
+                                                    <span class="badge bg-primary rounded-pill"><i class="bi bi-award"></i> @rankIndex</span>
+                                                    break;
+                                                case 3:
+                                                    <span class="badge bg-info rounded-pill"><i class="bi bi-award"></i> @rankIndex</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary rounded-pill">@rankIndex</span>
+                                                    break;
+                                            }
+                                        </th>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="document-img me-2" style="width: 38px; height: 38px; overflow: hidden; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                    @{
+                                                        string imagePath = string.IsNullOrEmpty(item.Document.ImagePath) 
+                                                            ? "/img/document-placeholder.jpg" 
+                                                            : item.Document.ImagePath;
+                                                    }
+                                                    <img src="@imagePath" alt="@item.Document.Title" style="width: 100%; height: 100%; object-fit: cover;">
+                                                </div>
+                                                <a href="@Url.Action("Details", "Document", new { id = item.Document.DocumentID, area = "" })" class="text-primary fw-bold">
+                                                    @item.Document.Title
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td>@item.Document.Category?.CategoryName</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-danger rounded-pill">
+                                                <i class="bi bi-download"></i> @item.Count
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    rankIndex++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Lượt tải xuống 7 ngày gần đây</h5>
+                    <div class="chart-container" style="position: relative; height:300px; width:100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="downloadChart"></canvas>
+                        <div id="chartLoading" class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                            <p class="mt-2">Đang tải dữ liệu...</p>
+                        </div>
+                        <div id="chartError" class="text-center" style="display:none;">
+                            <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
+                            <p class="mt-2">Không thể tải dữ liệu biểu đồ</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card recent-sales overflow-auto">
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Sắp xếp</h6>
+                        </li>
+                        <li><a class="dropdown-item" href="@Url.Action("Downloads", new { sortOrder = "date_desc", searchString = ViewData["CurrentFilter"] })">Mới nhất trước</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("Downloads", new { sortOrder = "Date", searchString = ViewData["CurrentFilter"] })">Cũ nhất trước</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("Downloads", new { sortOrder = "Document", searchString = ViewData["CurrentFilter"] })">Theo tên tài liệu</a></li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Danh sách lượt tải xuống</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form asp-action="Downloads" method="get" class="row g-3">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Tìm kiếm..." name="searchString" value="@ViewData["CurrentFilter"]">
+                                        <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <a asp-action="Downloads" class="btn btn-outline-secondary">Xóa bộ lọc</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-borderless datatable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">
+                                        <a asp-action="Downloads" asp-route-sortOrder="@ViewData["DocumentSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                            Tài liệu
+                                        </a>
+                                    </th>
+                                    <th scope="col">
+                                        <a asp-action="Downloads" asp-route-sortOrder="@ViewData["UserSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                            Người dùng
+                                        </a>
+                                    </th>
+                                    <th scope="col">
+                                        <a asp-action="Downloads" asp-route-sortOrder="@ViewData["DateSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                            Ngày tải xuống
+                                        </a>
+                                    </th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <th scope="row"><a href="@Url.Action("Details", "Download", new { id = item.DownloadID, area = "Admin" })">@item.DownloadID</a></th>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="document-img me-2" style="width: 38px; height: 38px; overflow: hidden; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                    @{
+                                                        string docImagePath = string.IsNullOrEmpty(item.Document?.ImagePath) 
+                                                            ? "/img/document-placeholder.jpg" 
+                                                            : item.Document.ImagePath;
+                                                    }
+                                                    <img src="@docImagePath" alt="@item.Document?.Title" style="width: 100%; height: 100%; object-fit: cover;">
+                                                </div>
+                                                <a href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })" class="text-primary fw-bold">
+                                                    @item.Document?.Title
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="user-img me-2" style="width: 32px; height: 32px; overflow: hidden; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                    <img src="/uploads/profile/smile.jpg" alt="@item.User?.Username" style="width: 100%; height: 100%; object-fit: cover;">
+                                                </div>
+                                                <a href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })" class="text-primary fw-bold">
+                                                    @item.User?.Username
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td>@item.DownloadDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-gear me-1"></i>Tác vụ
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <a class="dropdown-item" href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })">
+                                                            <i class="bi bi-file-earmark-text me-2"></i>Xem tài liệu
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })">
+                                                            <i class="bi bi-person me-2"></i>Xem người dùng
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @{
+                        var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+                        var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+                    }
+
+                    <div class="row">
+                        <div class="col-sm-12 col-md-5">
+                            <div class="dataTables_info" role="status">
+                                Hiển thị @(((Model.PageIndex - 1) * 10) + 1) đến @(((Model.PageIndex - 1) * 10) + Model.Count) trong tổng số @Model.TotalItems kết quả
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-7">
+                            <div class="dataTables_paginate paging_simple_numbers">
+                                <ul class="pagination">
+                                    <li class="paginate_button page-item previous @prevDisabled">
                                         <a asp-action="Downloads"
-                                           asp-route-pageNumber="@i"
+                                           asp-route-pageNumber="@(Model.PageIndex - 1)"
                                            asp-route-sortOrder="@ViewData["CurrentSort"]"
                                            asp-route-searchString="@ViewData["CurrentFilter"]"
-                                           class="page-link">@i</a>
+                                           class="page-link">Trước</a>
                                     </li>
-                                }
-                                <li class="paginate_button page-item next @nextDisabled">
-                                    <a asp-action="Downloads"
-                                       asp-route-pageNumber="@(Model.PageIndex + 1)"
-                                       asp-route-sortOrder="@ViewData["CurrentSort"]"
-                                       asp-route-searchString="@ViewData["CurrentFilter"]"
-                                       class="page-link">Tiếp</a>
-                                </li>
-                            </ul>
+                                    @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
+                                    {
+                                        <li class="paginate_button page-item @(i == Model.PageIndex ? "active" : "")">
+                                            <a asp-action="Downloads"
+                                               asp-route-pageNumber="@i"
+                                               asp-route-sortOrder="@ViewData["CurrentSort"]"
+                                               asp-route-searchString="@ViewData["CurrentFilter"]"
+                                               class="page-link">@i</a>
+                                        </li>
+                                    }
+                                    <li class="paginate_button page-item next @nextDisabled">
+                                        <a asp-action="Downloads"
+                                           asp-route-pageNumber="@(Model.PageIndex + 1)"
+                                           asp-route-sortOrder="@ViewData["CurrentSort"]"
+                                           asp-route-searchString="@ViewData["CurrentFilter"]"
+                                           class="page-link">Sau</a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             // Biểu đồ tải xuống
@@ -369,10 +441,11 @@
                                 },
                                 plugins: {
                                     legend: {
+                                        display: true,
                                         position: 'top',
                                         labels: {
-                                            boxWidth: 15,
-                                            padding: 15,
+                                            usePointStyle: true,
+                                            boxWidth: 10,
                                             font: {
                                                 size: 13
                                             }
@@ -380,29 +453,42 @@
                                     },
                                     tooltip: {
                                         backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                        bodyFont: {
+                                            size: 13
+                                        },
                                         titleFont: {
                                             size: 14
-                                        },
-                                        bodyFont: {
-                                            size: 14
-                                        },
-                                        padding: 10,
-                                        cornerRadius: 5
+                                        }
                                     }
-                                },
-                                animation: {
-                                    duration: 1000,
-                                    easing: 'easeOutQuart'
                                 }
                             }
                         });
                     })
                     .catch(error => {
-                        console.error('Error loading download statistics:', error);
                         chartLoading.style.display = 'none';
                         chartError.style.display = 'block';
+                        console.error('Error fetching chart data:', error);
                     });
-            }, 300); // Đợi 300ms để tránh vấn đề khi tải trang
+            }, 500);
+            
+            // Xử lý bộ lọc thời gian
+            document.getElementById('filter-today').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.card-title span').textContent = "| Hôm nay";
+                // Đây là nơi bạn sẽ gọi API để lấy dữ liệu cho hôm nay
+            });
+            
+            document.getElementById('filter-month').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.card-title span').textContent = "| Tháng này";
+                // Đây là nơi bạn sẽ gọi API để lấy dữ liệu cho tháng này
+            });
+            
+            document.getElementById('filter-year').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.card-title span').textContent = "| Năm nay";
+                // Đây là nơi bạn sẽ gọi API để lấy dữ liệu cho năm nay
+            });
         });
     </script>
 } 

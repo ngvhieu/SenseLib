@@ -3,55 +3,68 @@
     ViewData["Title"] = "Thống kê tài liệu yêu thích";
 }
 
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Thống kê tổng quan</h5>
-                
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="card info-card sales-card">
-                            <div class="card-body">
-                                <h5 class="card-title">Tổng số <span>| Lượt yêu thích</span></h5>
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-heart"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6>@ViewBag.TotalFavorites</h6>
+<section class="section dashboard">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Bộ lọc</h6>
+                        </li>
+                        <li><a class="dropdown-item" href="#" id="filter-today">Hôm nay</a></li>
+                        <li><a class="dropdown-item" href="#" id="filter-month">Tháng này</a></li>
+                        <li><a class="dropdown-item" href="#" id="filter-year">Năm nay</a></li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Thống kê tổng quan <span>| Tất cả</span></h5>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tổng số <span>| Lượt yêu thích</span></h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-heart"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.TotalFavorites</h6>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <div class="card info-card revenue-card">
-                            <div class="card-body">
-                                <h5 class="card-title">Tổng số <span>| Tài liệu được yêu thích</span></h5>
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-file-earmark-text"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6>@ViewBag.TotalDocumentsFavorited</h6>
+                        
+                        <div class="col-md-4">
+                            <div class="card info-card revenue-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tổng số <span>| Tài liệu được yêu thích</span></h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-file-earmark-text"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.TotalDocumentsFavorited</h6>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="col-md-4">
-                        <div class="card info-card customers-card">
-                            <div class="card-body">
-                                <h5 class="card-title">Tổng số <span>| Người dùng yêu thích</span></h5>
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-people"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6>@ViewBag.TotalUsersFavorited</h6>
+                        
+                        <div class="col-md-4">
+                            <div class="card info-card customers-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tổng số <span>| Người dùng yêu thích</span></h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-people"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6>@ViewBag.TotalUsersFavorited</h6>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -61,173 +74,326 @@
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Top 5 tài liệu được yêu thích nhiều nhất</h5>
-                
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th width="5%">#</th>
-                                <th width="60%">Tên tài liệu</th>
-                                <th width="20%">Thể loại</th>
-                                <th width="15%">Số lượt yêu thích</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @{
-                                int rankIndex = 1;
-                            }
-                            @foreach (var item in ViewBag.TopFavoritedDocuments)
-                            {
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card recent-sales overflow-auto">
+                <div class="card-body">
+                    <h5 class="card-title">Top 5 tài liệu được yêu thích nhiều nhất</h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-borderless datatable">
+                            <thead>
                                 <tr>
-                                    <td class="text-center">
-                                        @switch (rankIndex)
-                                        {
-                                            case 1:
-                                                <span class="badge bg-success rounded-pill"><i class="bi bi-trophy"></i> @rankIndex</span>
-                                                break;
-                                            case 2:
-                                                <span class="badge bg-primary rounded-pill"><i class="bi bi-award"></i> @rankIndex</span>
-                                                break;
-                                            case 3:
-                                                <span class="badge bg-info rounded-pill"><i class="bi bi-award"></i> @rankIndex</span>
-                                                break;
-                                            default:
-                                                <span class="badge bg-secondary rounded-pill">@rankIndex</span>
-                                                break;
-                                        }
-                                    </td>
-                                    <td>
-                                        <a href="@Url.Action("Details", "Document", new { id = item.Document.DocumentID, area = "" })" target="_blank">
-                                            @item.Document.Title
-                                        </a>
-                                    </td>
-                                    <td>@item.Document.Category?.CategoryName</td>
-                                    <td class="text-center">
-                                        <span class="badge bg-danger rounded-pill">
-                                            <i class="bi bi-heart-fill"></i> @item.Count
-                                        </span>
-                                    </td>
+                                    <th scope="col" width="5%">#</th>
+                                    <th scope="col" width="60%">Tên tài liệu</th>
+                                    <th scope="col" width="20%">Thể loại</th>
+                                    <th scope="col" width="15%">Số lượt yêu thích</th>
                                 </tr>
-                                rankIndex++;
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Danh sách tài liệu yêu thích</h5>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <form asp-action="Favorites" method="get" class="row g-3">
-                            <div class="col-md-8">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Tìm kiếm..." name="searchString" value="@ViewData["CurrentFilter"]">
-                                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <a asp-action="Favorites" class="btn btn-outline-secondary">Xóa bộ lọc</a>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>
-                                    <a asp-action="Favorites" asp-route-sortOrder="@ViewData["DocumentSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                        Tài liệu
-                                    </a>
-                                </th>
-                                <th>
-                                    <a asp-action="Favorites" asp-route-sortOrder="@ViewData["UserSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
-                                        Người dùng
-                                    </a>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td>@item.FavoriteID</td>
-                                    <td>
-                                        <a href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })" target="_blank">
-                                            @item.Document?.Title
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })" target="_blank">
-                                            @item.User?.Username
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                @{
-                    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
-                    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
-                }
-
-                <div class="row">
-                    <div class="col-sm-12 col-md-5">
-                        <div class="dataTables_info" role="status">
-                            Hiển thị @(((Model.PageIndex - 1) * 10) + 1) đến @(((Model.PageIndex - 1) * 10) + Model.Count) trong tổng số @Model.TotalItems kết quả
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-md-7">
-                        <div class="dataTables_paginate paging_simple_numbers">
-                            <ul class="pagination">
-                                <li class="paginate_button page-item previous @prevDisabled">
-                                    <a asp-action="Favorites"
-                                       asp-route-pageNumber="@(Model.PageIndex - 1)"
-                                       asp-route-sortOrder="@ViewData["CurrentSort"]"
-                                       asp-route-searchString="@ViewData["CurrentFilter"]"
-                                       class="page-link">Trước</a>
-                                </li>
-                                @for (int i = 1; i <= Model.TotalPages; i++)
+                            </thead>
+                            <tbody>
+                                @{
+                                    int rankIndex = 1;
+                                }
+                                @foreach (var item in ViewBag.TopFavoritedDocuments)
                                 {
-                                    <li class="paginate_button page-item @(i == Model.PageIndex ? "active" : "")">
+                                    <tr>
+                                        <th scope="row">
+                                            @switch (rankIndex)
+                                            {
+                                                case 1:
+                                                    <span class="badge bg-success rounded-pill"><i class="bi bi-trophy"></i> @rankIndex</span>
+                                                    break;
+                                                case 2:
+                                                    <span class="badge bg-primary rounded-pill"><i class="bi bi-award"></i> @rankIndex</span>
+                                                    break;
+                                                case 3:
+                                                    <span class="badge bg-info rounded-pill"><i class="bi bi-award"></i> @rankIndex</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary rounded-pill">@rankIndex</span>
+                                                    break;
+                                            }
+                                        </th>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="document-img me-2" style="width: 38px; height: 38px; overflow: hidden; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                    @{
+                                                        string imagePath = string.IsNullOrEmpty(item.Document.ImagePath) 
+                                                            ? "/img/document-placeholder.jpg" 
+                                                            : item.Document.ImagePath;
+                                                    }
+                                                    <img src="@imagePath" alt="@item.Document.Title" style="width: 100%; height: 100%; object-fit: cover;">
+                                                </div>
+                                                <a href="@Url.Action("Details", "Document", new { id = item.Document.DocumentID, area = "" })" class="text-primary fw-bold">
+                                                    @item.Document.Title
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td>@item.Document.Category?.CategoryName</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-danger rounded-pill">
+                                                <i class="bi bi-heart-fill"></i> @item.Count
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    rankIndex++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Yêu thích 7 ngày gần đây</h5>
+                    <div class="chart-container" style="position: relative; height:300px; width:100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="favoriteChart"></canvas>
+                        <div id="chartLoading" class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                            <p class="mt-2">Đang tải dữ liệu...</p>
+                        </div>
+                        <div id="chartError" class="text-center" style="display:none;">
+                            <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
+                            <p class="mt-2">Không thể tải dữ liệu biểu đồ</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card recent-sales overflow-auto">
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Sắp xếp</h6>
+                        </li>
+                        <li><a class="dropdown-item" href="@Url.Action("Favorites", new { sortOrder = "User", searchString = ViewData["CurrentFilter"] })">Theo tên người dùng</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("Favorites", new { sortOrder = "Document", searchString = ViewData["CurrentFilter"] })">Theo tên tài liệu</a></li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Danh sách tài liệu yêu thích</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form asp-action="Favorites" method="get" class="row g-3">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Tìm kiếm..." name="searchString" value="@ViewData["CurrentFilter"]">
+                                        <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <a asp-action="Favorites" class="btn btn-outline-secondary">Xóa bộ lọc</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-borderless datatable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">
+                                        <a asp-action="Favorites" asp-route-sortOrder="@ViewData["DocumentSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                            Tài liệu
+                                        </a>
+                                    </th>
+                                    <th scope="col">
+                                        <a asp-action="Favorites" asp-route-sortOrder="@ViewData["UserSortParam"]" asp-route-searchString="@ViewData["CurrentFilter"]">
+                                            Người dùng
+                                        </a>
+                                    </th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <th scope="row"><a href="#">@item.FavoriteID</a></th>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="document-img me-2" style="width: 38px; height: 38px; overflow: hidden; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                    @{
+                                                        string docImagePath = string.IsNullOrEmpty(item.Document?.ImagePath) 
+                                                            ? "/img/document-placeholder.jpg" 
+                                                            : item.Document.ImagePath;
+                                                    }
+                                                    <img src="@docImagePath" alt="@item.Document?.Title" style="width: 100%; height: 100%; object-fit: cover;">
+                                                </div>
+                                                <a href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })" class="text-primary fw-bold">
+                                                    @item.Document?.Title
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })" class="text-primary fw-bold">
+                                                @item.User?.Username
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-gear me-1"></i>Tác vụ
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <a class="dropdown-item" href="@Url.Action("Details", "Document", new { id = item.DocumentID, area = "" })">
+                                                            <i class="bi bi-file-earmark-text me-2"></i>Xem tài liệu
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="@Url.Action("Details", "User", new { id = item.UserID, area = "Admin" })">
+                                                            <i class="bi bi-person me-2"></i>Xem người dùng
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @{
+                        var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+                        var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+                    }
+
+                    <div class="row">
+                        <div class="col-sm-12 col-md-5">
+                            <div class="dataTables_info" role="status">
+                                Hiển thị @(((Model.PageIndex - 1) * 10) + 1) đến @(((Model.PageIndex - 1) * 10) + Model.Count) trong tổng số @Model.TotalItems kết quả
+                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-7">
+                            <div class="dataTables_paginate paging_simple_numbers">
+                                <ul class="pagination">
+                                    <li class="paginate_button page-item previous @prevDisabled">
                                         <a asp-action="Favorites"
-                                           asp-route-pageNumber="@i"
+                                           asp-route-pageNumber="@(Model.PageIndex - 1)"
                                            asp-route-sortOrder="@ViewData["CurrentSort"]"
                                            asp-route-searchString="@ViewData["CurrentFilter"]"
-                                           class="page-link">@i</a>
+                                           class="page-link">Trước</a>
                                     </li>
-                                }
-                                <li class="paginate_button page-item next @nextDisabled">
-                                    <a asp-action="Favorites"
-                                       asp-route-pageNumber="@(Model.PageIndex + 1)"
-                                       asp-route-sortOrder="@ViewData["CurrentSort"]"
-                                       asp-route-searchString="@ViewData["CurrentFilter"]"
-                                       class="page-link">Tiếp</a>
-                                </li>
-                            </ul>
+                                    @for (int i = Math.Max(1, Model.PageIndex - 2); i <= Math.Min(Model.TotalPages, Model.PageIndex + 2); i++)
+                                    {
+                                        <li class="paginate_button page-item @(i == Model.PageIndex ? "active" : "")">
+                                            <a asp-action="Favorites"
+                                               asp-route-pageNumber="@i"
+                                               asp-route-sortOrder="@ViewData["CurrentSort"]"
+                                               asp-route-searchString="@ViewData["CurrentFilter"]"
+                                               class="page-link">@i</a>
+                                        </li>
+                                    }
+                                    <li class="paginate_button page-item next @nextDisabled">
+                                        <a asp-action="Favorites"
+                                           asp-route-pageNumber="@(Model.PageIndex + 1)"
+                                           asp-route-sortOrder="@ViewData["CurrentSort"]"
+                                           asp-route-searchString="@ViewData["CurrentFilter"]"
+                                           class="page-link">Sau</a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div> 
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Biểu đồ yêu thích
+            var ctx = document.getElementById('favoriteChart').getContext('2d');
+            var chartLoading = $('#chartLoading');
+            var chartError = $('#chartError');
+            
+            // Lấy dữ liệu biểu đồ từ API
+            $.ajax({
+                url: '@Url.Action("GetUserActivityStats", "Statistics", new { area = "Admin" })',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    chartLoading.hide();
+                    
+                    var myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [
+                                {
+                                    label: 'Yêu thích',
+                                    data: data.favoriteData,
+                                    backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                                    borderColor: 'rgba(220, 53, 69, 1)',
+                                    borderWidth: 2
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                title: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        precision: 0
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    chartLoading.hide();
+                    chartError.show();
+                    console.error('Lỗi khi tải dữ liệu biểu đồ:', error);
+                }
+            });
+            
+            // Xử lý bộ lọc thời gian
+            document.getElementById('filter-today').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.card-title span').textContent = "| Hôm nay";
+                // Đây là nơi bạn sẽ gọi API để lấy dữ liệu cho hôm nay
+            });
+            
+            document.getElementById('filter-month').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.card-title span').textContent = "| Tháng này";
+                // Đây là nơi bạn sẽ gọi API để lấy dữ liệu cho tháng này
+            });
+            
+            document.getElementById('filter-year').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.card-title span').textContent = "| Năm nay";
+                // Đây là nơi bạn sẽ gọi API để lấy dữ liệu cho năm nay
+            });
+        });
+    </script>
+} 
