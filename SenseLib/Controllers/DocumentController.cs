@@ -718,6 +718,31 @@ namespace SenseLib.Controllers
             ViewBag.DocumentTitle = document.Title;
             ViewBag.FilePath = document.FilePath;
             
+            // Xử lý file DOCX nếu cần
+            string fileExtension = Path.GetExtension(filePath).ToLower();
+            if (fileExtension == ".docx" || fileExtension == ".doc")
+            {
+                try
+                {
+                    var docxService = HttpContext.RequestServices.GetService(typeof(IDocxService)) as IDocxService;
+                    if (docxService != null)
+                    {
+                        string docxHtml = await docxService.ConvertDocxToHtml(document.FilePath, page);
+                        ViewBag.DocxHtml = docxHtml;
+                        ViewBag.IsDocx = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Lỗi khi xử lý file DOCX");
+                    TempData["ErrorMessage"] = $"Có lỗi khi xử lý tài liệu: {ex.Message}";
+                }
+            }
+            else
+            {
+                ViewBag.IsDocx = false;
+            }
+            
             return View();
         }
         
@@ -729,7 +754,24 @@ namespace SenseLib.Controllers
             
             string fileExtension = Path.GetExtension(filePath).ToLower();
             
-            // Giả định số trang dựa trên kích thước file
+            // Sử dụng DocxService nếu là file DOCX
+            if (fileExtension == ".docx" || fileExtension == ".doc")
+            {
+                try
+                {
+                    var docxService = HttpContext.RequestServices.GetService(typeof(IDocxService)) as IDocxService;
+                    if (docxService != null)
+                    {
+                        return docxService.GetPageCount(filePath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Lỗi khi đếm số trang DOCX");
+                }
+            }
+            
+            // Giả định số trang dựa trên kích thước file (phương pháp dự phòng)
             FileInfo fileInfo = new FileInfo(filePath);
             long fileSize = fileInfo.Length;
             
