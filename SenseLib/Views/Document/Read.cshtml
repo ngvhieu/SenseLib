@@ -1,14 +1,66 @@
+@using System.IO
 @{
     ViewData["Title"] = "Đọc tài liệu - " + ViewBag.DocumentTitle;
     Layout = null; // Sử dụng layout rỗng cho trang đọc tài liệu (toàn màn hình)
     
+    // Chuyển đổi từ dynamic sang kiểu cụ thể
     var document = ViewBag.Document;
-    var currentPage = ViewBag.CurrentPage;
-    var totalPages = ViewBag.TotalPages;
-    var allowedPages = ViewBag.AllowedPages;
-    var hasPurchased = ViewBag.HasPurchased;
-    var isPaid = ViewBag.IsPaid;
-    var isDocx = ViewBag.IsDocx;
+    int currentPage = Convert.ToInt32(ViewBag.CurrentPage);
+    int totalPages = Convert.ToInt32(ViewBag.TotalPages);
+    int allowedPages = Convert.ToInt32(ViewBag.AllowedPages);
+    bool hasPurchased = Convert.ToBoolean(ViewBag.HasPurchased);
+    bool isPaid = Convert.ToBoolean(ViewBag.IsPaid);
+    bool isDocx = Convert.ToBoolean(ViewBag.IsDocx);
+    
+    string originalFilePath = ViewBag.OriginalFilePath != null ? ViewBag.OriginalFilePath.ToString() : "";
+    string viewFilePath = ViewBag.FilePath != null ? ViewBag.FilePath.ToString() : "";
+    bool isConvertedToPdf = !string.IsNullOrEmpty(originalFilePath) && viewFilePath != originalFilePath;
+    
+    // Xử lý phần mở rộng bằng cách tự xác định phần mở rộng từ chuỗi
+    string fileExtension = "";
+    
+    // Hàm tự tạo để lấy phần mở rộng
+    string GetFileExtension(string path) {
+        if (string.IsNullOrEmpty(path)) return "";
+        int lastDotIndex = path.LastIndexOf('.');
+        if (lastDotIndex < 0 || lastDotIndex == path.Length - 1) return "";
+        return path.Substring(lastDotIndex).ToLower();
+    }
+    
+    if (isConvertedToPdf && !string.IsNullOrEmpty(originalFilePath)) {
+        fileExtension = GetFileExtension(originalFilePath);
+    } else if (!string.IsNullOrEmpty(viewFilePath)) {
+        fileExtension = GetFileExtension(viewFilePath);
+    }
+    
+    string fileTypeLabel = "tài liệu";
+    string fileIcon = "fa-file";
+    
+    switch (fileExtension) {
+        case ".pdf": 
+            fileTypeLabel = "PDF"; 
+            fileIcon = "fa-file-pdf"; 
+            break;
+        case ".doc":
+        case ".docx": 
+            fileTypeLabel = "Word"; 
+            fileIcon = "fa-file-word";
+            break; 
+        case ".xls":
+        case ".xlsx": 
+            fileTypeLabel = "Excel"; 
+            fileIcon = "fa-file-excel"; 
+            break;
+        case ".ppt":
+        case ".pptx": 
+            fileTypeLabel = "PowerPoint"; 
+            fileIcon = "fa-file-powerpoint"; 
+            break;
+        case ".txt": 
+            fileTypeLabel = "Text"; 
+            fileIcon = "fa-file-alt"; 
+            break;
+    }
 }
 
 <!DOCTYPE html>
@@ -60,6 +112,16 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        
+        .file-type-label {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            margin-left: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
 
         .back-btn {
             display: flex;
@@ -95,6 +157,11 @@
 
         .btn-control:hover {
             background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-control:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn-control i {
@@ -186,27 +253,85 @@
             100% { transform: rotate(360deg); }
         }
 
-        #pdf-fallback {
+        #pdf-viewer-error {
             display: none;
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .error-container {
             background-color: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            max-width: 600px;
             text-align: center;
         }
 
-        #pdf-fallback a {
-            color: #0066cc;
+        .error-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-download, .btn-retry {
+            padding: 10px 20px;
+            border-radius: 5px;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
             font-weight: 500;
         }
 
-        #pdf-fallback a:hover {
-            text-decoration: underline;
+        .btn-download {
+            background-color: #3498db;
+            color: white;
+            border: none;
+        }
+
+        .btn-retry {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* TTS Controls */
+        .tts-controls {
+            display: flex;
+            gap: 0.4rem;
+        }
+        
+        #tts-play {
+            background-color: #4CAF50;
+        }
+        
+        #tts-play:hover {
+            background-color: #45a049;
+        }
+        
+        #tts-pause {
+            background-color: #2196F3;
+        }
+        
+        #tts-pause:hover {
+            background-color: #0b7dda;
+        }
+        
+        #tts-stop {
+            background-color: #e53935;
+        }
+        
+        #tts-stop:hover {
+            background-color: #d32f2f;
         }
 
         @@media (max-width: 768px) {
@@ -231,46 +356,79 @@
                 <a href="javascript:history.back()" class="back-btn">
                     <i class="fas fa-arrow-left"></i>
                 </a>
-                <h1>@ViewBag.DocumentTitle</h1>
+                <div>
+                    <h1>@ViewBag.DocumentTitle</h1>
+                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 0.2rem;">
+                        Đang xem <span class="file-type-label"><i class="fas fa-file-pdf"></i> PDF</span>
+                        @if (isConvertedToPdf) {
+                            <span style="margin-left: 0.5rem;">(Chuyển đổi từ <span class="file-type-label"><i class="fas @fileIcon"></i> @fileTypeLabel</span>)</span>
+                        }
+                    </div>
+                </div>
             </div>
             
             <div class="reader-controls">
                 <div class="page-navigation" style="display: flex; align-items: center; margin-right: 1rem; color: white;">
-                    <button id="prev-page" class="page-btn" style="background-color: transparent; color: white; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.3rem 0.6rem;" @(currentPage <= 1 ? "disabled" : "")>
+                    <button id="prev-page" class="btn-control" @(currentPage <= 1 ? "disabled" : "")>
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <span class="page-indicator" style="margin: 0 0.5rem; font-size: 0.9rem; white-space: nowrap;">
-                        Trang <span id="current-page">@currentPage</span> / 
-                        <span id="total-pages">@allowedPages</span>
-                        @if (allowedPages < totalPages)
+                    <span style="margin: 0 10px;">Trang <span id="current-page">@currentPage</span> / 
+                        @if (isPaid && !hasPurchased)
                         {
-                            <span> (giới hạn)</span>
+                            <span id="total-pages" data-total-pages="@totalPages" data-allowed-pages="@allowedPages">@allowedPages</span>
+                            <span class="badge bg-warning" style="font-size: 0.7rem; padding: 0.2rem 0.4rem; margin-left: 0.2rem;">Giới hạn</span>
+                        }
+                        else
+                        {
+                            <span id="total-pages" data-total-pages="@totalPages" data-allowed-pages="@totalPages">@totalPages</span>
                         }
                     </span>
-                    <button id="next-page" class="page-btn" style="background-color: transparent; color: white; border: none; font-size: 1.2rem; cursor: pointer; padding: 0.3rem 0.6rem;" @(currentPage >= allowedPages ? "disabled" : "")>
+                    <button id="next-page" class="btn-control" @(currentPage >= allowedPages ? "disabled" : "")>
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
                 
-                <div class="zoom-controls">
-                    <button class="zoom-btn" id="zoom-out">
-                        <i class="fas fa-search-minus"></i>
+                <div class="download-controls" style="display: flex; gap: 0.5rem; margin-right: 1rem;">
+                    @if (isPaid && !hasPurchased)
+                    {
+                        <a href="@Url.Action("CheckoutDocument", "Purchase", new { id = document.DocumentID })" class="btn-control" style="background-color: #ff9800;">
+                            <i class="fas fa-shopping-cart"></i> Mua tài liệu
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Download", "Document", new { id = document.DocumentID })" class="btn-control" style="background-color: #4CAF50;">
+                            <i class="fas @fileIcon"></i> Tải bản gốc
+                        </a>
+                        
+                        <a href="@Url.Action("DownloadPdf", "Document", new { id = document.DocumentID })" class="btn-control" style="background-color: #2196F3;">
+                            <i class="fas fa-file-pdf"></i> Tải PDF
+                        </a>
+                    }
+                </div>
+                
+                <!-- Nút điều khiển TTS -->
+                <div class="tts-controls">
+                    <button id="tts-play" class="btn-control">
+                        <i class="fas fa-play"></i> Đọc
                     </button>
-                    <span class="zoom-text" id="zoom-level">100%</span>
-                    <button class="zoom-btn" id="zoom-in">
-                        <i class="fas fa-search-plus"></i>
+                    <button id="tts-pause" class="btn-control" style="display: none;">
+                        <i class="fas fa-pause"></i> Tạm dừng
+                    </button>
+                    <button id="tts-stop" class="btn-control" style="display: none;">
+                        <i class="fas fa-stop"></i> Dừng
                     </button>
                 </div>
                 
-                @if (!isPaid || hasPurchased)
-                {
-                    <form asp-action="Download" asp-route-id="@Context.Request.Query["id"]" method="post" id="download-form">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn-control">
-                            <i class="fas fa-download"></i> Tải xuống
-                        </button>
-                    </form>
-                }
+                <div class="zoom-controls">
+                    <button id="zoom-out" class="zoom-btn">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <span class="zoom-text" id="zoom-level">100%</span>
+                    <button id="zoom-in" class="zoom-btn">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -288,18 +446,35 @@
             }
             else
             {
-                <div id="pdf-viewer"></div>
+                <!-- PDF Viewer Container -->
+                <div id="pdf-container">
+                    <div id="pdf-viewer" class="pdf-viewer"></div>
+                </div>
+                
+                <!-- Container hiển thị thông báo lỗi và nút tải xuống -->
+                <div id="pdf-viewer-error">
+                    <div class="error-container">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #e74c3c; margin-bottom: 20px;"></i>
+                        <h3>Không thể hiển thị tài liệu PDF</h3>
+                        <p id="error-message">Có vấn đề khi tải tài liệu. Vui lòng thử lại hoặc tải xuống để xem offline.</p>
+                        
+                        <div class="error-actions">
+                            <a href="@Url.Action("Download", "Document", new { id = document.DocumentID })" class="btn-download">
+                                <i class="fas fa-download"></i> Tải xuống
+                            </a>
+                            <button id="retry-pdf-load" class="btn-retry">
+                                <i class="fas fa-sync"></i> Thử lại
+                            </button>
+                        </div>
+                    </div>
+                </div>
             }
-            
-            <div id="pdf-fallback">
-                <p>Không thể hiển thị tài liệu trực tiếp. <a id="pdf-download-link" href="#" download>Tải xuống</a> để xem.</p>
-            </div>
             
             @if (isPaid && !hasPurchased)
             {
                 <div class="purchase-notice" style="position: absolute; bottom: 0; left: 0; right: 0; background-color: rgba(0, 0, 0, 0.8); color: white; padding: 1rem; text-align: center;">
                     Bạn đang xem bản xem trước (tối đa @allowedPages trang). 
-                    <a href="/Purchase/CheckoutDocument/@Context.Request.Query["id"]" style="display: inline-block; background-color: #4CAF50; color: white; padding: 0.5rem 1rem; border-radius: 5px; text-decoration: none; margin-left: 1rem;">
+                    <a href="@Url.Action("CheckoutDocument", "Purchase", new { id = document.DocumentID })" style="display: inline-block; background-color: #4CAF50; color: white; padding: 0.5rem 1rem; border-radius: 5px; text-decoration: none; margin-left: 1rem;">
                         <i class="fas fa-shopping-cart"></i> Mua tài liệu để xem toàn bộ và tải xuống
                     </a>
                 </div>
@@ -307,16 +482,28 @@
         </div>
     </div>
     
-    <!-- PDFObject Script -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfobject/2.2.8/pdfobject.min.js"></script>
+    <!-- PDF.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <!-- PDF.js viewer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js"></script>
+    <!-- Edge TTS Script -->
+    <script src="~/js/edge-tts.js"></script>
+    <script src="~/js/edge-tts-fix.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const pdfPath = '@ViewBag.FilePath';
+            // Cấu hình PDF.js
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+            
+            const pdfPath = '@Html.Raw(ViewBag.FilePath)';
+            const documentId = '@document.DocumentID';
+            const pdfContainer = document.getElementById('pdf-container');
             const pdfViewer = document.getElementById('pdf-viewer');
+            const pdfViewerError = document.getElementById('pdf-viewer-error');
             const docxViewer = document.getElementById('docx-viewer');
             const pdfLoader = document.getElementById('pdf-loader');
-            const pdfFallback = document.getElementById('pdf-fallback');
-            const pdfDownloadLink = document.getElementById('pdf-download-link');
+            const errorMessage = document.getElementById('error-message');
+            const retryButton = document.getElementById('retry-pdf-load');
             const zoomInBtn = document.getElementById('zoom-in');
             const zoomOutBtn = document.getElementById('zoom-out');
             const zoomLevel = document.getElementById('zoom-level');
@@ -324,117 +511,304 @@
             const nextPageBtn = document.getElementById('next-page');
             const currentPageEl = document.getElementById('current-page');
             
+            // TTS elements
+            const ttsPlayBtn = document.getElementById('tts-play');
+            const ttsPauseBtn = document.getElementById('tts-pause');
+            const ttsStopBtn = document.getElementById('tts-stop');
+            
             let currentPage = @currentPage;
             const allowedPages = @allowedPages;
             const isDocx = @(isDocx ? "true" : "false");
             
-            // Thiết lập link tải xuống
-            pdfDownloadLink.href = pdfPath;
-            
-            // Theo dõi mức zoom
+            // PDF.js variables
+            let pdfDoc = null;
             let currentZoom = 100;
+            let currentRender = null;
+            
+            // Hàm hiển thị lỗi
+            function showPdfError(message) {
+                if (pdfLoader) pdfLoader.style.display = 'none';
+                if (pdfViewer) pdfViewer.style.display = 'none';
+                
+                if (errorMessage) errorMessage.textContent = message || 'Không thể hiển thị tài liệu PDF. Vui lòng thử tải xuống để xem.';
+                if (pdfViewerError) pdfViewerError.style.display = 'flex';
+                
+                console.error('PDF Error:', message);
+            }
+            
+            // Hàm nạp PDF
+            async function loadPDF() {
+                try {
+                    if (isDocx) {
+                        // Nếu là DOCX, không cần tải PDF
+                        if (pdfLoader) pdfLoader.style.display = 'none';
+                        if (docxViewer) docxViewer.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Ẩn DocxViewer nếu không phải DOCX
+                    if (docxViewer) docxViewer.style.display = 'none';
+                    
+                    // Hiển thị loading
+                    if (pdfLoader) pdfLoader.style.display = 'flex';
+                    if (pdfViewerError) pdfViewerError.style.display = 'none';
+                    
+                    // Tải PDF với PDF.js
+                    const loadingTask = pdfjsLib.getDocument(pdfPath);
+                    pdfDoc = await loadingTask.promise;
+                    
+                    // Ẩn loading và hiển thị PDF
+                    if (pdfLoader) pdfLoader.style.display = 'none';
+                    
+                    // Hiển thị trang đầu tiên
+                    renderPage(currentPage);
+                } catch (error) {
+                    console.error('Lỗi khi tải PDF:', error);
+                    showPdfError('Không thể tải tài liệu PDF. ' + error.message);
+                }
+            }
+            
+            // Hàm render trang PDF
+            async function renderPage(pageNumber) {
+                if (!pdfDoc) return;
+                
+                try {
+                    // Cancel any previous render
+                    if (currentRender && currentRender.cancel) {
+                        currentRender.cancel();
+                    }
+                    
+                    // Get the page
+                    const page = await pdfDoc.getPage(pageNumber);
+                    
+                    // Cập nhật UI
+                    currentPageEl.textContent = pageNumber;
+                    updatePageButtons();
+                    
+                    // Resize canvas to fit the page
+                    const viewport = page.getViewport({ scale: currentZoom / 100 });
+                    
+                    // Create or reuse canvas
+                    let canvas = pdfViewer.querySelector('canvas');
+                    if (!canvas) {
+                        canvas = document.createElement('canvas');
+                        pdfViewer.appendChild(canvas);
+                    }
+                    
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    // Center the canvas
+                    canvas.style.display = 'block';
+                    canvas.style.margin = '0 auto';
+                    
+                    // Render the page
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    
+                    currentRender = page.render(renderContext);
+                    await currentRender.promise;
+                    
+                    // Update the URL to preserve page number
+                    updateUrlWithPage(pageNumber);
+                    
+                } catch (error) {
+                    console.error('Lỗi khi render trang:', error);
+                    showPdfError('Không thể hiển thị trang PDF. ' + error.message);
+                }
+            }
+            
+            // Cập nhật URL với tham số trang
+            function updateUrlWithPage(pageNumber) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('page', pageNumber);
+                window.history.replaceState({}, '', url.toString());
+            }
+            
+            // Cập nhật trạng thái nút chuyển trang
+            function updatePageButtons() {
+                if (prevPageBtn) {
+                    prevPageBtn.disabled = currentPage <= 1;
+                }
+                
+                if (nextPageBtn) {
+                    nextPageBtn.disabled = currentPage >= allowedPages;
+                }
+            }
             
             // Xử lý phóng to
-            zoomInBtn.addEventListener('click', function() {
-                if (currentZoom < 200) {
-                    currentZoom += 25;
-                    updateZoom();
-                }
-            });
+            if (zoomInBtn) {
+                zoomInBtn.addEventListener('click', function() {
+                    if (currentZoom < 200) {
+                        currentZoom += 25;
+                        updateZoom();
+                    }
+                });
+            }
             
             // Xử lý thu nhỏ
-            zoomOutBtn.addEventListener('click', function() {
-                if (currentZoom > 50) {
-                    currentZoom -= 25;
-                    updateZoom();
-                }
-            });
+            if (zoomOutBtn) {
+                zoomOutBtn.addEventListener('click', function() {
+                    if (currentZoom > 50) {
+                        currentZoom -= 25;
+                        updateZoom();
+                    }
+                });
+            }
             
             // Cập nhật mức zoom
             function updateZoom() {
-                zoomLevel.textContent = currentZoom + '%';
+                if (zoomLevel) {
+                    zoomLevel.textContent = currentZoom + '%';
+                }
                 
                 if (isDocx && docxViewer) {
                     // Đối với DOCX, áp dụng zoom vào docx-viewer
                     docxViewer.style.transform = `scale(${currentZoom/100})`;
                     docxViewer.style.transformOrigin = 'top center';
-                }
-                else {
-                    // Nếu PDFObject đã được khởi tạo
-                    const iframe = document.querySelector('#pdf-viewer iframe');
-                    if (iframe) {
-                        // Thay đổi scale trong iframe
-                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                        const pdfViewer = iframeDoc.querySelector('.pdfViewer');
-                        
-                        if (pdfViewer) {
-                            pdfViewer.style.transform = `scale(${currentZoom/100})`;
-                            pdfViewer.style.transformOrigin = 'top center';
-                        }
-                    }
+                } else if (pdfDoc) {
+                    // Render lại trang hiện tại với zoom mới
+                    renderPage(currentPage);
                 }
             }
             
-            // Ẩn loader
-            if (isDocx) {
-                pdfLoader.style.display = 'none';
-            }
-            else {
-                // Hiển thị PDF
-                if (PDFObject.supportsPDFs) {
-                    PDFObject.embed(pdfPath, '#pdf-viewer', {
-                        fallbackLink: false,
-                        pdfOpenParams: {
-                            view: 'FitH'
-                        }
-                    });
-                    
-                    // Ẩn loader sau khi PDF tải xong
-                    const iframe = document.querySelector('#pdf-viewer iframe');
-                    if (iframe) {
-                        iframe.onload = function() {
-                            pdfLoader.style.display = 'none';
-                        };
-                    }
-                } else {
-                    // Hiển thị fallback nếu trình duyệt không hỗ trợ PDF
-                    pdfLoader.style.display = 'none';
-                    pdfFallback.style.display = 'block';
-                }
-            }
-            
-            // Cập nhật UI khi chuyển trang
-            function updatePageNavigation() {
-                currentPageEl.textContent = currentPage;
-                prevPageBtn.disabled = currentPage <= 1;
-                nextPageBtn.disabled = currentPage >= allowedPages;
-                
-                // Cập nhật URL để lưu trạng thái trang
-                const url = new URL(window.location.href);
-                url.searchParams.set('page', currentPage);
-                window.history.replaceState({}, '', url.toString());
-            }
-            
-            // Xử lý sự kiện nút chuyển trang
+            // Xử lý nút chuyển trang trước
             if (prevPageBtn) {
                 prevPageBtn.addEventListener('click', function() {
                     if (currentPage > 1) {
                         currentPage--;
-                        updatePageNavigation();
-                        window.location.href = window.location.pathname + '?id=@Context.Request.Query["id"]&page=' + currentPage;
+                        if (isDocx) {
+                            // Nếu là DOCX, chuyển hướng đến trang mới
+                            window.location.href = window.location.pathname + '?id=' + documentId + '&page=' + currentPage;
+                        } else {
+                            renderPage(currentPage);
+                        }
                     }
                 });
             }
             
+            // Xử lý nút chuyển trang sau
             if (nextPageBtn) {
                 nextPageBtn.addEventListener('click', function() {
                     if (currentPage < allowedPages) {
                         currentPage++;
-                        updatePageNavigation();
-                        window.location.href = window.location.pathname + '?id=@Context.Request.Query["id"]&page=' + currentPage;
+                        if (isDocx) {
+                            // Nếu là DOCX, chuyển hướng đến trang mới
+                            window.location.href = window.location.pathname + '?id=' + documentId + '&page=' + currentPage;
+                        } else {
+                            renderPage(currentPage);
+                        }
                     }
                 });
             }
+            
+            // Phím tắt chuyển trang
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft' && !prevPageBtn.disabled) {
+                    prevPageBtn.click();
+                } else if (e.key === 'ArrowRight' && !nextPageBtn.disabled) {
+                    nextPageBtn.click();
+                }
+            });
+            
+            // Xử lý nút thử lại
+            if (retryButton) {
+                retryButton.addEventListener('click', loadPDF);
+            }
+            
+            // TTS functionality
+            let ttsPlaying = false;
+            let ttsText = '';
+            
+            // Xử lý TTS
+            if (ttsPlayBtn && ttsPauseBtn && ttsStopBtn) {
+                ttsPlayBtn.addEventListener('click', async function() {
+                    if (!ttsPlaying) {
+                        try {
+                            ttsPlaying = true;
+                            ttsPlayBtn.style.display = 'none';
+                            ttsPauseBtn.style.display = 'inline-flex';
+                            ttsStopBtn.style.display = 'inline-flex';
+                            
+                            // Lấy text từ trang hiện tại
+                            if (isDocx && docxViewer) {
+                                ttsText = docxViewer.textContent;
+                            } else if (pdfDoc) {
+                                // Trích xuất text từ trang PDF hiện tại
+                                const page = await pdfDoc.getPage(currentPage);
+                                const textContent = await page.getTextContent();
+                                ttsText = textContent.items.map(item => item.str).join(' ');
+                            }
+                            
+                            if (ttsText) {
+                                // Gọi API Text-to-Speech
+                                const response = await fetch('/TextToSpeech/Speak', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ text: ttsText }),
+                                });
+                                
+                                if (response.ok) {
+                                    const result = await response.json();
+                                    if (result.success && result.audioUrl) {
+                                        const audio = new Audio(result.audioUrl);
+                                        audio.play();
+                                        
+                                        audio.onended = function() {
+                                            ttsPlayBtn.style.display = 'inline-flex';
+                                            ttsPauseBtn.style.display = 'none';
+                                            ttsStopBtn.style.display = 'none';
+                                            ttsPlaying = false;
+                                        };
+                                        
+                                        // Xử lý nút dừng
+                                        ttsStopBtn.onclick = function() {
+                                            audio.pause();
+                                            audio.currentTime = 0;
+                                            ttsPlayBtn.style.display = 'inline-flex';
+                                            ttsPauseBtn.style.display = 'none';
+                                            ttsStopBtn.style.display = 'none';
+                                            ttsPlaying = false;
+                                        };
+                                        
+                                        // Xử lý nút tạm dừng
+                                        ttsPauseBtn.onclick = function() {
+                                            if (audio.paused) {
+                                                audio.play();
+                                                ttsPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Tạm dừng';
+                                            } else {
+                                                audio.pause();
+                                                ttsPauseBtn.innerHTML = '<i class="fas fa-play"></i> Tiếp tục';
+                                            }
+                                        };
+                                    } else {
+                                        throw new Error(result.message || 'Không thể chuyển đổi văn bản thành giọng nói');
+                                    }
+                                } else {
+                                    throw new Error('Lỗi khi gọi API Text-to-Speech');
+                                }
+                            } else {
+                                throw new Error('Không có văn bản để đọc');
+                            }
+                        } catch (error) {
+                            console.error('Lỗi TTS:', error);
+                            alert('Lỗi khi đọc văn bản: ' + error.message);
+                            ttsPlayBtn.style.display = 'inline-flex';
+                            ttsPauseBtn.style.display = 'none';
+                            ttsStopBtn.style.display = 'none';
+                            ttsPlaying = false;
+                        }
+                    }
+                });
+            }
+            
+            // Load PDF when page loads
+            loadPDF();
         });
     </script>
 </body>

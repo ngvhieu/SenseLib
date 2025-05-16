@@ -77,6 +77,10 @@
                                 <button type="button" class="btn btn-outline-success download-btn" data-document-id="@Model.DocumentID">
                                     <i class="fa fa-download me-1"></i> <span>Tải xuống</span>
                                 </button>
+                                
+                                <a asp-action="DownloadPdf" asp-route-id="@Model.DocumentID" class="btn btn-outline-info">
+                                    <i class="fa fa-file-pdf me-1"></i> Tải xuống PDF
+                                </a>
                             }
                             else
                             {

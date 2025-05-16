@@ -162,10 +162,16 @@ namespace SenseLib.Controllers
                     
                     // Kiểm tra định dạng file
                     string extension = Path.GetExtension(file.FileName).ToLower();
-                    string[] allowedExtensions = { ".pdf", ".doc", ".docx" };
+                    string[] allowedExtensions = { 
+                        ".pdf", ".doc", ".docx", 
+                        ".xls", ".xlsx", ".xlsm", 
+                        ".ppt", ".pptx", ".pptm", 
+                        ".txt", ".rtf", ".csv", 
+                        ".odt", ".ods", ".odp" 
+                    };
                     if (!allowedExtensions.Contains(extension))
                     {
-                        ModelState.AddModelError("", "Chỉ chấp nhận các định dạng file: PDF, DOC, DOCX");
+                        ModelState.AddModelError("", "Chỉ chấp nhận các định dạng file: PDF, Word, Excel, PowerPoint, Text và định dạng tương tự");
                         PrepareViewData();
                         return View(document);
                     }
@@ -487,10 +493,16 @@ namespace SenseLib.Controllers
                     
                     // Kiểm tra định dạng file
                     string extension = Path.GetExtension(file.FileName).ToLower();
-                    string[] allowedExtensions = { ".pdf", ".doc", ".docx" };
+                    string[] allowedExtensions = { 
+                        ".pdf", ".doc", ".docx", 
+                        ".xls", ".xlsx", ".xlsm", 
+                        ".ppt", ".pptx", ".pptm", 
+                        ".txt", ".rtf", ".csv", 
+                        ".odt", ".ods", ".odp" 
+                    };
                     if (!allowedExtensions.Contains(extension))
                     {
-                        ModelState.AddModelError("", "Chỉ chấp nhận các định dạng file: PDF, DOC, DOCX");
+                        ModelState.AddModelError("", "Chỉ chấp nhận các định dạng file: PDF, Word, Excel, PowerPoint, Text và định dạng tương tự");
                         PrepareViewData();
                         return View(existingDocument);
                     }

@@ -15,6 +15,10 @@ namespace SenseLib.Models
         [Required]
         public DateTime DownloadDate { get; set; }
         
+        // Loại tải xuống: Original (mặc định) hoặc PDF
+        [StringLength(20)]
+        public string DownloadType { get; set; } = "Original";
+        
         // Navigation properties
         [ForeignKey("UserID")]
         public User? User { get; set; }

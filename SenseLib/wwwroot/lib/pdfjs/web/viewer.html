@@ -1,0 +1,401 @@
+﻿<!DOCTYPE html>
+<!--
+Copyright 2012 Mozilla Foundation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Adobe CMap resources are covered by their own copyright but the same license:
+
+    Copyright 1990-2015 Adobe Systems Incorporated.
+
+See https://github.com/adobe-type-tools/cmap-resources
+-->
+<html dir="ltr" mozdisallowselectionprint>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="google" content="notranslate">
+  <title>PDF Viewer</title>
+
+  <style>
+    :root {
+      --file-select-overlay-height: 5rem;
+      --toolbar-height: 3.2rem;
+      --sidebar-width: 15rem;
+      --sidebar-transition-duration: 200ms;
+      --scale-select-width: 7rem;
+      --page-view-margin: 0.5rem;
+      --page-border: 1px solid rgba(149, 149, 149, 0.35);
+      --loading-bar-end: #398989;
+      --loading-bar-end-error: #d93131;
+      --loading-bar-start: rgba(0, 0, 0, 0);
+      --toolbar-icon-opacity: 1;
+      --pass-through-cursor: auto;
+      --dir-factor: 1;
+      --actions-toolbar-overlay-background: rgba(0, 0, 0, 0.8);
+      --theme-primary: #1976d2;
+      --theme-primary-light: #42a5f5;
+    }
+
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    #viewerContainer {
+      position: absolute;
+      top: var(--toolbar-height);
+      right: 0;
+      bottom: 0;
+      left: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #mainContainer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      min-width: 320px;
+    }
+
+    #toolbarContainer {
+      position: relative;
+      height: var(--toolbar-height);
+      background-color: #2a2a2e;
+      color: #eee;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+    }
+
+    #toolbar {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    #toolbarLeft,
+    #toolbarCenter,
+    #toolbarRight {
+      display: flex;
+      align-items: center;
+    }
+
+    .toolbarButton {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      margin: 0 0.25rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .toolbarButton:hover {
+      opacity: 1;
+    }
+
+    .toolbarButton[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    #numPages {
+      margin-left: 0.5rem;
+    }
+
+    #pageNumber {
+      width: 3rem;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: white;
+      padding: 0.25rem;
+      margin: 0 0.5rem;
+    }
+
+    #scaleSelect {
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: white;
+      padding: 0.25rem;
+      margin-left: 0.5rem;
+    }
+
+    #viewer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .page {
+      margin: 0.5rem 0;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #loadingBar {
+      position: relative;
+      height: 0.25rem;
+      background-color: rgba(51, 51, 51, 0.2);
+      border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+    }
+
+    #loadingBar .progress {
+      position: absolute;
+      left: 0;
+      width: 0%;
+      height: 100%;
+      background-color: var(--theme-primary);
+      transition: width 200ms;
+    }
+
+    #loadingBar.error .progress {
+      background-color: var(--loading-bar-end-error);
+    }
+
+    #errorMessage {
+      text-align: center;
+      padding: 1rem;
+      color: red;
+    }
+  </style>
+
+  <script src="/lib/pdfjs/pdf.min.js"></script>
+  <script>
+    // Đường dẫn đến worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/lib/pdfjs/pdf.worker.min.js';
+
+    // Nhận file từ query parameter
+    let pdfFile = null;
+    let baseUrl = window.location.href.split('?')[0];
+    let params = new URLSearchParams(window.location.search);
+    let fileParam = params.get('file');
+
+    if (fileParam) {
+      // Nếu là URL tương đối thì chuyển thành URL tuyệt đối
+      if (fileParam.startsWith('/')) {
+        pdfFile = window.location.origin + fileParam;
+      } else {
+        pdfFile = fileParam;
+      }
+    }
+
+    let pdfDoc = null;
+    let pageNum = 1;
+    let pageRendering = false;
+    let pageNumPending = null;
+    let scale = 1.0;
+
+    function renderPage(num) {
+      pageRendering = true;
+
+      // Hiển thị loading
+      document.getElementById('loadingBar').classList.remove('error');
+      document.getElementById('loadingBar').querySelector('.progress').style.width = '50%';
+
+      // Get page
+      pdfDoc.getPage(num).then(function (page) {
+        let viewport = page.getViewport({ scale });
+
+        // Prepare canvas
+        let pageContainer = document.createElement('div');
+        pageContainer.className = 'page';
+        pageContainer.dataset.pageNumber = num;
+
+        let canvas = document.createElement('canvas');
+        pageContainer.appendChild(canvas);
+
+        let context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        let renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+
+        let renderTask = page.render(renderContext);
+
+        // Thêm trang vào viewer
+        document.getElementById('viewer').appendChild(pageContainer);
+
+        // Khi render xong
+        renderTask.promise.then(function () {
+          pageRendering = false;
+          document.getElementById('loadingBar').querySelector('.progress').style.width = '100%';
+
+          setTimeout(() => {
+            document.getElementById('loadingBar').querySelector('.progress').style.width = '0%';
+          }, 300);
+
+          if (pageNumPending !== null) {
+            renderPage(pageNumPending);
+            pageNumPending = null;
+          }
+        }).catch(function (error) {
+          console.error('Error rendering page:', error);
+          document.getElementById('loadingBar').classList.add('error');
+          document.getElementById('errorMessage').textContent = 'Error rendering PDF: ' + error.message;
+        });
+      });
+
+      // Cập nhật số trang
+      document.getElementById('pageNumber').value = num;
+    }
+
+    function queueRenderPage(num) {
+      if (pageRendering) {
+        pageNumPending = num;
+      } else {
+        clearViewer();
+        renderPage(num);
+      }
+    }
+
+    function clearViewer() {
+      document.getElementById('viewer').innerHTML = '';
+    }
+
+    function onPrevPage() {
+      if (pageNum <= 1) {
+        return;
+      }
+      pageNum--;
+      queueRenderPage(pageNum);
+    }
+
+    function onNextPage() {
+      if (pageNum >= pdfDoc.numPages) {
+        return;
+      }
+      pageNum++;
+      queueRenderPage(pageNum);
+    }
+
+    function changeScale(newScale) {
+      scale = newScale;
+      clearViewer();
+      renderPage(pageNum);
+    }
+
+    // Khi trang đã tải xong
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!pdfFile) {
+        document.getElementById('errorMessage').textContent = 'No PDF file specified';
+        document.getElementById('loadingBar').classList.add('error');
+        return;
+      }
+
+      // Phân tích fragment để lấy trang
+      if (window.location.hash) {
+        let hash = window.location.hash.substring(1);
+        let params = new URLSearchParams(hash);
+        let page = params.get('page');
+        if (page && !isNaN(page)) {
+          pageNum = parseInt(page);
+        }
+      }
+
+      // Khởi tạo các sự kiện
+      document.getElementById('prev').addEventListener('click', onPrevPage);
+      document.getElementById('next').addEventListener('click', onNextPage);
+      document.getElementById('pageNumber').addEventListener('change', function () {
+        let newPage = parseInt(this.value);
+        if (newPage > 0 && newPage <= pdfDoc.numPages) {
+          pageNum = newPage;
+          queueRenderPage(pageNum);
+        } else {
+          this.value = pageNum;
+        }
+      });
+
+      document.getElementById('scaleSelect').addEventListener('change', function () {
+        changeScale(parseFloat(this.value));
+      });
+
+      // Tải file PDF
+      pdfjsLib.getDocument(pdfFile).promise.then(function (pdf) {
+        pdfDoc = pdf;
+        document.getElementById('numPages').textContent = pdf.numPages;
+
+        // Render trang đầu tiên
+        renderPage(pageNum);
+
+        // Cập nhật UI
+        document.getElementById('prev').disabled = pageNum <= 1;
+        document.getElementById('next').disabled = pageNum >= pdf.numPages;
+
+      }).catch(function (error) {
+        console.error('Error loading PDF:', error);
+        document.getElementById('loadingBar').classList.add('error');
+        document.getElementById('errorMessage').textContent = 'Error loading PDF: ' + error.message;
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <div id="mainContainer">
+    <div id="loadingBar">
+      <div class="progress"></div>
+    </div>
+
+    <div id="toolbarContainer">
+      <div id="toolbar">
+        <div id="toolbarLeft">
+          <button id="prev" class="toolbarButton" title="Previous Page">❮</button>
+          <button id="next" class="toolbarButton" title="Next Page">❯</button>
+          <span>Page: <input type="number" id="pageNumber" min="1"> / <span id="numPages">0</span></span>
+        </div>
+
+        <div id="toolbarCenter">
+          <div id="errorMessage"></div>
+        </div>
+
+        <div id="toolbarRight">
+          <label for="scaleSelect">Zoom:</label>
+          <select id="scaleSelect">
+            <option value="0.5">50%</option>
+            <option value="0.75">75%</option>
+            <option value="1" selected>100%</option>
+            <option value="1.25">125%</option>
+            <option value="1.5">150%</option>
+            <option value="2">200%</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="viewerContainer">
+      <div id="viewer"></div>
+    </div>
+  </div>
+</body>
+
+</html>

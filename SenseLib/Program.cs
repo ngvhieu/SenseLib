@@ -34,6 +34,9 @@ builder.Services.AddScoped<ISummaryService, SummaryService>();
 // Đăng ký dịch vụ xử lý file DOCX
 builder.Services.AddScoped<IDocxService, DocxService>();
 
+// Đăng ký dịch vụ chuyển đổi tài liệu sang PDF
+builder.Services.AddScoped<IDocumentConverterService, DocumentConverterService>();
+
 // Cấu hình xác thực cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -114,7 +117,26 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+// Cấu hình phục vụ file tĩnh với các tùy chọn nâng cao
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Thêm cache cho file tĩnh
+        ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=600");
+        
+        // Đặt Content-Disposition cho file PDF để đảm bảo hiển thị trực tiếp
+        if (ctx.File.Name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.Headers.Append("Content-Type", "application/pdf");
+            ctx.Context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+            
+            // Đảm bảo file PDF được mở trong trình duyệt mà không tải xuống
+            // ctx.Context.Response.Headers.Append("Content-Disposition", "inline");
+        }
+    }
+});
 
 // Tạo thư mục uploads/documents khi khởi động ứng dụng
 try
@@ -128,7 +150,9 @@ try
             "uploads/documents",
             "uploads/images",
             "uploads/profiles",
-            "uploads/slideshow"
+            "uploads/slideshow",
+            "audio",
+            "audio/tts"
         };
         
         // Tạo các thư mục nếu chưa tồn tại
@@ -162,7 +186,7 @@ try
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Lỗi khi tạo thư mục uploads/documents: {ex.Message}");
+    Console.WriteLine($"Lỗi khi tạo thư mục: {ex.Message}");
     if (ex.InnerException != null)
     {
         Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");

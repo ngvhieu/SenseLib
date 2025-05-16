@@ -552,7 +552,8 @@ namespace SenseLib.Controllers
             {
                 DocumentID = id,
                 UserID = userId,
-                DownloadDate = DateTime.Now
+                DownloadDate = DateTime.Now,
+                DownloadType = "Original"
             });
             await _context.SaveChangesAsync();
 
@@ -607,7 +608,8 @@ namespace SenseLib.Controllers
                 {
                     DocumentID = id,
                     UserID = userId,
-                    DownloadDate = DateTime.Now
+                    DownloadDate = DateTime.Now,
+                    DownloadType = "Original"
                 });
                 await _context.SaveChangesAsync();
 
@@ -650,6 +652,7 @@ namespace SenseLib.Controllers
             string filePath = Path.Combine(_hostEnvironment.WebRootPath, document.FilePath.TrimStart('/'));
             if (!System.IO.File.Exists(filePath))
             {
+                _logger.LogError($"Tài liệu không tồn tại tại đường dẫn: {filePath}");
                 TempData["ErrorMessage"] = "Tài liệu không tồn tại.";
                 return RedirectToAction(nameof(Details), new { id });
             }
@@ -670,9 +673,40 @@ namespace SenseLib.Controllers
                         .AnyAsync(p => p.UserID == userId && p.DocumentID == id && p.Status == "Completed");
                 }
             }
+
+            // Lấy dịch vụ chuyển đổi tài liệu
+            var documentConverter = HttpContext.RequestServices.GetService<IDocumentConverterService>();
+            string fileExtension = Path.GetExtension(filePath).ToLower();
+            bool needsConversion = fileExtension != ".pdf";
+            string pdfPath = null;
+            
+            // Nếu không phải file PDF, tiến hành chuyển đổi
+            if (needsConversion && documentConverter != null)
+            {
+                // Kiểm tra xem đã có bản PDF chưa
+                if (documentConverter.IsPdfAvailable(document.FilePath, document.DocumentID))
+                {
+                    pdfPath = documentConverter.GetPdfPath(document.FilePath, document.DocumentID);
+                }
+                else
+                {
+                    // Nếu chưa có, thực hiện chuyển đổi
+                    pdfPath = await documentConverter.ConvertToPdfAsync(document.FilePath, document.DocumentID);
+                    
+                    // Nếu chuyển đổi thất bại, hiển thị thông báo lỗi
+                    if (string.IsNullOrEmpty(pdfPath))
+                    {
+                        _logger.LogError($"Không thể chuyển đổi file {document.FilePath} sang PDF");
+                        TempData["ErrorMessage"] = "Không thể chuyển đổi tài liệu sang dạng PDF để xem. Vui lòng tải xuống bản gốc.";
+                    }
+                }
+            }
             
             // Kiểm tra số trang người dùng được phép xem
-            int totalPages = GetDocumentPageCount(filePath);
+            string viewPath = !string.IsNullOrEmpty(pdfPath) ? pdfPath : document.FilePath;
+            string viewFilePath = Path.Combine(_hostEnvironment.WebRootPath, viewPath.TrimStart('/'));
+            
+            int totalPages = GetDocumentPageCount(viewFilePath);
             int allowedPages = hasPurchased ? totalPages : Math.Min(maxPreviewPages, totalPages);
             
             // Nếu người dùng đang cố xem trang vượt quá giới hạn cho phép
@@ -716,31 +750,59 @@ namespace SenseLib.Controllers
             ViewBag.HasPurchased = hasPurchased;
             ViewBag.IsPaid = document.IsPaid;
             ViewBag.DocumentTitle = document.Title;
-            ViewBag.FilePath = document.FilePath;
             
-            // Xử lý file DOCX nếu cần
-            string fileExtension = Path.GetExtension(filePath).ToLower();
-            if (fileExtension == ".docx" || fileExtension == ".doc")
+            // Nếu đã chuyển đổi sang PDF thành công, sử dụng đường dẫn PDF
+            if (!string.IsNullOrEmpty(pdfPath))
             {
-                try
-                {
-                    var docxService = HttpContext.RequestServices.GetService(typeof(IDocxService)) as IDocxService;
-                    if (docxService != null)
-                    {
-                        string docxHtml = await docxService.ConvertDocxToHtml(document.FilePath, page);
-                        ViewBag.DocxHtml = docxHtml;
-                        ViewBag.IsDocx = true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Lỗi khi xử lý file DOCX");
-                    TempData["ErrorMessage"] = $"Có lỗi khi xử lý tài liệu: {ex.Message}";
-                }
+                ViewBag.FilePath = pdfPath + $"?v={DateTime.Now.Ticks}"; // Thêm tham số ngăn cache
+                ViewBag.OriginalFilePath = document.FilePath;
+                ViewBag.IsDocx = false; // Không hiển thị HTML vì đã chuyển sang PDF
             }
             else
             {
-                ViewBag.IsDocx = false;
+                // Xử lý đường dẫn file để đảm bảo có dạng URL đúng
+                string webPath = document.FilePath;
+                
+                // Đảm bảo đường dẫn bắt đầu bằng /
+                if (!webPath.StartsWith("/"))
+                {
+                    webPath = "/" + webPath;
+                }
+                
+                // Thêm tham số ngăn cache để đảm bảo tải mới
+                ViewBag.FilePath = webPath + $"?v={DateTime.Now.Ticks}";
+                
+                // Xử lý file DOCX nếu cần và không có PDF
+                if ((fileExtension == ".docx" || fileExtension == ".doc") && string.IsNullOrEmpty(pdfPath))
+                {
+                    try
+                    {
+                        var docxService = HttpContext.RequestServices.GetService<IDocxService>();
+                        if (docxService != null)
+                        {
+                            string docxHtml = await docxService.ConvertDocxToHtml(document.FilePath, page);
+                            ViewBag.DocxHtml = docxHtml;
+                            ViewBag.IsDocx = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Lỗi khi xử lý file DOCX");
+                        TempData["ErrorMessage"] = $"Có lỗi khi xử lý tài liệu: {ex.Message}";
+                    }
+                }
+                else
+                {
+                    ViewBag.IsDocx = false;
+                }
+            }
+            
+            // Kiểm tra kích thước file để đưa ra cảnh báo cho file lớn
+            FileInfo fileInfo = new FileInfo(viewFilePath);
+            if (fileInfo.Length > 10 * 1024 * 1024) // 10MB
+            {
+                ViewBag.LargeFile = true;
+                ViewBag.FileSize = fileInfo.Length / (1024 * 1024) + " MB";
             }
             
             return View();
@@ -899,6 +961,109 @@ namespace SenseLib.Controllers
                 _logger.LogError(ex, "Lỗi khi lấy danh sách danh mục");
                 return Json(new List<object>());
             }
+        }
+
+        // GET: Document/DownloadPdf/5
+        [Authorize]
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var document = await _context.Documents
+                .Include(d => d.Downloads)
+                .FirstOrDefaultAsync(d => d.DocumentID == id);
+
+            if (document == null)
+            {
+                return NotFound();
+            }
+
+            // Kiểm tra xem người dùng đã mua tài liệu này chưa (nếu là tài liệu có phí)
+            if (document.IsPaid)
+            {
+                var hasPurchased = await _context.Purchases
+                    .AnyAsync(p => p.UserID == userId && p.DocumentID == id && p.Status == "Completed");
+
+                if (!hasPurchased)
+                {
+                    TempData["ErrorMessage"] = "Bạn cần mua tài liệu này để tải xuống.";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+            }
+
+            // Lấy dịch vụ chuyển đổi tài liệu
+            var documentConverter = HttpContext.RequestServices.GetService<IDocumentConverterService>();
+            string pdfPath = null;
+            
+            // Kiểm tra đường dẫn tệp gốc
+            string originalFilePath = Path.Combine(_hostEnvironment.WebRootPath, document.FilePath.TrimStart('/'));
+            if (!System.IO.File.Exists(originalFilePath))
+            {
+                _logger.LogError($"Tài liệu gốc không tồn tại tại đường dẫn: {originalFilePath}");
+                TempData["ErrorMessage"] = "Tài liệu không tồn tại.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            
+            // Nếu đã là file PDF, sử dụng trực tiếp
+            string fileExtension = Path.GetExtension(originalFilePath).ToLower();
+            if (fileExtension == ".pdf")
+            {
+                pdfPath = document.FilePath;
+            }
+            else if (documentConverter != null)
+            {
+                // Kiểm tra xem đã có bản PDF chưa
+                if (documentConverter.IsPdfAvailable(document.FilePath, document.DocumentID))
+                {
+                    pdfPath = documentConverter.GetPdfPath(document.FilePath, document.DocumentID);
+                }
+                else
+                {
+                    // Nếu chưa có, thực hiện chuyển đổi
+                    pdfPath = await documentConverter.ConvertToPdfAsync(document.FilePath, document.DocumentID);
+                    
+                    // Nếu chuyển đổi thất bại, hiển thị thông báo lỗi
+                    if (string.IsNullOrEmpty(pdfPath))
+                    {
+                        _logger.LogError($"Không thể chuyển đổi file {document.FilePath} sang PDF");
+                        TempData["ErrorMessage"] = "Không thể chuyển đổi tài liệu sang dạng PDF. Vui lòng tải xuống bản gốc.";
+                        return RedirectToAction(nameof(Details), new { id });
+                    }
+                }
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Dịch vụ chuyển đổi PDF không khả dụng.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            
+            // Đường dẫn tới file PDF
+            string pdfFilePath = Path.Combine(_hostEnvironment.WebRootPath, pdfPath.TrimStart('/'));
+            if (!System.IO.File.Exists(pdfFilePath))
+            {
+                _logger.LogError($"File PDF không tồn tại tại đường dẫn: {pdfFilePath}");
+                TempData["ErrorMessage"] = "File PDF không tồn tại.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            // Ghi lại lượt tải
+            document.Downloads.Add(new Download
+            {
+                DocumentID = id,
+                UserID = userId,
+                DownloadDate = DateTime.Now,
+                DownloadType = "PDF"
+            });
+            await _context.SaveChangesAsync();
+
+            // Tên file khi tải xuống
+            string fileName = document.Title + ".pdf";
+            
+            // Loại bỏ các ký tự không hợp lệ trong tên file
+            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+
+            // Trả về file để tải xuống
+            var fileBytes = System.IO.File.ReadAllBytes(pdfFilePath);
+            return File(fileBytes, "application/pdf", fileName);
         }
     }
 } 
