@@ -1,0 +1,399 @@
+@model SenseLib.Controllers.DocumentChatViewModel
+@{
+    ViewData["Title"] = $"Chat với tài liệu: {Model.Document.Title}";
+}
+
+<div class="container-fluid py-4">
+    <div class="row g-4">
+        <!-- Thông tin tài liệu - sidebar bên trái -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-body p-0">
+                    @if (!string.IsNullOrEmpty(Model.Document.ImagePath))
+                    {
+                        <img src="@Model.Document.ImagePath" class="w-100 h-auto" style="max-height:200px; object-fit:cover;" alt="@Model.Document.Title">
+                    }
+                    else
+                    {
+                        <img src="/images/document-placeholder.png" class="w-100 h-auto" style="max-height:200px; object-fit:cover;" alt="@Model.Document.Title">
+                    }
+                    
+                    <div class="p-3">
+                        <h5 class="fw-bold mb-1">@Model.Document.Title</h5>
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-folder me-1"></i> 
+                            @(Model.Document.Category?.CategoryName ?? "Chưa phân loại")
+                        </p>
+                        
+                        @if (!string.IsNullOrEmpty(Model.Document.Description))
+                        {
+                            <div class="mb-3 small">
+                                <p class="text-truncate-3">@Model.Document.Description</p>
+                            </div>
+                        }
+                        
+                        <div class="d-grid">
+                            <a href="/Document/Details/@Model.Document.DocumentID" class="btn btn-sm btn-outline-primary rounded-3">
+                                <i class="fas fa-info-circle me-2"></i>Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-lightbulb text-warning me-2"></i>Mẹo sử dụng</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2 d-flex">
+                            <span class="text-primary me-2">•</span>
+                            Đặt câu hỏi cụ thể về nội dung tài liệu
+                        </li>
+                        <li class="mb-2 d-flex">
+                            <span class="text-primary me-2">•</span>
+                            Chatbot trả lời dựa trên dữ liệu trong tài liệu
+                        </li>
+                        <li class="mb-2 d-flex">
+                            <span class="text-primary me-2">•</span>
+                            Nếu không tìm thấy thông tin, chatbot sẽ thông báo
+                        </li>
+                        <li class="d-flex">
+                            <span class="text-primary me-2">•</span>
+                            Tin nhắn được lưu trong phiên làm việc này
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Khu vực chat - khu vực chính -->
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary rounded-circle p-2 d-flex align-items-center justify-content-center me-3" style="width:40px; height:40px;">
+                                <i class="fas fa-robot text-white"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0 fw-bold">Chat với tài liệu</h5>
+                                <p class="text-muted mb-0 small">Đặt câu hỏi về nội dung tài liệu</p>
+                            </div>
+                        </div>
+                        <button id="clearChat" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                            <i class="fas fa-trash me-2"></i>Xóa trò chuyện
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0 d-flex flex-column" style="height: 600px;">
+                    <!-- Khu vực hiển thị tin nhắn -->
+                    <div id="chatMessages" class="flex-grow-1 p-3 overflow-auto">
+                        <div class="chat-message">
+                            <div class="chat-message-container assistant">
+                                <div class="message-content">
+                                    <p>Xin chào! Tôi là chatbot hỗ trợ trả lời câu hỏi về tài liệu <strong>@Model.Document.Title</strong>. Bạn có thể đặt câu hỏi về nội dung của tài liệu này, và tôi sẽ cố gắng trả lời dựa trên thông tin có trong tài liệu.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form nhập câu hỏi -->
+                    <div class="chat-input p-3 border-top">
+                        <div class="input-group">
+                            <input type="text" id="questionInput" class="form-control rounded-pill-start border-end-0" placeholder="Nhập câu hỏi của bạn..." aria-label="Câu hỏi">
+                            <button id="sendQuestion" class="btn btn-primary rounded-pill-end">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Styles {
+    <style>
+        /* Định dạng chung */
+        .rounded-pill-start {
+            border-top-left-radius: 50rem;
+            border-bottom-left-radius: 50rem;
+        }
+        
+        .rounded-pill-end {
+            border-top-right-radius: 50rem;
+            border-bottom-right-radius: 50rem;
+        }
+        
+        .text-truncate-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Định dạng tin nhắn */
+        .chat-message {
+            margin-bottom: 1rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-message-container {
+            display: inline-block;
+            max-width: 85%;
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            position: relative;
+        }
+        
+        .chat-message-container.assistant {
+            align-self: flex-start;
+            background-color: #f0f2f5;
+            color: #1e2022;
+        }
+        
+        .chat-message-container.user {
+            align-self: flex-end;
+            background-color: #0d6efd;
+            color: white;
+        }
+        
+        .message-content p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Hiệu ứng đang nhập */
+        .typing-indicator {
+            display: inline-block;
+            padding: 0.75rem 1rem;
+            background-color: #f0f2f5;
+            border-radius: 1rem;
+        }
+        
+        .typing-indicator span {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            margin-right: 3px;
+            background-color: #666;
+            border-radius: 50%;
+            animation: typing-animation 1.5s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @@keyframes typing-animation {
+            0% { transform: translateY(0); }
+            25% { transform: translateY(-5px); }
+            50% { transform: translateY(0); }
+            100% { transform: translateY(0); }
+        }
+    </style>
+}     
+ 
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            const documentId = @Model.Document.DocumentID;
+            let chatHistory = [];
+            
+            // Thiết lập sự kiện khi nhấn Enter trong input
+            $("#questionInput").keypress(function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    sendQuestion();
+                }
+            });
+            
+            // Thiết lập sự kiện khi nhấn nút Gửi
+            $("#sendQuestion").click(function() {
+                sendQuestion();
+            });
+            
+            // Thiết lập sự kiện khi nhấn nút Xóa trò chuyện
+            $("#clearChat").click(function() {
+                clearChat();
+            });
+            
+            // Hàm gửi câu hỏi
+            function sendQuestion() {
+                const question = $("#questionInput").val().trim();
+                
+                if (question === "") {
+                    return;
+                }
+                
+                // Hiển thị câu hỏi của người dùng
+                addUserMessage(question);
+                
+                // Xóa trắng input
+                $("#questionInput").val("");
+                
+                // Hiển thị đang nhập
+                showTypingIndicator();
+                
+                // Lưu câu hỏi vào lịch sử
+                chatHistory.push({ role: "user", content: question });
+                
+                // Gửi câu hỏi đến server
+                $.ajax({
+                    url: "/Chatbot/AskQuestion",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        documentId: documentId,
+                        question: question,
+                        chatHistory: chatHistory
+                    }),
+                    headers: {
+                        "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        // Ẩn typing indicator
+                        hideTypingIndicator();
+                        
+                        if (response.success) {
+                            // Hiển thị câu trả lời
+                            addAssistantMessage(response.answer);
+                            
+                            // Lưu câu trả lời vào lịch sử
+                            chatHistory.push({ role: "assistant", content: response.answer });
+                        } else {
+                            // Hiển thị lỗi
+                            console.error("Lỗi từ server:", response.error);
+                            addAssistantMessage("Xin lỗi, tôi không thể trả lời câu hỏi này. " + (response.error || "Vui lòng thử lại sau."));
+                        }
+                        
+                        // Cuộn xuống dưới cùng
+                        scrollToBottom();
+                    },
+                    error: function(xhr, status, error) {
+                        // Ẩn typing indicator
+                        hideTypingIndicator();
+                        
+                        // Tạo thông báo lỗi
+                        let errorMessage = "Đã xảy ra lỗi khi xử lý câu hỏi. ";
+                        
+                        try {
+                            // Cố gắng phân tích phản hồi dưới dạng JSON
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            if (errorResponse && errorResponse.message) {
+                                errorMessage += errorResponse.message;
+                            }
+                        } catch (e) {
+                            // Nếu không phải JSON, sử dụng thông báo lỗi chung
+                            errorMessage += "Mã lỗi: " + xhr.status;
+                        }
+                        
+                        // Hiển thị lỗi
+                        addAssistantMessage(errorMessage);
+                        
+                        // Cuộn xuống dưới cùng
+                        scrollToBottom();
+                    }
+                });
+            }
+            
+            // Hàm thêm tin nhắn của người dùng
+            function addUserMessage(message) {
+                const messageHtml = `
+                    <div class="chat-message">
+                        <div class="chat-message-container user">
+                            <div class="message-content">
+                                <p>${escapeHtml(message)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                $("#chatMessages").append(messageHtml);
+                scrollToBottom();
+            }
+            
+            // Hàm thêm tin nhắn của assistant
+            function addAssistantMessage(message) {
+                // Chuyển đổi dấu xuống dòng thành <br>
+                const formattedMessage = message.replace(/\n/g, '<br>');
+                
+                const messageHtml = `
+                    <div class="chat-message">
+                        <div class="chat-message-container assistant">
+                            <div class="message-content">
+                                <p>${formattedMessage}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                $("#chatMessages").append(messageHtml);
+                scrollToBottom();
+            }
+            
+            // Hiển thị typing indicator
+            function showTypingIndicator() {
+                const typingHtml = `
+                    <div class="chat-message" id="typingIndicator">
+                        <div class="typing-indicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                `;
+                
+                $("#chatMessages").append(typingHtml);
+                scrollToBottom();
+            }
+            
+            // Ẩn typing indicator
+            function hideTypingIndicator() {
+                $("#typingIndicator").remove();
+            }
+            
+            // Cuộn xuống cuối cùng
+            function scrollToBottom() {
+                const chatContainer = document.getElementById("chatMessages");
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            // Xóa trò chuyện
+            function clearChat() {
+                if (confirm("Bạn có chắc chắn muốn xóa toàn bộ trò chuyện này?")) {
+                    chatHistory = [];
+                    $("#chatMessages").html(`
+                        <div class="chat-message">
+                            <div class="chat-message-container assistant">
+                                <div class="message-content">
+                                    <p>Xin chào! Tôi là chatbot hỗ trợ trả lời câu hỏi về tài liệu <strong>${escapeHtml(document.title.split(': ')[1] || document.title)}</strong>. Bạn có thể đặt câu hỏi về nội dung của tài liệu này, và tôi sẽ cố gắng trả lời dựa trên thông tin có trong tài liệu.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }
+            }
+            
+            // Escape HTML để tránh XSS
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        });
+    </script>
+} 

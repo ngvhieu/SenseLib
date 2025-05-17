@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/css/custom-pages.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    @RenderSection("Styles", required: false)
     <style>
         /* Style riêng cho trang chủ */
         
@@ -536,6 +537,9 @@
                                 </a>
                                 <a asp-controller="Upload" asp-action="Index" class="user-dropdown-item">
                                     <i class="fas fa-file-alt"></i> Tài liệu của tôi
+                                </a>
+                                <a asp-controller="Chatbot" asp-action="Index" class="user-dropdown-item">
+                                    <i class="fas fa-robot"></i> Chatbot hỏi đáp
                                 </a>
                                 @* <a asp-controller="Wallet" asp-action="Index" class="user-dropdown-item"> *@
                                 @*     <i class="fas fa-wallet"></i> Ví của tôi *@

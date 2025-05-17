@@ -4,59 +4,456 @@
 }
 
 <style>
+    :root {
+        --color-primary: #3a6ea5;
+        --color-text: #333;
+        --color-text-light: #6c757d;
+        --color-background: #fff;
+        --color-border: #eaeaea;
+        --color-accent: #00a8a8;
+        --color-free: #76b852;
+        --color-premium: #f7ba2b;
+        --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        --border-radius: 0.5rem;
+        --transition: all 0.2s ease;
+    }
+    
+    /* Card styles - simplified and minimalist */
+    .document-card {
+        position: relative;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+        height: 100%;
+        background-color: var(--color-background);
+        border: 1px solid var(--color-border);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .document-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    .document-card img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    
+    .document-card-content {
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    
+    .document-card-content h3 {
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        line-height: 1.4;
+        color: var(--color-text);
+        min-height: 2.8rem;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    
+    /* Thông tin chính: tác giả và danh mục */
+    .document-primary-info {
+        display: flex;
+        margin-bottom: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--color-text);
+        flex-wrap: wrap;
+    }
+    
+    .primary-info-item {
+        display: flex;
+        align-items: center;
+        margin-right: 1rem;
+        margin-bottom: 0.5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    
+    .primary-info-item i {
+        margin-right: 0.4rem;
+        font-size: 0.9rem;
+        color: var(--color-accent);
+    }
+    
+    .primary-info-item span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .document-card-content p {
+        color: var(--color-text-light);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        min-height: 2.5rem;
+        max-height: 3.8rem;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    
+    /* Chi tiết tài liệu */
+    .document-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+    }
+    
+    .document-detail-item {
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .document-detail-item i {
+        margin-right: 0.4rem;
+        font-size: 0.8rem;
+        color: var(--color-primary);
+    }
+    
+    .document-detail-item span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Footer của card */
+    .document-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto; /* Đẩy footer xuống cuối card */
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--color-border);
+    }
+    
+    .document-card-footer .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 100px;
+    }
+    
     .document-price {
         display: flex;
         align-items: center;
-        margin-bottom: 1rem;
     }
     
+    /* Price tags - simplified */
     .price-tag {
-        background-color: #3498db;
+        background-color: var(--color-primary);
         color: white;
-        padding: 4px 10px;
-        border-radius: 20px;
+        padding: 0.3rem 0.7rem;
+        border-radius: var(--border-radius);
         font-weight: 500;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        display: inline-block;
     }
     
     .free-tag {
-        background-color: #2ecc71;
+        background-color: var(--color-free);
         color: white;
-        padding: 4px 10px;
-        border-radius: 20px;
+        padding: 0.3rem 0.7rem;
+        border-radius: var(--border-radius);
         font-weight: 500;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        display: inline-block;
     }
     
+    /* Status labels - simplified */
     .document-status {
         position: absolute;
-        top: 10px;
-        right: 10px;
+        top: 0.75rem;
+        right: 0.75rem;
         z-index: 10;
     }
     
     .status-premium {
-        background-color: #f39c12;
+        background-color: var(--color-premium);
         color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: bold;
+        padding: 0.3rem 0.6rem;
+        border-radius: var(--border-radius);
+        font-size: 0.7rem;
+        font-weight: 600;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .status-free {
-        background-color: #2ecc71;
+        background-color: var(--color-free);
         color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: bold;
+        padding: 0.3rem 0.6rem;
+        border-radius: var(--border-radius);
+        font-size: 0.7rem;
+        font-weight: 600;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
-    .document-card {
+    .file-format {
+        background-color: var(--color-text-light);
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: var(--border-radius);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 5px;
+    }
+    
+    /* Section styles - clean and minimal */
+    .section {
+        padding: 3.5rem 0;
+    }
+    
+    .section-title {
+        text-align: center;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        font-size: 1.75rem;
+        color: var(--color-text);
+    }
+    
+    /* Grid layout - simplified */
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    /* Stats section - cleaner design */
+    .stats {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin: 0 -0.75rem;
+    }
+    
+    .stat-card {
+        flex: 1;
+        min-width: 180px;
+        text-align: center;
+        padding: 1.5rem 1rem;
+        margin: 0 0.75rem 1.5rem;
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        border: 1px solid var(--color-border);
+    }
+    
+    .stat-card i {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+        color: var(--color-primary);
+    }
+    
+    .stat-card h3 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--color-text);
+    }
+    
+    .stat-card p {
+        font-size: 0.9rem;
+        color: var(--color-text-light);
+        margin: 0;
+    }
+    
+    /* CTA section - simplified and elegant */
+    .cta-section {
+        background-color: var(--color-primary);
+        color: white;
+        padding: 4rem 0;
+    }
+    
+    .cta-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .cta-section p {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+    }
+    
+    .cta-section .btn {
+        padding: 0.6rem 1.5rem;
+        font-weight: 500;
+        font-size: 0.95rem;
+        background-color: white;
+        color: var(--color-primary);
+        border: none;
+    }
+    
+    .cta-section .btn:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* Banner section - sửa lại để khớp với carousel */
+    .main-banner {
         position: relative;
+        overflow: hidden;
+        height: 500px;
+    }
+    
+    .banner-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .banner-content #slideshow-container,
+    .banner-content .carousel,
+    .banner-content .carousel-inner,
+    .banner-content .carousel-item {
+        height: 100% !important;
+    }
+    
+    .banner-content .carousel-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        z-index: 5;
+    }
+    
+    .hero-content {
+        max-width: 650px;
+        padding: 2rem;
+        color: white;
+        position: relative;
+    }
+    
+    .hero-content h1 {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+    }
+    
+    .hero-content p {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+    }
+    
+    .hero-content .btn {
+        padding: 0.6rem 1.5rem;
+        background-color: var(--color-primary);
+        color: white;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        border: none;
+    }
+    
+    .hero-content .btn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Button styles - simplified */
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: var(--color-primary);
+        color: white;
+        text-decoration: none;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        border: none;
+        font-weight: 500;
+        text-align: center;
+    }
+    
+    .btn:hover {
+        background-color: #2c5382;
+    }
+    
+    .btn-lg {
+        padding: 0.6rem 1.25rem;
+        font-size: 1rem;
+    }
+    
+    /* Responsive adjustments */
+    @@media (max-width: 992px) {
+        .hero-content h1 {
+            font-size: 2.25rem;
+        }
+        
+        .documents-grid {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .main-banner {
+            height: 400px;
+        }
+        
+        .hero-content h1 {
+            font-size: 1.75rem;
+        }
+        
+        .hero-content p {
+            font-size: 0.95rem;
+        }
+        
+        .section {
+            padding: 2.5rem 0;
+        }
+        
+        .stats {
+            flex-direction: column;
+        }
+        
+        .stat-card {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        .document-details {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -65,15 +462,15 @@
     <div class="banner-content">
         <!-- Slideshow Component -->
         @await Component.InvokeAsync("Slideshow")
-        
-        <!-- Hero Content Overlay -->
-        <div class="hero-overlay">
-            <div class="container">
-                <div class="hero-content">
-                    <h1>Khám Phá Kho Tàng Tri Thức</h1>
-                    <p>Truy cập hàng nghìn tài liệu học thuật, sách điện tử và tài nguyên giáo dục.</p>
-                    <a asp-controller="Document" asp-action="Index" class="btn">Khám phá ngay</a>
-                </div>
+    </div>
+    
+    <!-- Hero Content Overlay -->
+    <div class="hero-overlay">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Khám Phá Kho Tàng Tri Thức</h1>
+                <p>Truy cập hàng nghìn tài liệu học thuật, sách điện tử và tài nguyên giáo dục.</p>
+                <a asp-controller="Document" asp-action="Index" class="btn">Khám phá ngay</a>
             </div>
         </div>
     </div>
@@ -128,28 +525,57 @@
                             {
                                 <span class="status-free">Miễn phí</span>
                             }
+                            @if (!string.IsNullOrEmpty(document.FilePath))
+                            {
+                                <span class="file-format">@System.IO.Path.GetExtension(document.FilePath).TrimStart('.').ToUpper()</span>
+                            }
                         </div>
                         <img src="@(string.IsNullOrEmpty(document.ImagePath) ? 
                                   (string.IsNullOrEmpty(document.FilePath) ? "/images/document-placeholder.jpg" : document.FilePath) 
                                   : document.ImagePath)" alt="@document.Title">
                         <div class="document-card-content">
                             <h3>@document.Title</h3>
-                            <div class="document-meta">
-                                <span><i class="bi bi-person"></i> @(document.Author?.AuthorName ?? "Không xác định")</span>
-                                <span><i class="bi bi-calendar3"></i> @document.UploadDate.ToString("dd/MM/yyyy")</span>
+                            
+                            <!-- Thông tin quan trọng: Tác giả và danh mục -->
+                            <div class="document-primary-info">
+                                <div class="primary-info-item">
+                                    <i class="bi bi-person"></i>
+                                    <span>@(document.Author?.AuthorName ?? "Không xác định")</span>
+                                </div>
+                                <div class="primary-info-item">
+                                    <i class="bi bi-folder"></i>
+                                    <span>@(document.Category?.CategoryName ?? "Chưa phân loại")</span>
+                                </div>
                             </div>
-                            <p>@(document.Description?.Length > 100 ? document.Description.Substring(0, 100) + "..." : document.Description)</p>
-                            <div class="document-price mb-3">
-                                @if (document.IsPaid)
-                                {
-                                    <span class="price-tag">@document.Price?.ToString("N0") ₫</span>
-                                }
-                                else
-                                {
-                                    <span class="free-tag">Miễn phí</span>
-                                }
+                            
+                            <p>@(document.Description?.Length > 80 ? document.Description.Substring(0, 80) + "..." : document.Description)</p>
+                            
+                            <!-- Thông tin thứ yếu -->
+                            <div class="document-details">
+                                <div class="document-detail-item">
+                                    <i class="bi bi-calendar3"></i>
+                                    <span>@document.UploadDate.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <div class="document-detail-item">
+                                    <i class="bi bi-building"></i>
+                                    <span>@(document.Publisher?.PublisherName ?? "Chưa có")</span>
+                                </div>
                             </div>
-                            <a asp-controller="Document" asp-action="Details" asp-route-id="@document.DocumentID" class="btn">Xem chi tiết</a>
+                            
+                            <!-- Giá và nút xem chi tiết -->
+                            <div class="document-card-footer">
+                                <div class="document-price">
+                                    @if (document.IsPaid)
+                                    {
+                                        <span class="price-tag">@document.Price?.ToString("N0") ₫</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="free-tag">Miễn phí</span>
+                                    }
+                                </div>
+                                <a asp-controller="Document" asp-action="Details" asp-route-id="@document.DocumentID" class="btn">Xem chi tiết</a>
+                            </div>
                         </div>
                     </div>
                 }
@@ -168,16 +594,18 @@
 
 <!-- CTA Section -->
 <section class="section cta-section">
-    <div class="container" style="text-align: center;">
-        <h2 style="margin-bottom: 1.5rem;">Bắt Đầu Khám Phá Ngay Hôm Nay</h2>
-        <p style="margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">Đăng ký tài khoản miễn phí để truy cập đến kho tàng tri thức đồ sộ và tận hưởng những tiện ích độc quyền dành cho người dùng SenseLib.</p>
-        @if (!User.Identity.IsAuthenticated)
-        {
-            <a asp-controller="Account" asp-action="Register" class="btn" style="background-color: #fff; color: var(--primary-color);">Đăng ký miễn phí</a>
-        }
-        else
-        {
-            <a asp-controller="Document" asp-action="Index" class="btn" style="background-color: #fff; color: var(--primary-color);">Khám phá tài liệu</a>
-        }
+    <div class="container">
+        <div class="text-center">
+            <h2>Bắt Đầu Khám Phá Ngay Hôm Nay</h2>
+            <p class="mx-auto" style="max-width: 600px;">Đăng ký tài khoản miễn phí để truy cập đến kho tàng tri thức đồ sộ và tận hưởng những tiện ích độc quyền dành cho người dùng SenseLib.</p>
+            @if (!User.Identity.IsAuthenticated)
+            {
+                <a asp-controller="Account" asp-action="Register" class="btn" style="background-color: white; color: var(--color-primary);">Đăng ký miễn phí</a>
+            }
+            else
+            {
+                <a asp-controller="Document" asp-action="Index" class="btn" style="background-color: white; color: var(--color-primary);">Khám phá tài liệu</a>
+            }
+        </div>
     </div>
 </section>

@@ -1,0 +1,101 @@
+@{
+    ViewData["Title"] = "Chatbot tài liệu";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">Chatbot Tài Liệu</h2>
+                <p class="text-muted">Đặt câu hỏi và nhận câu trả lời dựa trên nội dung của tài liệu</p>
+            </div>
+            
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 d-flex align-items-center justify-content-center me-3" style="width:48px; height:48px;">
+                            <i class="fas fa-robot text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Bắt đầu trò chuyện</h5>
+                            <p class="text-muted mb-0 small">Chọn một tài liệu để bắt đầu hỏi đáp</p>
+                        </div>
+                    </div>
+                    
+                    <div id="recentDocuments" class="mt-4">
+                        <div class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                            <span class="ms-2">Đang tải danh sách tài liệu...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-lightbulb text-warning me-2"></i>Mẹo sử dụng</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2 d-flex align-items-center">
+                            <span class="bg-primary bg-opacity-10 rounded-circle p-1 d-flex align-items-center justify-content-center me-2" style="width:24px; height:24px;">
+                                <i class="fas fa-check text-primary small"></i>
+                            </span>
+                            <span>Đặt câu hỏi cụ thể về nội dung tài liệu</span>
+                        </li>
+                        <li class="mb-2 d-flex align-items-center">
+                            <span class="bg-primary bg-opacity-10 rounded-circle p-1 d-flex align-items-center justify-content-center me-2" style="width:24px; height:24px;">
+                                <i class="fas fa-check text-primary small"></i>
+                            </span>
+                            <span>Chatbot sẽ trả lời dựa trên dữ liệu trong tài liệu</span>
+                        </li>
+                        <li class="mb-2 d-flex align-items-center">
+                            <span class="bg-primary bg-opacity-10 rounded-circle p-1 d-flex align-items-center justify-content-center me-2" style="width:24px; height:24px;">
+                                <i class="fas fa-check text-primary small"></i>
+                            </span>
+                            <span>Hệ thống sẽ lưu lịch sử hội thoại trong phiên làm việc</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/Document" class="btn btn-outline-primary rounded-pill px-4 py-2">
+                        <i class="fas fa-search me-2"></i>Tìm tài liệu
+                    </a>
+                    <a href="/Upload" class="btn btn-outline-success rounded-pill px-4 py-2">
+                        <i class="fas fa-upload me-2"></i>Tải lên tài liệu
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Tải danh sách tài liệu gần đây
+            loadRecentDocuments();
+            
+            function loadRecentDocuments() {
+                // Mô phỏng tải dữ liệu
+                setTimeout(function() {
+                    $("#recentDocuments").html(`
+                        <div class="alert alert-light border rounded-4 py-3 px-4 mb-0">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-info bg-opacity-10 rounded-circle p-2 d-flex align-items-center justify-content-center me-3" style="width:40px; height:40px;">
+                                    <i class="fas fa-info-circle text-info"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0">Bạn chưa có tài liệu nào. Vui lòng tìm kiếm hoặc tải lên tài liệu để bắt đầu.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }, 1000);
+            }
+        });
+    </script>
+} 

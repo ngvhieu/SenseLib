@@ -4,8 +4,22 @@
 }
 
 <style>
+    :root {
+        --color-primary: #3a6ea5;
+        --color-text: #333;
+        --color-text-light: #6c757d;
+        --color-background: #fff;
+        --color-border: #eaeaea;
+        --color-accent: #00a8a8;
+        --color-free: #76b852;
+        --color-premium: #f7ba2b;
+        --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        --border-radius: 0.5rem;
+        --transition: all 0.2s ease;
+    }
+    
     .page-banner {
-        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        background: linear-gradient(to right, var(--color-primary), var(--color-accent));
         padding: 3rem 0;
         color: white;
         position: relative;
@@ -46,22 +60,39 @@
         background-color: #fff;
         border-radius: var(--border-radius);
         box-shadow: var(--box-shadow);
-        padding: 1.5rem;
+        padding: 1.25rem;
         position: sticky;
         top: 90px;
+        margin-bottom: 1.5rem;
     }
     
     .filter-title {
-        font-size: 1.2rem;
-        color: var(--primary-color);
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.8rem;
-        border-bottom: 2px solid var(--secondary-color);
+        font-size: 1.1rem;
+        color: var(--color-primary);
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.7rem;
+        border-bottom: 2px solid var(--color-accent);
         position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .filter-title i {
+        margin-right: 0.5rem;
+    }
+    
+    .filter-toggle {
+        display: none;
+        background: none;
+        border: none;
+        color: var(--color-primary);
+        font-size: 1.2rem;
+        cursor: pointer;
     }
     
     .filter-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
     }
     
     .filter-group:last-child {
@@ -70,11 +101,17 @@
     
     .filter-group-title {
         font-weight: 500;
-        margin-bottom: 0.8rem;
+        margin-bottom: 0.7rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         cursor: pointer;
+        font-size: 0.95rem;
+    }
+    
+    .filter-group-title i {
+        margin-right: 0.5rem;
+        color: var(--color-accent);
     }
     
     .filter-options {
@@ -105,7 +142,7 @@
     
     .documents-count {
         font-size: 1rem;
-        color: var(--primary-color);
+        color: var(--color-primary);
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -114,7 +151,7 @@
     
     .documents-count i {
         margin-right: 5px;
-        color: var(--secondary-color);
+        color: var(--color-accent);
     }
     
     .documents-count span {
@@ -148,7 +185,7 @@
     
     .sort-options select:focus {
         outline: none;
-        border-color: var(--secondary-color);
+        border-color: var(--color-accent);
     }
     
     .documents-grid {
@@ -158,33 +195,80 @@
     }
     
     .document-card {
-        background-color: #fff;
+        position: relative;
         border-radius: var(--border-radius);
         overflow: hidden;
-        transition: transform 0.3s, box-shadow 0.3s;
         box-shadow: var(--box-shadow);
-        position: relative;
+        transition: var(--transition);
+        height: 100%;
+        background-color: var(--color-background);
+        border: 1px solid var(--color-border);
+        display: flex;
+        flex-direction: column;
     }
     
     .document-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-3px);
     }
     
     .document-card img {
         width: 100%;
         height: 200px;
         object-fit: cover;
+        flex-shrink: 0;
     }
     
     .document-card-content {
-        padding: 1.2rem;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
     }
     
     .document-card h3 {
-        font-size: 1.2rem;
-        margin-bottom: 0.8rem;
-        color: var(--primary-color);
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        line-height: 1.4;
+        color: var(--color-text);
+        min-height: 2.8rem;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    
+    .document-primary-info {
+        display: flex;
+        margin-bottom: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--color-text);
+        flex-wrap: wrap;
+    }
+    
+    .primary-info-item {
+        display: flex;
+        align-items: center;
+        margin-right: 1rem;
+        margin-bottom: 0.5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    
+    .primary-info-item i {
+        margin-right: 0.4rem;
+        font-size: 0.9rem;
+        color: var(--color-accent);
+    }
+    
+    .primary-info-item span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .document-meta {
@@ -196,61 +280,118 @@
     }
     
     .document-card p {
-        color: #555;
-        margin-bottom: 1.2rem;
-        font-size: 0.95rem;
+        color: var(--color-text-light);
+        font-size: 0.85rem;
         line-height: 1.5;
+        margin-bottom: 1rem;
+        min-height: 2.5rem;
+        max-height: 3.8rem;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
     }
     
     .document-price {
         display: flex;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 0 !important;
     }
     
     .price-tag {
-        background-color: #3498db;
+        background-color: var(--color-primary);
         color: white;
-        padding: 4px 10px;
-        border-radius: 20px;
+        padding: 0.3rem 0.7rem;
+        border-radius: var(--border-radius);
         font-weight: 500;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        display: inline-block;
     }
     
     .free-tag {
-        background-color: #2ecc71;
+        background-color: var(--color-free);
         color: white;
-        padding: 4px 10px;
-        border-radius: 20px;
+        padding: 0.3rem 0.7rem;
+        border-radius: var(--border-radius);
         font-weight: 500;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        display: inline-block;
     }
     
     .document-status {
         position: absolute;
-        top: 10px;
-        right: 10px;
+        top: 0.75rem;
+        right: 0.75rem;
         z-index: 10;
     }
     
     .status-premium {
-        background-color: #f39c12;
+        background-color: var(--color-premium);
         color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: bold;
+        padding: 0.3rem 0.6rem;
+        border-radius: var(--border-radius);
+        font-size: 0.7rem;
+        font-weight: 600;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .status-free {
-        background-color: #2ecc71;
+        background-color: var(--color-free);
         color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: bold;
+        padding: 0.3rem 0.6rem;
+        border-radius: var(--border-radius);
+        font-size: 0.7rem;
+        font-weight: 600;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .file-format {
+        background-color: var(--color-text-light);
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: var(--border-radius);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 5px;
+    }
+    
+    .purchased-tag {
+        background-color: #28a745;
+        color: white;
+        padding: 0.3rem 0.7rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: var(--color-primary);
+        color: white;
+        text-decoration: none;
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        border: none;
+        font-weight: 500;
+        text-align: center;
+    }
+    
+    .btn:hover {
+        background-color: #2c5382;
+    }
+    
+    .btn-success {
+        background-color: var(--color-free);
+    }
+    
+    .btn-success:hover {
+        background-color: #619b44;
     }
     
     .pager {
@@ -268,14 +409,14 @@
         margin: 0 5px;
         border-radius: 50%;
         background-color: #fff;
-        color: var(--primary-color);
+        color: var(--color-primary);
         text-decoration: none;
         transition: all 0.3s;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
     
     .pager a:hover, .pager a.active {
-        background-color: var(--primary-color);
+        background-color: var(--color-primary);
         color: white;
     }
     
@@ -284,9 +425,33 @@
         pointer-events: none;
     }
 
+    .filter-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .filter-actions .btn {
+        flex: 1;
+        height: auto;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .filter-actions .btn i {
+        margin-right: 0.5rem;
+    }
+
     @@media (max-width: 992px) {
         .documents-grid {
             grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .filter-sidebar {
+            position: relative;
+            top: 0;
         }
     }
     
@@ -303,17 +468,94 @@
         .documents-grid {
             grid-template-columns: 1fr;
         }
+        
+        .document-card-footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+        }
+        
+        .document-card-footer .btn {
+            width: 100%;
+        }
+        
+        .filter-toggle {
+            display: block;
+        }
+        
+        .filter-content {
+            display: none;
+        }
+        
+        .filter-content.show {
+            display: block;
+        }
+        
+        .filter-actions {
+            flex-direction: column;
+        }
+        
+        .filter-actions .btn {
+            width: 100%;
+        }
     }
-
-    .purchased-tag {
-        background-color: #28a745;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-weight: bold;
-        font-size: 0.85rem;
-        margin-right: 8px;
-        display: inline-block;
+    
+    /* Chi tiết tài liệu */
+    .document-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+    }
+    
+    .document-detail-item {
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .document-detail-item i {
+        margin-right: 0.4rem;
+        font-size: 0.8rem;
+        color: var(--color-primary);
+    }
+    
+    .document-detail-item span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Footer của card */
+    .document-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--color-border);
+    }
+    
+    .document-card-footer .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 100px;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        margin-left: 0.5rem;
+        height: auto;
+        min-width: auto;
     }
 </style>
 
@@ -333,83 +575,90 @@
             <div class="col-lg-3">
                 <div class="filter-sidebar">
                     <h3 class="filter-title">
-                        <i class="bi bi-sliders2"></i> Bộ lọc tìm kiếm
+                        <div>
+                            <i class="bi bi-sliders2"></i> Bộ lọc tìm kiếm
+                        </div>
+                        <button type="button" class="filter-toggle" id="filterToggle">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
                     </h3>
                     
-                    <form id="filter-form" method="get" asp-action="Index">
-                        <div class="filter-group">
-                            <div class="filter-group-title">
-                                <span><i class="bi bi-search"></i> Tìm kiếm</span>
-                            </div>
-                            <div class="filter-options">
-                                <div class="form-group">
-                                    <input type="text" name="searchString" id="searchString" class="form-control" 
-                                           placeholder="Nhập từ khóa..." value="@ViewBag.CurrentSearch">
+                    <div class="filter-content" id="filterContent">
+                        <form id="filter-form" method="get" asp-action="Index">
+                            <div class="filter-group">
+                                <div class="filter-group-title">
+                                    <span><i class="bi bi-search"></i> Tìm kiếm</span>
+                                </div>
+                                <div class="filter-options">
+                                    <div class="form-group">
+                                        <input type="text" name="searchString" id="searchString" class="form-control" 
+                                               placeholder="Nhập từ khóa..." value="@ViewBag.CurrentSearch">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="filter-group">
-                            <div class="filter-group-title">
-                                <span><i class="bi bi-folder"></i> Danh mục</span>
-                            </div>
-                            <div class="filter-options">
-                                <label class="filter-checkbox">
-                                    <input type="radio" name="categoryId" value="0" @(ViewBag.CategoryId == null || ViewBag.CategoryId == 0 ? "checked" : "")> Tất cả
-                                </label>
-                                @if (ViewBag.Categories != null)
-                                {
-                                    foreach (var category in ViewBag.Categories)
+                            
+                            <div class="filter-group">
+                                <div class="filter-group-title">
+                                    <span><i class="bi bi-folder"></i> Danh mục</span>
+                                </div>
+                                <div class="filter-options">
+                                    <label class="filter-checkbox">
+                                        <input type="radio" name="categoryId" value="0" @(ViewBag.CategoryId == null || ViewBag.CategoryId == 0 ? "checked" : "")> Tất cả
+                                    </label>
+                                    @if (ViewBag.Categories != null)
                                     {
-                                        <label class="filter-checkbox">
-                                            <input type="radio" name="categoryId" value="@category.CategoryID" 
-                                                   @(ViewBag.CategoryId == category.CategoryID ? "checked" : "")> @category.CategoryName
-                                        </label>
+                                        foreach (var category in ViewBag.Categories)
+                                        {
+                                            <label class="filter-checkbox">
+                                                <input type="radio" name="categoryId" value="@category.CategoryID" 
+                                                       @(ViewBag.CategoryId == category.CategoryID ? "checked" : "")> @category.CategoryName
+                                            </label>
+                                        }
                                     }
-                                }
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="filter-group">
-                            <div class="filter-group-title">
-                                <span><i class="bi bi-tag"></i> Loại tài liệu</span>
+                            
+                            <div class="filter-group">
+                                <div class="filter-group-title">
+                                    <span><i class="bi bi-tag"></i> Loại tài liệu</span>
+                                </div>
+                                <div class="filter-options">
+                                    <label class="filter-checkbox">
+                                        <input type="radio" name="priceType" value="all" @(ViewBag.PriceType == "all" || ViewBag.PriceType == null ? "checked" : "")> Tất cả
+                                    </label>
+                                    <label class="filter-checkbox">
+                                        <input type="radio" name="priceType" value="free" @(ViewBag.PriceType == "free" ? "checked" : "")> Miễn phí
+                                    </label>
+                                    <label class="filter-checkbox">
+                                        <input type="radio" name="priceType" value="paid" @(ViewBag.PriceType == "paid" ? "checked" : "")> Có phí
+                                    </label>
+                                </div>
                             </div>
-                            <div class="filter-options">
-                                <label class="filter-checkbox">
-                                    <input type="radio" name="priceType" value="all" @(ViewBag.PriceType == "all" || ViewBag.PriceType == null ? "checked" : "")> Tất cả
-                                </label>
-                                <label class="filter-checkbox">
-                                    <input type="radio" name="priceType" value="free" @(ViewBag.PriceType == "free" ? "checked" : "")> Miễn phí
-                                </label>
-                                <label class="filter-checkbox">
-                                    <input type="radio" name="priceType" value="paid" @(ViewBag.PriceType == "paid" ? "checked" : "")> Có phí
-                                </label>
+                            
+                            <div class="filter-group">
+                                <div class="filter-group-title">
+                                    <span><i class="bi bi-sort-down"></i> Sắp xếp theo</span>
+                                </div>
+                                <div class="filter-options">
+                                    <select name="sortOrder" id="sortOrder" class="form-select">
+                                        <option value="date_desc" selected="@(ViewBag.SortOrder == "date_desc")">Mới nhất</option>
+                                        <option value="date" selected="@(ViewBag.SortOrder == "date")">Cũ nhất</option>
+                                        <option value="title" selected="@(ViewBag.SortOrder == "title")">Tên A-Z</option>
+                                        <option value="title_desc" selected="@(ViewBag.SortOrder == "title_desc")">Tên Z-A</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="filter-group">
-                            <div class="filter-group-title">
-                                <span><i class="bi bi-sort-down"></i> Sắp xếp theo</span>
+                            
+                            <div class="filter-actions mt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-funnel"></i> Lọc
+                                </button>
+                                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
+                                </a>
                             </div>
-                            <div class="filter-options">
-                                <select name="sortOrder" id="sortOrder" class="form-select">
-                                    <option value="date_desc" selected="@(ViewBag.SortOrder == "date_desc")">Mới nhất</option>
-                                    <option value="date" selected="@(ViewBag.SortOrder == "date")">Cũ nhất</option>
-                                    <option value="title" selected="@(ViewBag.SortOrder == "title")">Tên A-Z</option>
-                                    <option value="title_desc" selected="@(ViewBag.SortOrder == "title_desc")">Tên Z-A</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="filter-actions mt-3">
-                            <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">
-                                <i class="bi bi-funnel"></i> Lọc
-                            </button>
-                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary" style="padding: 10px 20px;">
-                                <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
-                            </a>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
             
@@ -460,38 +709,65 @@
                                 {
                                     <span class="status-free">Miễn phí</span>
                                 }
+                                @if (!string.IsNullOrEmpty(document.FilePath))
+                                {
+                                    <span class="file-format">@System.IO.Path.GetExtension(document.FilePath).TrimStart('.').ToUpper()</span>
+                                }
                             </div>
                             <img src="@(string.IsNullOrEmpty(document.ImagePath) ? 
                                       (string.IsNullOrEmpty(document.FilePath) ? "/images/document-placeholder.jpg" : document.FilePath) 
                                       : document.ImagePath)" alt="@document.Title">
                             <div class="document-card-content">
                                 <h3>@document.Title</h3>
-                                <div class="document-meta">
-                                    <span><i class="bi bi-person"></i> @(document.Author?.AuthorName ?? "Không xác định")</span>
-                                    <span><i class="bi bi-calendar3"></i> @document.UploadDate.ToString("dd/MM/yyyy")</span>
+                                <div class="document-primary-info">
+                                    <div class="primary-info-item">
+                                        <i class="bi bi-person"></i>
+                                        <span>@(document.Author?.AuthorName ?? "Không xác định")</span>
+                                    </div>
+                                    <div class="primary-info-item">
+                                        <i class="bi bi-folder"></i>
+                                        <span>@(document.Category?.CategoryName ?? "Chưa phân loại")</span>
+                                    </div>
                                 </div>
-                                <p>@(document.Description?.Length > 100 ? document.Description.Substring(0, 100) + "..." : document.Description)</p>
-                                <div class="document-price mb-3">
-                                    @if (document.IsPaid)
-                                    {
-                                        @if (User.Identity.IsAuthenticated && ViewBag.PurchasedDocuments != null && ViewBag.PurchasedDocuments.Contains(document.DocumentID))
+                                
+                                <p>@(document.Description?.Length > 80 ? document.Description.Substring(0, 80) + "..." : document.Description)</p>
+                                
+                                <!-- Thông tin thứ yếu -->
+                                <div class="document-details">
+                                    <div class="document-detail-item">
+                                        <i class="bi bi-calendar3"></i>
+                                        <span>@document.UploadDate.ToString("dd/MM/yyyy")</span>
+                                    </div>
+                                    <div class="document-detail-item">
+                                        <i class="bi bi-building"></i>
+                                        <span>@(document.Publisher?.PublisherName ?? "Chưa có")</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Giá và nút xem chi tiết -->
+                                <div class="document-card-footer">
+                                    <div class="document-price">
+                                        @if (document.IsPaid)
                                         {
-                                            <span class="purchased-tag">Đã mua</span>
-                                            <a asp-action="Read" asp-route-id="@document.DocumentID" class="btn btn-sm btn-success">
-                                                <i class="bi bi-book"></i> Đọc ngay
-                                            </a>
+                                            @if (User.Identity.IsAuthenticated && ViewBag.PurchasedDocuments != null && ViewBag.PurchasedDocuments.Contains(document.DocumentID))
+                                            {
+                                                <span class="purchased-tag">Đã mua</span>
+                                                <a asp-action="Read" asp-route-id="@document.DocumentID" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-book"></i> Đọc ngay
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="price-tag">@document.Price?.ToString("N0") ₫</span>
+                                            }
                                         }
                                         else
                                         {
-                                            <span class="price-tag">@document.Price?.ToString("N0") ₫</span>
+                                            <span class="free-tag">Miễn phí</span>
                                         }
-                                    }
-                                    else
-                                    {
-                                        <span class="free-tag">Miễn phí</span>
-                                    }
+                                    </div>
+                                    <a asp-action="Details" asp-route-id="@document.DocumentID" class="btn">Xem chi tiết</a>
                                 </div>
-                                <a asp-action="Details" asp-route-id="@document.DocumentID" class="btn">Xem chi tiết</a>
                             </div>
                         </div>
                     }
@@ -548,6 +824,38 @@
             // Tự động submit form khi thay đổi select
             document.getElementById('sortOrder').addEventListener('change', function() {
                 document.getElementById('filter-form').submit();
+            });
+            
+            // Xử lý toggle filter trên mobile
+            const filterToggle = document.getElementById('filterToggle');
+            const filterContent = document.getElementById('filterContent');
+            
+            // Kiểm tra kích thước màn hình và mặc định hiển thị nội dung bộ lọc trên desktop
+            function checkScreenSize() {
+                if (window.innerWidth > 768) {
+                    filterContent.classList.add('show');
+                }
+            }
+            
+            // Kiểm tra kích thước màn hình khi tải trang
+            checkScreenSize();
+            
+            // Kiểm tra kích thước màn hình khi thay đổi kích thước cửa sổ
+            window.addEventListener('resize', checkScreenSize);
+            
+            // Xử lý sự kiện click vào nút toggle
+            filterToggle.addEventListener('click', function() {
+                filterContent.classList.toggle('show');
+                
+                // Thay đổi icon
+                const icon = filterToggle.querySelector('i');
+                if (filterContent.classList.contains('show')) {
+                    icon.classList.remove('bi-chevron-down');
+                    icon.classList.add('bi-chevron-up');
+                } else {
+                    icon.classList.remove('bi-chevron-up');
+                    icon.classList.add('bi-chevron-down');
+                }
             });
         });
     </script>

@@ -31,6 +31,9 @@ builder.Services.AddScoped<WalletService>();
 // Đăng ký dịch vụ Summary (Tóm tắt AI)
 builder.Services.AddScoped<ISummaryService, SummaryService>();
 
+// Đăng ký dịch vụ Chatbot
+builder.Services.AddScoped<IChatbotService, ChatbotService>();
+
 // Đăng ký dịch vụ xử lý file DOCX
 builder.Services.AddScoped<IDocxService, DocxService>();
 
