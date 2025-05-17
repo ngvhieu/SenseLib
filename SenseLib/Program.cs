@@ -151,8 +151,7 @@ try
             "uploads/images",
             "uploads/profiles",
             "uploads/slideshow",
-            "audio",
-            "audio/tts"
+            "audio"
         };
         
         // Tạo các thư mục nếu chưa tồn tại
