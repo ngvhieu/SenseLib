@@ -660,6 +660,7 @@ namespace SenseLib.Controllers
             // Đặt giới hạn số trang tối đa được đọc miễn phí là 5 trang
             int maxPreviewPages = 5;
             bool hasPurchased = false;
+            bool showLimitedPreviewMessage = false;
             
             // Nếu người dùng đã đăng nhập, kiểm tra đã mua tài liệu chưa
             if (User.Identity.IsAuthenticated)
@@ -671,7 +672,18 @@ namespace SenseLib.Controllers
                 {
                     hasPurchased = await _context.Purchases
                         .AnyAsync(p => p.UserID == userId && p.DocumentID == id && p.Status == "Completed");
+                    
+                    // Hiển thị thông báo giới hạn nếu là tài liệu có phí và người dùng chưa mua
+                    if (!hasPurchased)
+                    {
+                        showLimitedPreviewMessage = true;
+                    }
                 }
+            }
+            else if (document.IsPaid)
+            {
+                // Nếu chưa đăng nhập và tài liệu có phí
+                showLimitedPreviewMessage = true;
             }
 
             // Lấy dịch vụ chuyển đổi tài liệu
@@ -684,7 +696,9 @@ namespace SenseLib.Controllers
             if (needsConversion && documentConverter != null)
             {
                 // Kiểm tra xem đã có bản PDF chưa
-                if (documentConverter.IsPdfAvailable(document.FilePath, document.DocumentID))
+                bool pdfExists = documentConverter.IsPdfAvailable(document.FilePath, document.DocumentID);
+                
+                if (pdfExists)
                 {
                     pdfPath = documentConverter.GetPdfPath(document.FilePath, document.DocumentID);
                 }
@@ -705,7 +719,7 @@ namespace SenseLib.Controllers
             // Kiểm tra số trang người dùng được phép xem
             string viewPath = !string.IsNullOrEmpty(pdfPath) ? pdfPath : document.FilePath;
             string viewFilePath = Path.Combine(_hostEnvironment.WebRootPath, viewPath.TrimStart('/'));
-            
+
             int totalPages = GetDocumentPageCount(viewFilePath);
             int allowedPages = hasPurchased ? totalPages : Math.Min(maxPreviewPages, totalPages);
             
@@ -750,13 +764,14 @@ namespace SenseLib.Controllers
             ViewBag.HasPurchased = hasPurchased;
             ViewBag.IsPaid = document.IsPaid;
             ViewBag.DocumentTitle = document.Title;
+            ViewBag.ShowLimitedPreviewMessage = showLimitedPreviewMessage;
+            ViewBag.MaxPreviewPages = maxPreviewPages;
             
             // Nếu đã chuyển đổi sang PDF thành công, sử dụng đường dẫn PDF
             if (!string.IsNullOrEmpty(pdfPath))
             {
                 ViewBag.FilePath = pdfPath + $"?v={DateTime.Now.Ticks}"; // Thêm tham số ngăn cache
                 ViewBag.OriginalFilePath = document.FilePath;
-                ViewBag.IsDocx = false; // Không hiển thị HTML vì đã chuyển sang PDF
             }
             else
             {
@@ -771,30 +786,6 @@ namespace SenseLib.Controllers
                 
                 // Thêm tham số ngăn cache để đảm bảo tải mới
                 ViewBag.FilePath = webPath + $"?v={DateTime.Now.Ticks}";
-                
-                // Xử lý file DOCX nếu cần và không có PDF
-                if ((fileExtension == ".docx" || fileExtension == ".doc") && string.IsNullOrEmpty(pdfPath))
-                {
-                    try
-                    {
-                        var docxService = HttpContext.RequestServices.GetService<IDocxService>();
-                        if (docxService != null)
-                        {
-                            string docxHtml = await docxService.ConvertDocxToHtml(document.FilePath, page);
-                            ViewBag.DocxHtml = docxHtml;
-                            ViewBag.IsDocx = true;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Lỗi khi xử lý file DOCX");
-                        TempData["ErrorMessage"] = $"Có lỗi khi xử lý tài liệu: {ex.Message}";
-                    }
-                }
-                else
-                {
-                    ViewBag.IsDocx = false;
-                }
             }
             
             // Kiểm tra kích thước file để đưa ra cảnh báo cho file lớn
@@ -815,23 +806,6 @@ namespace SenseLib.Controllers
             // Đây là một triển khai đơn giản cho mục đích demo
             
             string fileExtension = Path.GetExtension(filePath).ToLower();
-            
-            // Sử dụng DocxService nếu là file DOCX
-            if (fileExtension == ".docx" || fileExtension == ".doc")
-            {
-                try
-                {
-                    var docxService = HttpContext.RequestServices.GetService(typeof(IDocxService)) as IDocxService;
-                    if (docxService != null)
-                    {
-                        return docxService.GetPageCount(filePath);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Lỗi khi đếm số trang DOCX");
-                }
-            }
             
             // Giả định số trang dựa trên kích thước file (phương pháp dự phòng)
             FileInfo fileInfo = new FileInfo(filePath);
@@ -1064,6 +1038,101 @@ namespace SenseLib.Controllers
             // Trả về file để tải xuống
             var fileBytes = System.IO.File.ReadAllBytes(pdfFilePath);
             return File(fileBytes, "application/pdf", fileName);
+        }
+
+        // GET: Document/DownloadOriginal/5
+        [Authorize]
+        public async Task<IActionResult> DownloadOriginal(int id)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var document = await _context.Documents
+                .Include(d => d.Downloads)
+                .FirstOrDefaultAsync(d => d.DocumentID == id);
+
+            if (document == null)
+            {
+                return NotFound();
+            }
+
+            // Kiểm tra xem người dùng đã mua tài liệu này chưa (nếu là tài liệu có phí)
+            if (document.IsPaid)
+            {
+                var hasPurchased = await _context.Purchases
+                    .AnyAsync(p => p.UserID == userId && p.DocumentID == id && p.Status == "Completed");
+                
+                if (!hasPurchased)
+                {
+                    TempData["ErrorMessage"] = "Bạn cần mua tài liệu này để tải xuống.";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+            }
+
+            // Kiểm tra file tồn tại
+            string filePath = Path.Combine(_hostEnvironment.WebRootPath, document.FilePath.TrimStart('/'));
+            if (!System.IO.File.Exists(filePath))
+            {
+                _logger.LogError($"Tài liệu gốc không tồn tại tại đường dẫn: {filePath}");
+                TempData["ErrorMessage"] = "Tài liệu không tồn tại.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            // Ghi lại lượt tải
+            document.Downloads.Add(new Download
+            {
+                DocumentID = id,
+                UserID = userId,
+                DownloadDate = DateTime.Now,
+                DownloadType = "Original"
+            });
+            await _context.SaveChangesAsync();
+
+            // Tên file khi tải xuống - giữ nguyên phần mở rộng của file gốc
+            string originalFileName = Path.GetFileName(filePath);
+            string fileExtension = Path.GetExtension(originalFileName);
+            string fileName = document.Title + fileExtension;
+            
+            // Loại bỏ các ký tự không hợp lệ trong tên file
+            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+
+            // Xác định MIME type dựa trên phần mở rộng file
+            string mimeType = GetMimeType(fileExtension);
+
+            // Trả về file để tải xuống
+            var fileBytes = System.IO.File.ReadAllBytes(filePath);
+            return File(fileBytes, mimeType, fileName);
+        }
+
+        // Phương thức hỗ trợ để xác định MIME type dựa trên phần mở rộng file
+        private string GetMimeType(string fileExtension)
+        {
+            switch (fileExtension.ToLower())
+            {
+                case ".pdf": return "application/pdf";
+                case ".doc": return "application/msword";
+                case ".docx": return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                case ".xls": return "application/vnd.ms-excel";
+                case ".xlsx": return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                case ".ppt": return "application/vnd.ms-powerpoint";
+                case ".pptx": return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+                case ".txt": return "text/plain";
+                case ".rtf": return "application/rtf";
+                case ".csv": return "text/csv";
+                case ".xml": return "application/xml";
+                case ".json": return "application/json";
+                case ".html": case ".htm": return "text/html";
+                case ".mp3": return "audio/mpeg";
+                case ".mp4": return "video/mp4";
+                case ".avi": return "video/x-msvideo";
+                case ".png": return "image/png";
+                case ".jpg": case ".jpeg": return "image/jpeg";
+                case ".gif": return "image/gif";
+                case ".bmp": return "image/bmp";
+                case ".svg": return "image/svg+xml";
+                case ".zip": return "application/zip";
+                case ".rar": return "application/x-rar-compressed";
+                case ".7z": return "application/x-7z-compressed";
+                default: return "application/octet-stream";
+            }
         }
     }
 } 

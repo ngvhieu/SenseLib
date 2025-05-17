@@ -167,11 +167,17 @@ namespace SenseLib.Controllers
                         ".xls", ".xlsx", ".xlsm", 
                         ".ppt", ".pptx", ".pptm", 
                         ".txt", ".rtf", ".csv", 
-                        ".odt", ".ods", ".odp" 
+                        ".odt", ".ods", ".odp",
+                        ".md", ".html", ".htm",
+                        ".xml", ".json", ".log",
+                        ".zip", ".rar", ".7z",
+                        ".mp3", ".mp4", ".avi",
+                        ".png", ".jpg", ".jpeg",
+                        ".gif", ".bmp", ".svg"
                     };
                     if (!allowedExtensions.Contains(extension))
                     {
-                        ModelState.AddModelError("", "Chỉ chấp nhận các định dạng file: PDF, Word, Excel, PowerPoint, Text và định dạng tương tự");
+                        ModelState.AddModelError("", "Chỉ chấp nhận các định dạng file: PDF, Word, Excel, PowerPoint, Text, Notepad, hình ảnh, âm thanh, video và định dạng tương tự");
                         PrepareViewData();
                         return View(document);
                     }
@@ -487,7 +493,7 @@ namespace SenseLib.Controllers
                     if (file.Length > 50 * 1024 * 1024)
                     {
                         ModelState.AddModelError("", "Kích thước file không được vượt quá 50MB");
-                        PrepareViewData();
+                        PrepareEditViewData();
                         return View(existingDocument);
                     }
                     
@@ -498,12 +504,18 @@ namespace SenseLib.Controllers
                         ".xls", ".xlsx", ".xlsm", 
                         ".ppt", ".pptx", ".pptm", 
                         ".txt", ".rtf", ".csv", 
-                        ".odt", ".ods", ".odp" 
+                        ".odt", ".ods", ".odp",
+                        ".md", ".html", ".htm",
+                        ".xml", ".json", ".log",
+                        ".zip", ".rar", ".7z",
+                        ".mp3", ".mp4", ".avi",
+                        ".png", ".jpg", ".jpeg",
+                        ".gif", ".bmp", ".svg"
                     };
                     if (!allowedExtensions.Contains(extension))
                     {
-                        ModelState.AddModelError("", "Chỉ chấp nhận các định dạng file: PDF, Word, Excel, PowerPoint, Text và định dạng tương tự");
-                        PrepareViewData();
+                        ModelState.AddModelError("", "Chỉ chấp nhận các định dạng file: PDF, Word, Excel, PowerPoint, Text, Notepad, hình ảnh, âm thanh, video và định dạng tương tự");
+                        PrepareEditViewData();
                         return View(existingDocument);
                     }
                     
@@ -543,7 +555,7 @@ namespace SenseLib.Controllers
                 catch (Exception ex)
                 {
                     ModelState.AddModelError("", $"Lỗi khi tải lên file: {ex.Message}");
-                    PrepareViewData();
+                    PrepareEditViewData();
                     return View(existingDocument);
                 }
             }
@@ -557,7 +569,7 @@ namespace SenseLib.Controllers
                     if (imageFile.Length > 5 * 1024 * 1024)
                     {
                         ModelState.AddModelError("", "Kích thước ảnh bìa không được vượt quá 5MB");
-                        PrepareViewData();
+                        PrepareEditViewData();
                         return View(existingDocument);
                     }
                     
@@ -567,7 +579,7 @@ namespace SenseLib.Controllers
                     if (!allowedImageExtensions.Contains(extension))
                     {
                         ModelState.AddModelError("", "Chỉ chấp nhận định dạng ảnh: JPG, PNG, GIF, WEBP");
-                        PrepareViewData();
+                        PrepareEditViewData();
                         return View(existingDocument);
                     }
                     
@@ -644,10 +656,10 @@ namespace SenseLib.Controllers
                 }
             }
             
-            PrepareViewData();
+            PrepareEditViewData();
             return View(existingDocument);
             
-            void PrepareViewData()
+            void PrepareEditViewData()
             {
                 ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "CategoryName", document.CategoryID);
                 ViewData["AuthorID"] = new SelectList(_context.Authors, "AuthorID", "AuthorName", document.AuthorID);

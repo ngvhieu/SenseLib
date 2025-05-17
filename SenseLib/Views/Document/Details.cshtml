@@ -1,4 +1,5 @@
 @model SenseLib.Models.Document
+@using System.IO
 @{
     ViewData["Title"] = Model.Title;
     var averageRating = ViewBag.AverageRating;
@@ -74,13 +75,15 @@
                         {
                             @if (User.Identity.IsAuthenticated)
                             {
-                                <button type="button" class="btn btn-outline-success download-btn" data-document-id="@Model.DocumentID">
-                                    <i class="fa fa-download me-1"></i> <span>Tải xuống</span>
-                                </button>
-                                
-                                <a asp-action="DownloadPdf" asp-route-id="@Model.DocumentID" class="btn btn-outline-info">
-                                    <i class="fa fa-file-pdf me-1"></i> Tải xuống PDF
-                                </a>
+                                <div class="d-grid gap-2 mb-2">
+                                    <a asp-action="DownloadOriginal" asp-route-id="@Model.DocumentID" class="btn btn-outline-success">
+                                        <i class="fa fa-download me-1"></i> Tải xuống bản gốc (@(string.IsNullOrEmpty(Model.FilePath) ? "FILE" : System.IO.Path.GetExtension(Model.FilePath).TrimStart('.').ToUpper()))
+                                    </a>
+                                    
+                                    <a asp-action="DownloadPdf" asp-route-id="@Model.DocumentID" class="btn btn-outline-danger">
+                                        <i class="fa fa-file-pdf me-1"></i> Tải xuống bản PDF
+                                    </a>
+                                </div>
                             }
                             else
                             {
