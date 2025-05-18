@@ -85,10 +85,10 @@
                                         <input class="form-check-input" type="radio" name="isPaid" id="documentTypeFree" value="false" @(Model.IsPaid ? "" : "checked") onclick="togglePriceField(false)">
                                         <label class="form-check-label" for="documentTypeFree">Miễn phí</label>
                                     </div>
-                                    @* <div class="form-check form-check-inline"> *@
-                                    @*     <input class="form-check-input" type="radio" name="isPaid" id="documentTypePaid" value="true" @(Model.IsPaid ? "checked" : "") onclick="togglePriceField(true)"> *@
-                                    @*     <label class="form-check-label" for="documentTypePaid">Có phí</label> *@
-                                    @* </div> *@
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="isPaid" id="documentTypePaid" value="true" @(Model.IsPaid ? "checked" : "") onclick="togglePriceField(true)"> 
+                                         <label class="form-check-label" for="documentTypePaid">Có phí</label> 
+                                    </div> 
                                 </div>
 
                                 <div class="mb-3" id="priceField" style="display: @(Model.IsPaid ? "block" : "none");">
