@@ -369,6 +369,18 @@
         display: inline-block;
     }
     
+    .purchased-status {
+        background-color: #28a745;
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: var(--border-radius);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 5px;
+    }
+    
     .btn {
         display: inline-block;
         padding: 0.5rem 1rem;
@@ -713,6 +725,10 @@
                                 {
                                     <span class="file-format">@System.IO.Path.GetExtension(document.FilePath).TrimStart('.').ToUpper()</span>
                                 }
+                                @if (User.Identity.IsAuthenticated && ViewBag.PurchasedDocuments != null && ViewBag.PurchasedDocuments.Contains(document.DocumentID))
+                                {
+                                    <span class="purchased-status">Đã mua</span>
+                                }
                             </div>
                             <img src="@(string.IsNullOrEmpty(document.ImagePath) ? 
                                       (string.IsNullOrEmpty(document.FilePath) ? "/images/document-placeholder.jpg" : document.FilePath) 
@@ -751,9 +767,8 @@
                                         {
                                             @if (User.Identity.IsAuthenticated && ViewBag.PurchasedDocuments != null && ViewBag.PurchasedDocuments.Contains(document.DocumentID))
                                             {
-                                                <span class="purchased-tag">Đã mua</span>
                                                 <a asp-action="Read" asp-route-id="@document.DocumentID" class="btn btn-sm btn-success">
-                                                    <i class="bi bi-book"></i> Đọc ngay
+                                                     Đọc ngay
                                                 </a>
                                             }
                                             else

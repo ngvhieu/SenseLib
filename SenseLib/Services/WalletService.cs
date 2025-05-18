@@ -184,5 +184,94 @@ namespace SenseLib.Services
 
             return true;
         }
+        
+        // Nạp tiền vào ví người dùng
+        public async Task<bool> DepositAsync(int walletId, decimal amount, string transactionCode, string description = null)
+        {
+            var wallet = await _context.Wallets.FindAsync(walletId);
+            
+            if (wallet == null || amount <= 0)
+            {
+                return false;
+            }
+
+            wallet.Balance += amount;
+            wallet.LastUpdatedDate = DateTime.Now;
+
+            var transaction = new WalletTransaction
+            {
+                WalletID = walletId,
+                Amount = amount,
+                TransactionDate = DateTime.Now,
+                Type = "Credit",
+                Description = description ?? $"Nạp tiền vào ví - Mã GD: {transactionCode}"
+            };
+
+            _context.WalletTransactions.Add(transaction);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+        
+        // Thanh toán tài liệu từ ví
+        public async Task<(bool success, string message)> PayForDocumentFromWalletAsync(int userId, int documentId)
+        {
+            var wallet = await GetWalletAsync(userId);
+            var document = await _context.Documents.FindAsync(documentId);
+            
+            if (document == null)
+            {
+                return (false, "Không tìm thấy tài liệu");
+            }
+            
+            if (!document.Price.HasValue || document.Price <= 0)
+            {
+                return (false, "Tài liệu không có giá hoặc miễn phí");
+            }
+            
+            // Kiểm tra số dư
+            if (wallet.Balance < document.Price.Value)
+            {
+                return (false, "Số dư không đủ để thanh toán tài liệu này");
+            }
+            
+            // Tạo giao dịch mua tài liệu
+            var purchase = new Purchase
+            {
+                UserID = userId,
+                DocumentID = documentId,
+                PurchaseDate = DateTime.Now,
+                Amount = document.Price.Value,
+                TransactionCode = $"WALLET-{DateTime.Now.Ticks}",
+                Status = "Completed"
+            };
+            
+            _context.Purchases.Add(purchase);
+            await _context.SaveChangesAsync();
+            
+            // Trừ tiền từ ví người mua
+            wallet.Balance -= document.Price.Value;
+            wallet.LastUpdatedDate = DateTime.Now;
+            
+            // Tạo giao dịch ví cho người mua
+            var walletTransaction = new WalletTransaction
+            {
+                WalletID = wallet.WalletID,
+                Amount = document.Price.Value,
+                TransactionDate = DateTime.Now,
+                Type = "Debit",
+                Description = $"Thanh toán tài liệu: {document.Title}",
+                DocumentID = documentId,
+                PurchaseID = purchase.PurchaseID
+            };
+            
+            _context.WalletTransactions.Add(walletTransaction);
+            await _context.SaveChangesAsync();
+            
+            // Xử lý chuyển tiền cho người đăng tải
+            await ProcessPurchasePaymentAsync(purchase);
+            
+            return (true, "Thanh toán thành công");
+        }
     }
 } 

@@ -30,6 +30,15 @@ else
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Cấu hình Session
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // Đăng ký dịch vụ Email
 builder.Services.AddTransient<IEmailService, EmailService>();
 
@@ -217,6 +226,9 @@ catch (Exception ex)
 }
 
 app.UseRouting();
+
+// Kích hoạt Session trước Authentication
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

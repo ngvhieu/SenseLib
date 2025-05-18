@@ -390,6 +390,7 @@ namespace SenseLib.Controllers
             
             // Lấy ID người dùng hiện tại
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var isAdmin = User.IsInRole("Admin");
             
             // Lấy thông tin tài liệu từ database
             var existingDocument = await _context.Documents.FindAsync(id);
@@ -399,11 +400,21 @@ namespace SenseLib.Controllers
                 return NotFound();
             }
             
-            // Kiểm tra quyền chỉnh sửa
-            if (existingDocument.UserID != userId)
+            // Kiểm tra quyền chỉnh sửa: người dùng sở hữu tài liệu hoặc là Admin
+            if (existingDocument.UserID != userId && !isAdmin)
             {
                 return Forbid();
             }
+            
+            // Lưu trạng thái và thông tin quan trọng hiện tại để kiểm tra sau
+            string currentStatus = existingDocument.Status;
+            string currentTitle = existingDocument.Title;
+            int? currentCategoryID = existingDocument.CategoryID;
+            int? currentAuthorID = existingDocument.AuthorID;
+            int? currentPublisherID = existingDocument.PublisherID;
+            bool currentIsPaid = existingDocument.IsPaid;
+            decimal? currentPrice = existingDocument.Price;
+            string currentFilePath = existingDocument.FilePath;
             
             // Cập nhật thông tin tài liệu
             existingDocument.Title = document.Title;
@@ -474,8 +485,37 @@ namespace SenseLib.Controllers
             existingDocument.IsPaid = isPaid;
             existingDocument.Price = isPaid && price.HasValue ? price.Value : 0;
             
-            // Đặt lại trạng thái là Pending (chờ duyệt)
-            existingDocument.Status = "Pending";
+            // Biến kiểm tra xem có thay đổi thông tin quan trọng không
+            bool hasImportantChanges = false;
+            
+            // Kiểm tra xem có thay đổi thông tin quan trọng không
+            if (currentTitle != existingDocument.Title ||
+                currentCategoryID != existingDocument.CategoryID ||
+                currentAuthorID != existingDocument.AuthorID ||
+                currentPublisherID != existingDocument.PublisherID ||
+                currentIsPaid != existingDocument.IsPaid ||
+                currentPrice != existingDocument.Price ||
+                file != null) // Nếu thay đổi file, cần duyệt lại
+            {
+                hasImportantChanges = true;
+            }
+            
+            // Đặt lại trạng thái là Pending (chờ duyệt) nếu có thay đổi quan trọng và không phải admin
+            if (hasImportantChanges && !isAdmin && (existingDocument.Status == "Approved" || existingDocument.Status == "Published"))
+            {
+                existingDocument.Status = "Pending";
+                TempData["WarningMessage"] = "Tài liệu đã được cập nhật và cần chờ quản trị viên duyệt lại!";
+            }
+            else if (!hasImportantChanges)
+            {
+                // Giữ nguyên trạng thái nếu chỉ thay đổi mô tả hoặc ảnh bìa
+                TempData["SuccessMessage"] = "Tài liệu đã được cập nhật thành công!";
+            }
+            else if (isAdmin)
+            {
+                // Admin thay đổi, giữ nguyên trạng thái
+                TempData["SuccessMessage"] = "Tài liệu đã được cập nhật thành công với quyền Admin!";
+            }
             
             // Xử lý upload file tài liệu mới nếu có
             if (file != null && file.Length > 0)
@@ -640,7 +680,6 @@ namespace SenseLib.Controllers
                 {
                     _context.Update(existingDocument);
                     await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Tài liệu đã được cập nhật và đang chờ quản trị viên duyệt lại!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)

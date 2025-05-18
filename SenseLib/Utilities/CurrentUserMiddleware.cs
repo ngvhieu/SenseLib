@@ -29,6 +29,13 @@ namespace SenseLib.Utilities
                     {
                         // Thêm thông tin người dùng vào HttpContext.Items
                         context.Items["CurrentUser"] = user;
+                        
+                        // Lấy thông tin ví của người dùng
+                        var wallet = await dbContext.Wallets.FirstOrDefaultAsync(w => w.UserID == userId);
+                        if (wallet != null)
+                        {
+                            context.Items["CurrentUserWallet"] = wallet;
+                        }
                     }
                 }
             }

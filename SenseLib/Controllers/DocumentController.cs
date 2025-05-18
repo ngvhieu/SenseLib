@@ -211,6 +211,22 @@ namespace SenseLib.Controllers
                 {
                     ViewBag.HasPurchased = await _context.Purchases
                         .AnyAsync(p => p.UserID == userId && p.DocumentID == document.DocumentID && p.Status == "Completed");
+                    
+                    // Nếu chưa mua, lấy thông tin ví của người dùng
+                    if (!(ViewBag.HasPurchased))
+                    {
+                        var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserID == userId);
+                        if (wallet != null)
+                        {
+                            ViewBag.WalletBalance = wallet.Balance;
+                            ViewBag.HasSufficientBalance = wallet.Balance >= (document.Price ?? 0);
+                        }
+                        else
+                        {
+                            ViewBag.WalletBalance = 0;
+                            ViewBag.HasSufficientBalance = false;
+                        }
+                    }
                 }
                 
                 // Lấy danh sách các commentID mà người dùng đã thích

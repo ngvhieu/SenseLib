@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SenseLib.Models;
 using SenseLib.Services;
+using SenseLib.Utilities;
 using System.Security.Claims;
 
 namespace SenseLib.Controllers
@@ -16,11 +17,13 @@ namespace SenseLib.Controllers
     {
         private readonly DataContext _context;
         private readonly WalletService _walletService;
+        private readonly VNPayService _vnpayService;
 
-        public WalletController(DataContext context, WalletService walletService)
+        public WalletController(DataContext context, WalletService walletService, VNPayService vnpayService)
         {
             _context = context;
             _walletService = walletService;
+            _vnpayService = vnpayService;
         }
 
         // GET: Wallet
@@ -183,6 +186,168 @@ namespace SenseLib.Controllers
             {
                 ModelState.AddModelError("", "Có lỗi xảy ra khi xử lý yêu cầu rút tiền");
                 return View(wallet);
+            }
+        }
+        
+        // GET: Wallet/Deposit
+        public async Task<IActionResult> Deposit()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var wallet = await _walletService.GetWalletAsync(userId);
+            
+            return View(wallet);
+        }
+        
+        // POST: Wallet/Deposit
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Deposit(decimal amount)
+        {
+            if (amount < 10000)
+            {
+                ModelState.AddModelError("", "Số tiền nạp tối thiểu là 10,000 VND");
+                
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var wallet = await _walletService.GetWalletAsync(userId);
+                return View(wallet);
+            }
+            
+            // Tạo yêu cầu nạp tiền qua VNPay
+            try 
+            {
+                var orderInfo = $"Nạp tiền vào ví SenseLib";
+                var orderDescription = $"Nạp tiền {amount:N0} VND vào ví";
+                var orderType = "billpayment";
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                
+                // Đường dẫn callback khi thanh toán xong
+                string host = $"{Request.Scheme}://{Request.Host}";
+                string returnUrl = $"{host}/Wallet/DepositCallback";
+                
+                // Tạo URL thanh toán
+                var paymentRequest = _vnpayService.CreatePaymentUrl(orderType, amount, orderDescription, orderInfo, ipAddress, returnUrl);
+                
+                // Lưu thông tin nạp tiền vào TempData thay vì Session
+                TempData["DepositOrderCode"] = paymentRequest.TxnRef;
+                TempData["DepositAmount"] = amount.ToString();
+                
+                // Chuyển hướng người dùng đến trang thanh toán VNPay
+                return Redirect(paymentRequest.PaymentUrl);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Có lỗi xảy ra: {ex.Message}");
+                
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var wallet = await _walletService.GetWalletAsync(userId);
+                return View(wallet);
+            }
+        }
+        
+        // GET: Wallet/DepositCallback - Xử lý kết quả nạp tiền từ VNPay
+        public async Task<IActionResult> DepositCallback()
+        {
+            // Lấy thông tin từ callback của VNPay
+            var vnpayData = Request.Query.ToDictionary(x => x.Key, x => x.Value.ToString());
+            
+            // Kiểm tra thông tin
+            if (!_vnpayService.ValidatePayment(vnpayData))
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi xác thực thanh toán";
+                return RedirectToAction(nameof(Index));
+            }
+            
+            // Lấy kết quả thanh toán
+            var paymentResult = _vnpayService.GetPaymentResponse(vnpayData);
+            
+            if (paymentResult.Success)
+            {
+                // Lấy thông tin người dùng hiện tại
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var wallet = await _walletService.GetWalletAsync(userId);
+                
+                // Nạp tiền vào ví
+                var result = await _walletService.DepositAsync(
+                    walletId: wallet.WalletID,
+                    amount: paymentResult.Amount,
+                    transactionCode: paymentResult.TransactionId,
+                    description: $"Nạp tiền vào ví - Mã GD: {paymentResult.TransactionId}"
+                );
+                
+                if (result)
+                {
+                    TempData["SuccessMessage"] = $"Nạp thành công {paymentResult.Amount:N0} VND vào ví";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Thanh toán thành công nhưng có lỗi khi cập nhật số dư ví";
+                }
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"Nạp tiền không thành công: {paymentResult.Message}";
+            }
+            
+            return RedirectToAction(nameof(Index));
+        }
+        
+        // GET: Wallet/PayForDocument/5
+        public async Task<IActionResult> PayForDocument(int id)
+        {
+            // Lấy thông tin tài liệu
+            var document = await _context.Documents
+                .Include(d => d.Author)
+                .Include(d => d.Category)
+                .FirstOrDefaultAsync(d => d.DocumentID == id);
+
+            if (document == null)
+            {
+                return NotFound();
+            }
+            
+            // Kiểm tra nếu đã mua
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var alreadyPurchased = await _context.Purchases
+                .AnyAsync(p => p.UserID == userId && p.DocumentID == id && p.Status == "Completed");
+
+            if (alreadyPurchased)
+            {
+                TempData["InfoMessage"] = "Bạn đã mua tài liệu này trước đó";
+                return RedirectToAction("Details", "Document", new { id });
+            }
+            
+            // Lấy thông tin ví
+            var wallet = await _walletService.GetWalletAsync(userId);
+            ViewBag.Wallet = wallet;
+            
+            // Kiểm tra số dư
+            if (document.Price.HasValue && wallet.Balance < document.Price.Value)
+            {
+                ViewBag.NotEnoughBalance = true;
+            }
+            
+            return View(document);
+        }
+        
+        // POST: Wallet/ConfirmPayment/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmPayment(int id)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            
+            // Thực hiện thanh toán từ ví
+            var result = await _walletService.PayForDocumentFromWalletAsync(userId, id);
+            
+            if (result.success)
+            {
+                TempData["SuccessMessage"] = "Thanh toán tài liệu thành công!";
+                return RedirectToAction("Details", "Document", new { id });
+            }
+            else
+            {
+                TempData["ErrorMessage"] = result.message;
+                return RedirectToAction("PayForDocument", new { id });
             }
         }
     }

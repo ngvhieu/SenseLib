@@ -1,0 +1,142 @@
+@model SenseLib.Models.Wallet
+@{
+    ViewData["Title"] = "Nạp tiền vào ví";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Ví của tôi</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Nạp tiền</li>
+                </ol>
+            </nav>
+            
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h2 class="mb-0 h5">
+                        <i class="fas fa-hand-holding-usd text-primary me-2"></i>
+                        Nạp POINT vào ví
+                    </h2>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-info-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h5 class="alert-heading mb-1">Thông tin nạp POINT</h5>
+                                <p class="mb-0">Tỷ lệ 1:1 với VND. Số dư ví hiện tại: <strong>@Model.Balance.ToString("N0") P</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+                    
+                    <form asp-action="Deposit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="mb-4">
+                            <label for="amount" class="form-label">Số tiền nạp <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="amount" name="amount" min="10000" step="10000" required>
+                                <span class="input-group-text">₫</span>
+                            </div>
+                            <div class="form-text">Số tiền nạp tối thiểu: 10,000₫</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Phương thức thanh toán</label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="form-check d-flex align-items-center">
+                                        <input class="form-check-input" type="radio" name="paymentMethod" id="vnpay" value="vnpay" checked>
+                                        <label class="form-check-label ms-2 d-flex align-items-center" for="vnpay">
+                                            <!-- <img src="/uploads/payment/vnpay.png" alt="VNPay" height="30" class="me-2"> -->
+                                            VNPay (Thẻ ATM, Visa, Master, JCB, QR Code)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                                <label class="form-check-label" for="termsCheck">
+                                    Tôi đồng ý với <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">điều khoản và điều kiện</a> nạp tiền
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-credit-card me-1"></i> Nạp tiền ngay
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Điều khoản -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Điều khoản và điều kiện nạp tiền</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Quy định chung</h6>
+                <p>- Số tiền nạp tối thiểu là 10,000 VND</p>
+                <p>- Số tiền nạp không được hoàn lại sau khi giao dịch thành công</p>
+                <p>- Tiền trong ví chỉ được sử dụng để mua tài liệu trong hệ thống</p>
+                
+                <h6>2. Phương thức thanh toán</h6>
+                <p>- Thanh toán thông qua cổng VNPay</p>
+                <p>- Hỗ trợ các loại thẻ ATM nội địa, thẻ quốc tế Visa/Master/JCB, và quét mã QR</p>
+                
+                <h6>3. Thời gian xử lý</h6>
+                <p>- Thời gian xử lý giao dịch: tức thì sau khi nhận được thông báo thanh toán thành công từ cổng thanh toán</p>
+                
+                <h6>4. Bảo mật</h6>
+                <p>- Thông tin thanh toán của bạn được bảo mật theo tiêu chuẩn của cổng thanh toán VNPay</p>
+                <p>- Hệ thống không lưu trữ thông tin thẻ của người dùng</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đã hiểu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Xử lý sự kiện khi nhập số tiền
+            $('#amount').on('input', function() {
+                var amount = $(this).val();
+                if (amount < 10000) {
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+        });
+    </script>
+} 

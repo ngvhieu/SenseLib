@@ -1,0 +1,186 @@
+@model SenseLib.Models.Document
+@{
+    ViewData["Title"] = "Thanh toán tài liệu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var wallet = ViewBag.Wallet as SenseLib.Models.Wallet;
+    bool notEnoughBalance = ViewBag.NotEnoughBalance ?? false;
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Document" asp-action="Index">Tài liệu</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Document" asp-action="Details" asp-route-id="@Model.DocumentID">@Model.Title</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Thanh toán</li>
+                </ol>
+            </nav>
+            
+            <div class="alert alert-info mb-4">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="fas fa-info-circle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="alert-heading">Quy trình thanh toán bằng ví</h5>
+                        <p class="mb-0">1. Nạp tiền vào ví (nếu chưa đủ số dư)</p>
+                        <p class="mb-0">2. Thanh toán tài liệu bằng số dư trong ví</p>
+                        <p class="mb-0">3. Truy cập và sử dụng tài liệu đã mua</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h2 class="mb-0 h5">
+                        <i class="fas fa-shopping-cart text-primary me-2"></i>
+                        Thanh toán tài liệu
+                    </h2>
+                </div>
+                
+                <div class="card-body">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger mb-4">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <img src="/img/document-placeholder.png" class="img-fluid rounded border" alt="@Model.Title">
+                        </div>
+                        <div class="col-md-8">
+                            <h4 class="mb-2">@Model.Title</h4>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-primary me-2">@Model.Category.CategoryName</span>
+                                <span class="text-muted">
+                                    <i class="fas fa-user me-1"></i> @Model.Author.AuthorName
+                                </span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h5 class="text-primary">@(Model.Price?.ToString("N0") ?? "0") ₫</h5>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <p class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Không có mô tả" : Model.Description)</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="mb-3">Thông tin thanh toán</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="mb-2">Số dư ví hiện tại:</div>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <strong class="@(notEnoughBalance ? "text-danger" : "text-success")">
+                                        @wallet.Balance.ToString("N0") ₫
+                                    </strong>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="mb-2">Giá tài liệu:</div>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <strong>@(Model.Price?.ToString("N0") ?? "0") ₫</strong>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="mb-2">Số dư còn lại sau thanh toán:</div>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    @{
+                                        var remainingBalance = wallet.Balance - (Model.Price ?? 0);
+                                    }
+                                    <strong class="@(remainingBalance < 0 ? "text-danger" : "text-success")">
+                                        @remainingBalance.ToString("N0") ₫
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if (notEnoughBalance)
+                    {
+                        <div class="alert alert-warning mb-4">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="alert-heading">Số dư không đủ</h5>
+                                    <p>Số dư trong ví của bạn không đủ để thanh toán tài liệu này. Vui lòng nạp thêm tiền vào ví.</p>
+                                    <a asp-action="Deposit" class="btn btn-success">
+                                        <i class="fas fa-plus-circle me-1"></i> Nạp tiền vào ví
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="ConfirmPayment" asp-route-id="@Model.DocumentID" method="post">
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" id="agreementCheck" required>
+                                <label class="form-check-label" for="agreementCheck">
+                                    Tôi xác nhận đã đọc và đồng ý <a href="#" data-bs-toggle="modal" data-bs-target="#policyModal">điều khoản mua tài liệu</a>
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-check-circle me-1"></i> Xác nhận thanh toán
+                                </button>
+                                <a asp-controller="Document" asp-action="Details" asp-route-id="@Model.DocumentID" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i> Quay lại
+                                </a>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Điều khoản -->
+<div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="policyModalLabel">Điều khoản mua tài liệu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Quy định thanh toán</h6>
+                <p>- Khi xác nhận thanh toán, số tiền tương ứng với giá tài liệu sẽ được trừ từ ví của bạn</p>
+                <p>- Giao dịch không thể hoàn tác sau khi đã hoàn thành</p>
+                <p>- Bạn sẽ có quyền truy cập tài liệu vĩnh viễn sau khi thanh toán</p>
+                
+                <h6>2. Quyền sử dụng tài liệu</h6>
+                <p>- Tài liệu được mua chỉ dành cho mục đích sử dụng cá nhân</p>
+                <p>- Bạn không được phép chia sẻ, bán lại hoặc phân phối tài liệu cho người khác</p>
+                <p>- Mọi hành vi vi phạm bản quyền có thể dẫn đến việc khóa tài khoản</p>
+                
+                <h6>3. Hỗ trợ kỹ thuật</h6>
+                <p>- Nếu gặp vấn đề khi truy cập tài liệu, vui lòng liên hệ với chúng tôi qua mục hỗ trợ</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đã hiểu</button>
+            </div>
+        </div>
+    </div>
+</div> 

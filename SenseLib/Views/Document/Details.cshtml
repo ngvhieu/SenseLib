@@ -403,10 +403,31 @@
                                 
                                 @if (Model.IsPaid && User.Identity.IsAuthenticated && !hasPurchased)
                                 {
-                                    <a asp-controller="VNPay" asp-action="PaymentRequest" asp-route-id="@Model.DocumentID" 
-                                       class="btn btn-success flex-grow-1 d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-credit-card"></i> Mua ngay
-                                    </a>
+                                    <div class="btn-group-vertical w-100 mt-3">
+                                        <a asp-controller="Wallet" asp-action="PayForDocument" asp-route-id="@Model.DocumentID" 
+                                           class="btn btn-primary mb-2 d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-wallet me-2"></i> Thanh toán bằng ví 
+                                            @if (ViewBag.WalletBalance != null)
+                                            {
+                                                <span class="ms-1">(@ViewBag.WalletBalance.ToString("N0") ₫)</span>
+                                            }
+                                        </a>
+                                        
+                                        <div class="d-flex justify-content-between w-100 gap-2">
+                                            @if (ViewBag.HasSufficientBalance == false)
+                                            {
+                                                <a asp-controller="Wallet" asp-action="Deposit" 
+                                                   class="btn btn-success flex-grow-1 d-flex align-items-center justify-content-center">
+                                                    <i class="fas fa-plus-circle me-1"></i> Nạp tiền
+                                                </a>
+                                            }
+                                            
+                                            <a asp-controller="VNPay" asp-action="PaymentRequest" asp-route-id="@Model.DocumentID" 
+                                              class="btn btn-outline-secondary flex-grow-1 d-flex align-items-center justify-content-center">
+                                                <i class="fas fa-credit-card me-1"></i> Thanh toán VNPay
+                                            </a>
+                                        </div>
+                                    </div>
                                 }
                             </div>
                             
