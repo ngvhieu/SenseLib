@@ -1,0 +1,225 @@
+@{
+    ViewData["Title"] = "Chuyển PDF sang giọng nói";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Chuyển PDF sang giọng nói</h2>
+                </div>
+                <div class="card-body">
+                    <form id="pdfToSpeechForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="pdfFile" class="form-label">Chọn file PDF</label>
+                            <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept=".pdf" required>
+                            <div class="form-text">Hỗ trợ file PDF có kích thước tối đa 50MB</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="languageCode" class="form-label">Ngôn ngữ</label>
+                            <select class="form-select" id="languageCode" name="languageCode">
+                                <option value="vi-VN" selected>Tiếng Việt</option>
+                                <option value="en-US">Tiếng Anh (Mỹ)</option>
+                                <option value="en-GB">Tiếng Anh (Anh)</option>
+                                <option value="fr-FR">Tiếng Pháp</option>
+                                <option value="de-DE">Tiếng Đức</option>
+                                <option value="ja-JP">Tiếng Nhật</option>
+                                <option value="ko-KR">Tiếng Hàn</option>
+                                <option value="zh-CN">Tiếng Trung (Đơn giản)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="voiceName" class="form-label">Giọng đọc</label>
+                            <select class="form-select" id="voiceName" name="voiceName">
+                                <option value="vi-VN-Standard-A" selected>Tiếng Việt (Nữ - A)</option>
+                                <option value="vi-VN-Standard-B">Tiếng Việt (Nam - B)</option>
+                                <option value="vi-VN-Standard-C">Tiếng Việt (Nữ - C)</option>
+                                <option value="vi-VN-Standard-D">Tiếng Việt (Nam - D)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary w-100" id="convertButton">
+                                <i class="fas fa-microphone"></i> Chuyển đổi sang giọng nói
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="loadingIndicator" class="text-center d-none mt-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang xử lý...</span>
+                        </div>
+                        <p class="mt-2">Đang xử lý file PDF và tạo giọng nói...<br>Vui lòng đợi, quá trình này có thể mất vài phút.</p>
+                    </div>
+                    
+                    <div id="resultContainer" class="mt-4 d-none">
+                        <h4>Kết quả chuyển đổi</h4>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">File âm thanh</div>
+                            <div class="card-body">
+                                <div id="audioFilesContainer">
+                                    <!-- Audio players sẽ được thêm vào đây -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">Nội dung văn bản trích xuất</div>
+                            <div class="card-body">
+                                <pre id="extractedText" class="p-3 bg-light" style="max-height: 300px; overflow-y: auto; white-space: pre-wrap;"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="errorContainer" class="alert alert-danger mt-4 d-none">
+                        <!-- Thông báo lỗi sẽ hiển thị ở đây -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Cập nhật giọng đọc khi ngôn ngữ thay đổi
+            $('#languageCode').change(function() {
+                updateVoiceOptions();
+            });
+            
+            // Khởi tạo giọng đọc ban đầu
+            updateVoiceOptions();
+            
+            // Xử lý form submit
+            $('#pdfToSpeechForm').submit(function(e) {
+                e.preventDefault();
+                
+                // Hiển thị loading và ẩn các phần khác
+                $('#loadingIndicator').removeClass('d-none');
+                $('#resultContainer').addClass('d-none');
+                $('#errorContainer').addClass('d-none');
+                $('#convertButton').prop('disabled', true);
+                
+                // Tạo FormData từ form
+                var formData = new FormData(this);
+                
+                // Gửi request đến API
+                $.ajax({
+                    url: '/api/TextToSpeech/pdf-to-speech',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        // Ẩn loading
+                        $('#loadingIndicator').addClass('d-none');
+                        $('#convertButton').prop('disabled', false);
+                        
+                        // Hiển thị kết quả
+                        $('#resultContainer').removeClass('d-none');
+                        
+                        // Hiển thị file âm thanh
+                        var audioContainer = $('#audioFilesContainer');
+                        audioContainer.empty();
+                        
+                        if (response.audioFiles && response.audioFiles.length > 0) {
+                            response.audioFiles.forEach(function(audioFile, index) {
+                                var audioPlayer = $('<div class="mb-3">' +
+                                    '<p class="mb-1">Phần ' + (index + 1) + ':</p>' +
+                                    '<audio controls class="w-100">' +
+                                    '<source src="' + audioFile + '" type="audio/mpeg">' +
+                                    'Trình duyệt của bạn không hỗ trợ phát âm thanh.' +
+                                    '</audio>' +
+                                    '<a href="' + audioFile + '" download class="btn btn-sm btn-outline-primary mt-1">' +
+                                    '<i class="fas fa-download"></i> Tải xuống' +
+                                    '</a>' +
+                                    '</div>');
+                                audioContainer.append(audioPlayer);
+                            });
+                        } else {
+                            audioContainer.html('<p class="text-muted">Không có file âm thanh được tạo</p>');
+                        }
+                        
+                        // Hiển thị nội dung văn bản
+                        $('#extractedText').text(response.textContent || 'Không có nội dung văn bản');
+                    },
+                    error: function(xhr, status, error) {
+                        // Ẩn loading
+                        $('#loadingIndicator').addClass('d-none');
+                        $('#convertButton').prop('disabled', false);
+                        
+                        // Hiển thị lỗi
+                        var errorMessage = xhr.responseText || 'Đã xảy ra lỗi khi xử lý yêu cầu';
+                        $('#errorContainer').removeClass('d-none').text(errorMessage);
+                    }
+                });
+            });
+            
+            // Hàm cập nhật giọng đọc dựa trên ngôn ngữ
+            function updateVoiceOptions() {
+                var languageCode = $('#languageCode').val();
+                var voiceSelect = $('#voiceName');
+                
+                // Xóa tất cả giọng đọc hiện tại
+                voiceSelect.empty();
+                
+                // Thêm giọng đọc tương ứng với ngôn ngữ
+                switch (languageCode) {
+                    case 'vi-VN':
+                        voiceSelect.append(new Option('Tiếng Việt (Nữ - A)', 'vi-VN-Standard-A'));
+                        voiceSelect.append(new Option('Tiếng Việt (Nam - B)', 'vi-VN-Standard-B'));
+                        voiceSelect.append(new Option('Tiếng Việt (Nữ - C)', 'vi-VN-Standard-C'));
+                        voiceSelect.append(new Option('Tiếng Việt (Nam - D)', 'vi-VN-Standard-D'));
+                        break;
+                    case 'en-US':
+                        voiceSelect.append(new Option('Tiếng Anh - Mỹ (Nữ - C)', 'en-US-Standard-C'));
+                        voiceSelect.append(new Option('Tiếng Anh - Mỹ (Nam - D)', 'en-US-Standard-D'));
+                        voiceSelect.append(new Option('Tiếng Anh - Mỹ (Nữ - E)', 'en-US-Standard-E'));
+                        voiceSelect.append(new Option('Tiếng Anh - Mỹ (Nam - A)', 'en-US-Standard-A'));
+                        break;
+                    case 'en-GB':
+                        voiceSelect.append(new Option('Tiếng Anh - Anh (Nữ - A)', 'en-GB-Standard-A'));
+                        voiceSelect.append(new Option('Tiếng Anh - Anh (Nam - B)', 'en-GB-Standard-B'));
+                        voiceSelect.append(new Option('Tiếng Anh - Anh (Nữ - C)', 'en-GB-Standard-C'));
+                        voiceSelect.append(new Option('Tiếng Anh - Anh (Nam - D)', 'en-GB-Standard-D'));
+                        break;
+                    case 'fr-FR':
+                        voiceSelect.append(new Option('Tiếng Pháp (Nữ - A)', 'fr-FR-Standard-A'));
+                        voiceSelect.append(new Option('Tiếng Pháp (Nam - B)', 'fr-FR-Standard-B'));
+                        voiceSelect.append(new Option('Tiếng Pháp (Nữ - C)', 'fr-FR-Standard-C'));
+                        voiceSelect.append(new Option('Tiếng Pháp (Nam - D)', 'fr-FR-Standard-D'));
+                        break;
+                    case 'de-DE':
+                        voiceSelect.append(new Option('Tiếng Đức (Nữ - A)', 'de-DE-Standard-A'));
+                        voiceSelect.append(new Option('Tiếng Đức (Nam - B)', 'de-DE-Standard-B'));
+                        break;
+                    case 'ja-JP':
+                        voiceSelect.append(new Option('Tiếng Nhật (Nữ - A)', 'ja-JP-Standard-A'));
+                        voiceSelect.append(new Option('Tiếng Nhật (Nam - B)', 'ja-JP-Standard-B'));
+                        voiceSelect.append(new Option('Tiếng Nhật (Nữ - C)', 'ja-JP-Standard-C'));
+                        voiceSelect.append(new Option('Tiếng Nhật (Nam - D)', 'ja-JP-Standard-D'));
+                        break;
+                    case 'ko-KR':
+                        voiceSelect.append(new Option('Tiếng Hàn (Nữ - A)', 'ko-KR-Standard-A'));
+                        voiceSelect.append(new Option('Tiếng Hàn (Nam - B)', 'ko-KR-Standard-B'));
+                        voiceSelect.append(new Option('Tiếng Hàn (Nữ - C)', 'ko-KR-Standard-C'));
+                        voiceSelect.append(new Option('Tiếng Hàn (Nam - D)', 'ko-KR-Standard-D'));
+                        break;
+                    case 'zh-CN':
+                        voiceSelect.append(new Option('Tiếng Trung (Nữ - A)', 'cmn-CN-Standard-A'));
+                        voiceSelect.append(new Option('Tiếng Trung (Nam - B)', 'cmn-CN-Standard-B'));
+                        voiceSelect.append(new Option('Tiếng Trung (Nữ - C)', 'cmn-CN-Standard-C'));
+                        voiceSelect.append(new Option('Tiếng Trung (Nam - D)', 'cmn-CN-Standard-D'));
+                        break;
+                    default:
+                        voiceSelect.append(new Option('Mặc định', 'en-US-Standard-C'));
+                }
+            }
+        });
+    </script>
+} 

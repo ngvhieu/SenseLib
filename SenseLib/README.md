@@ -122,4 +122,39 @@ SenseLib hỗ trợ thanh toán trực tuyến qua cổng VNPay. Để sử dụ
 
 Trong môi trường phát triển, bạn có thể sử dụng Sandbox của VNPay để kiểm thử tính năng thanh toán mà không cần thực hiện giao dịch thật.
 
+## Chức năng Text-to-Speech (TTS)
+
+SenseLib hỗ trợ chuyển đổi văn bản PDF thành giọng nói sử dụng Google Cloud Text-to-Speech API. Đây là hướng dẫn để thiết lập và sử dụng tính năng này:
+
+### Thiết lập Google Cloud Text-to-Speech API
+
+1. Truy cập [Google Cloud Console](https://console.cloud.google.com/)
+2. Tạo một dự án mới hoặc chọn dự án hiện có
+3. Kích hoạt API Text-to-Speech cho dự án
+4. Tạo Service Account Key:
+   - Đi đến "IAM & Admin" > "Service Accounts"
+   - Tạo service account mới hoặc chọn service account hiện có
+   - Tạo khóa mới (JSON) và tải về
+   - Đặt file JSON đã tải về vào thư mục gốc của dự án và đổi tên thành `google-credentials.json`
+
+5. Thiết lập biến môi trường:
+   ```
+   $env:GOOGLE_APPLICATION_CREDENTIALS="[PATH]\google-credentials.json"
+   ```
+   Thay `[PATH]` bằng đường dẫn đầy đủ đến file JSON.
+
+### Sử dụng chức năng Text-to-Speech
+
+1. Truy cập đường dẫn `/text-to-speech` trên ứng dụng
+2. Tải lên file PDF cần chuyển đổi
+3. Chọn ngôn ngữ và giọng đọc phù hợp
+4. Nhấn "Chuyển đổi sang giọng nói"
+5. Sau khi xử lý hoàn tất, bạn có thể nghe và tải xuống các file âm thanh đã được tạo
+
+### Lưu ý khi sử dụng
+
+- Giới hạn kích thước file: 50MB
+- Google Cloud TTS API có giới hạn 5000 ký tự cho mỗi request, nên các văn bản dài sẽ được chia thành nhiều đoạn nhỏ
+- Đảm bảo dự án Google Cloud của bạn đã thiết lập thanh toán để sử dụng API không bị giới hạn
+
 

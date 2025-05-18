@@ -477,9 +477,23 @@
                     
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <!-- Nút tóm tắt nội dung -->
+                        <!-- Nút tóm tắt nội dung và TTS -->
                         <div class="mt-3">
-                            <partial name="_SummaryButton" model="@Model.DocumentID" />
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <partial name="_SummaryButton" model="@Model.DocumentID" />
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div id="ttsContainer"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else 
+                    {
+                        <!-- Chỉ hiển thị TTS khi không đăng nhập -->
+                        <div class="mt-3">
+                            <div id="ttsContainer"></div>
                         </div>
                     }
                 </div>
@@ -818,6 +832,20 @@
             // Hàm hiển thị thông báo
             function showAlert(type, message) {
                 console.log('[' + type + '] ' + message.replace(/<[^>]*>/g, ''));
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Khởi tạo component TTS
+            const ttsContainer = document.getElementById('ttsContainer');
+            if (ttsContainer) {
+                new DocumentTTS(@Model.DocumentID, ttsContainer, {
+                    languageCode: 'vi-VN',
+                    voiceName: 'vi-VN-Standard-A',
+                    buttonClass: 'btn btn-outline-primary',
+                    buttonText: 'Nghe đọc tài liệu',
+                    darkMode: document.body.classList.contains('dark-mode') // Tự động phát hiện dark mode
+                });
             }
         });
     </script>

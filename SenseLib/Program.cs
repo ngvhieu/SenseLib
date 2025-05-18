@@ -11,6 +11,21 @@ using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Thiết lập biến môi trường GOOGLE_APPLICATION_CREDENTIALS
+string googleCredentialsPath = Path.Combine(Directory.GetCurrentDirectory(), 
+    builder.Configuration["Google:CredentialsFile"] ?? "google-credentials.json");
+
+if (File.Exists(googleCredentialsPath))
+{
+    Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", googleCredentialsPath);
+    Console.WriteLine($"GOOGLE_APPLICATION_CREDENTIALS đã được thiết lập: {googleCredentialsPath}");
+}
+else
+{
+    Console.WriteLine($"CẢNH BÁO: File credentials Google không tìm thấy tại: {googleCredentialsPath}");
+    Console.WriteLine("Vui lòng tạo file credentials theo hướng dẫn trong README.md");
+}
+
 // Đăng ký DbContext
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -39,6 +54,12 @@ builder.Services.AddScoped<IDocxService, DocxService>();
 
 // Đăng ký dịch vụ chuyển đổi tài liệu sang PDF
 builder.Services.AddScoped<IDocumentConverterService, DocumentConverterService>();
+
+// Đăng ký dịch vụ đọc PDF
+builder.Services.AddScoped<PdfService>();
+
+// Đăng ký dịch vụ Text-to-Speech
+builder.Services.AddScoped<TextToSpeechService>();
 
 // Cấu hình xác thực cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
