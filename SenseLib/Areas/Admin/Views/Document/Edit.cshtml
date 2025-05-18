@@ -166,12 +166,12 @@
                                 </div>
                                 
                                 <div id="priceInputGroup" class="@(Model.IsPaid ? "" : "d-none")">
-                                    <div class="input-group mb-2">
-                                        <input type="number" asp-for="Price" class="form-control" min="1000" step="1000" placeholder="Nhập giá tiền">
-                                        <span class="input-group-text">VNĐ</span>
+                                    <div class="input-group">
+                                        <input asp-for="Price" type="number" class="form-control" min="1000" step="1000" />
+                                        <span class="input-group-text">POINT</span>
                                     </div>
                                     <span asp-validation-for="Price" class="text-danger"></span>
-                                    <small class="form-text text-muted">Giá tối thiểu là 1.000 VNĐ. Nhập số chẵn theo đơn vị nghìn đồng.</small>
+                                    <small class="form-text text-muted">Giá tối thiểu là 1.000 POINT. Nhập số chẵn theo đơn vị nghìn.</small>
                                 </div>
                             </div>
                         </div>
@@ -220,7 +220,7 @@
                 if ($('#isPaidSwitch').is(':checked')) {
                     const price = parseInt($('#Price').val());
                     if (isNaN(price) || price < 1000) {
-                        $('#Price').next('.text-danger').text('Giá phải từ 1.000 VNĐ trở lên');
+                        $('#Price').next('.text-danger').text('Giá phải từ 1.000 POINT trở lên');
                         hasError = true;
                     }
                 }

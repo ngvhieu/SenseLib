@@ -417,7 +417,7 @@
                                             @if (ViewBag.HasSufficientBalance == false)
                                             {
                                                 <a asp-controller="Wallet" asp-action="Deposit" 
-                                                   class="btn btn-success flex-grow-1 d-flex align-items-center justify-content-center">
+                                       class="btn btn-success flex-grow-1 d-flex align-items-center justify-content-center">
                                                     <i class="fas fa-plus-circle me-1"></i> Nạp tiền
                                                 </a>
                                             }
@@ -425,7 +425,7 @@
                                             <a asp-controller="VNPay" asp-action="PaymentRequest" asp-route-id="@Model.DocumentID" 
                                               class="btn btn-outline-secondary flex-grow-1 d-flex align-items-center justify-content-center">
                                                 <i class="fas fa-credit-card me-1"></i> Thanh toán VNPay
-                                            </a>
+                                    </a>
                                         </div>
                                     </div>
                                 }

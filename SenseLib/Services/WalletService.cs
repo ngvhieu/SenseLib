@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SenseLib.Models;
+using Microsoft.Extensions.Logging;
 
 namespace SenseLib.Services
 {
@@ -12,11 +13,15 @@ namespace SenseLib.Services
     {
         private readonly DataContext _context;
         private readonly IOptions<SystemConfig> _systemConfig;
+        private readonly ILogger<WalletService> _logger;
+        private readonly UserActivityService _userActivityService;
 
-        public WalletService(DataContext context, IOptions<SystemConfig> systemConfig)
+        public WalletService(DataContext context, IOptions<SystemConfig> systemConfig, ILogger<WalletService> logger, UserActivityService userActivityService)
         {
             _context = context;
             _systemConfig = systemConfig;
+            _logger = logger;
+            _userActivityService = userActivityService;
         }
 
         // Tạo ví mới cho người dùng
@@ -204,7 +209,7 @@ namespace SenseLib.Services
                 Amount = amount,
                 TransactionDate = DateTime.Now,
                 Type = "Credit",
-                Description = description ?? $"Nạp tiền vào ví - Mã GD: {transactionCode}"
+                Description = description ?? $"Nạp {amount:N0} POINT vào ví - Mã GD: {transactionCode}"
             };
 
             _context.WalletTransactions.Add(transaction);
@@ -260,13 +265,15 @@ namespace SenseLib.Services
                 Amount = document.Price.Value,
                 TransactionDate = DateTime.Now,
                 Type = "Debit",
-                Description = $"Thanh toán tài liệu: {document.Title}",
+                Description = $"Thanh toán {document.Price.Value:N0} POINT cho tài liệu: {document.Title}",
                 DocumentID = documentId,
                 PurchaseID = purchase.PurchaseID
             };
             
             _context.WalletTransactions.Add(walletTransaction);
-            await _context.SaveChangesAsync();
+            
+            // Ghi lại hoạt động mua tài liệu
+            await _userActivityService.LogPurchaseActivityAsync(userId, documentId, purchase.Amount);
             
             // Xử lý chuyển tiền cho người đăng tải
             await ProcessPurchasePaymentAsync(purchase);

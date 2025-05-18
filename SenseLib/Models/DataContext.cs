@@ -27,6 +27,7 @@ namespace SenseLib.Models
 		public DbSet<SystemConfig> SystemConfigs {get; set;}
 		public DbSet<Wallet> Wallets {get; set;}
 		public DbSet<WalletTransaction> WalletTransactions {get; set;}
+		public DbSet<UserActivity> UserActivities {get; set;}
 		
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -65,6 +66,37 @@ namespace SenseLib.Models
 				
 				// Thêm chỉ mục cho tìm kiếm nhanh hơn
 				entity.HasIndex(e => new { e.UserID, e.DocumentID }).IsUnique();
+			});
+			
+			// Cấu hình cho bảng UserActivities
+			modelBuilder.Entity<UserActivity>(entity =>
+			{
+				entity.ToTable("UserActivities");
+				
+				entity.HasKey(e => e.ActivityID);
+				
+				entity.Property(e => e.UserID).IsRequired();
+				entity.Property(e => e.ActivityDate).IsRequired();
+				entity.Property(e => e.ActivityType).IsRequired().HasMaxLength(50);
+				entity.Property(e => e.Description).HasMaxLength(500);
+				entity.Property(e => e.AdditionalData).HasMaxLength(1000);
+				
+				// Thiết lập quan hệ với User
+				entity.HasOne(e => e.User)
+					.WithMany()
+					.HasForeignKey(e => e.UserID)
+					.OnDelete(DeleteBehavior.Cascade);
+				
+				// Thiết lập quan hệ với Document (nếu có)
+				entity.HasOne(e => e.Document)
+					.WithMany()
+					.HasForeignKey(e => e.DocumentID)
+					.OnDelete(DeleteBehavior.SetNull);
+				
+				// Tạo chỉ mục cho tìm kiếm nhanh
+				entity.HasIndex(e => e.UserID);
+				entity.HasIndex(e => e.ActivityDate);
+				entity.HasIndex(e => e.ActivityType);
 			});
 			
 			// Cấu hình cho bảng PasswordResetToken

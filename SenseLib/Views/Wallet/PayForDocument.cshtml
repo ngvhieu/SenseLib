@@ -61,8 +61,8 @@
                                 </span>
                             </div>
                             
-                            <div class="mb-3">
-                                <h5 class="text-primary">@(Model.Price?.ToString("N0") ?? "0") ₫</h5>
+                            <div class="price-box">
+                                <h5 class="text-primary">@(Model.Price?.ToString("N0") ?? "0") P</h5>
                             </div>
                             
                             <div class="mb-3">
@@ -83,7 +83,7 @@
                                 </div>
                                 <div class="col-md-6 text-md-end">
                                     <strong class="@(notEnoughBalance ? "text-danger" : "text-success")">
-                                        @wallet.Balance.ToString("N0") ₫
+                                        @wallet.Balance.ToString("N0") P
                                     </strong>
                                 </div>
                             </div>
@@ -93,7 +93,7 @@
                                     <div class="mb-2">Giá tài liệu:</div>
                                 </div>
                                 <div class="col-md-6 text-md-end">
-                                    <strong>@(Model.Price?.ToString("N0") ?? "0") ₫</strong>
+                                    <strong>@(Model.Price?.ToString("N0") ?? "0") P</strong>
                                 </div>
                             </div>
                             
@@ -106,7 +106,7 @@
                                         var remainingBalance = wallet.Balance - (Model.Price ?? 0);
                                     }
                                     <strong class="@(remainingBalance < 0 ? "text-danger" : "text-success")">
-                                        @remainingBalance.ToString("N0") ₫
+                                        @remainingBalance.ToString("N0") P
                                     </strong>
                                 </div>
                             </div>

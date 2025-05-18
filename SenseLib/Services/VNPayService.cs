@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using Microsoft.Extensions.Options;
 using SenseLib.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace SenseLib.Services
 {
@@ -192,11 +193,38 @@ namespace SenseLib.Services
                     return "Lỗi không xác định";
             }
         }
+        
+        // Xử lý callback từ VNPay
+        public PaymentResponse ProcessPaymentCallback(IQueryCollection queryCollection)
+        {
+            // Chuyển đổi query collection sang dictionary
+            Dictionary<string, string> vnpayData = new Dictionary<string, string>();
+            foreach (var kvp in queryCollection)
+            {
+                string[] values = queryCollection[kvp.Key];
+                if (values != null && values.Length > 0)
+                {
+                    vnpayData.Add(kvp.Key, values[0]);
+                }
+            }
+            
+            // Kiểm tra chữ ký
+            bool validSignature = ValidatePayment(vnpayData);
+            
+            // Lấy thông tin phản hồi
+            var response = GetPaymentResponse(vnpayData);
+            
+            // Cập nhật trạng thái giao dịch dựa trên chữ ký
+            response.IsSuccess = validSignature && response.Success;
+            
+            return response;
+        }
     }
 
     public class PaymentResponse
     {
         public bool Success { get; set; }
+        public bool IsSuccess { get; set; } // Trạng thái tổng hợp của giao dịch
         public string OrderId { get; set; }
         public string TransactionId { get; set; }
         public decimal Amount { get; set; }

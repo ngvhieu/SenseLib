@@ -70,6 +70,9 @@ builder.Services.AddScoped<PdfService>();
 // Đăng ký dịch vụ Text-to-Speech
 builder.Services.AddScoped<TextToSpeechService>();
 
+// Đăng ký dịch vụ UserActivity
+builder.Services.AddScoped<UserActivityService>();
+
 // Cấu hình xác thực cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

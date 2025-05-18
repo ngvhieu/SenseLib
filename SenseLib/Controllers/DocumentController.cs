@@ -22,19 +22,22 @@ namespace SenseLib.Controllers
         private readonly IAntiforgery _antiforgery;
         private readonly IFavoriteService _favoriteService;
         private readonly ILogger<DocumentController> _logger;
+        private readonly UserActivityService _userActivityService;
 
         public DocumentController(
             DataContext context, 
             IWebHostEnvironment hostEnvironment, 
             IAntiforgery antiforgery, 
             IFavoriteService favoriteService,
-            ILogger<DocumentController> logger)
+            ILogger<DocumentController> logger,
+            UserActivityService userActivityService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
             _antiforgery = antiforgery;
             _favoriteService = favoriteService;
             _logger = logger;
+            _userActivityService = userActivityService;
         }
 
         // GET: Document
@@ -350,6 +353,9 @@ namespace SenseLib.Controllers
                 // Thực hiện toggle favorite bằng service
                 bool isFavoriteNow = await _favoriteService.ToggleFavorite(userId, id);
                 
+                // Ghi log hoạt động người dùng
+                await _userActivityService.LogLikeActivityAsync(userId, id, isFavoriteNow);
+                
                 // Ghi log
                 _logger.LogInformation("Kết quả: Người dùng {UserId} đã {Action} yêu thích tài liệu {DocumentId}", 
                     userId, isFavoriteNow ? "thêm" : "xóa", id);
@@ -395,15 +401,20 @@ namespace SenseLib.Controllers
                 return NotFound();
             }
 
-            document.Comments.Add(new Comment
+            var comment = new Comment
             {
                 DocumentID = id,
                 UserID = userId,
                 CommentText = commentText,
                 CommentDate = DateTime.Now
-            });
-
+            };
+            
+            document.Comments.Add(comment);
             await _context.SaveChangesAsync();
+            
+            // Ghi log hoạt động bình luận
+            await _userActivityService.LogCommentActivityAsync(userId, id, comment.CommentID, commentText);
+
             return RedirectToAction(nameof(Details), new { id });
         }
         
@@ -572,6 +583,9 @@ namespace SenseLib.Controllers
                 DownloadType = "Original"
             });
             await _context.SaveChangesAsync();
+            
+            // Ghi log hoạt động tải xuống
+            await _userActivityService.LogDownloadActivityAsync(userId, id);
 
             // Check if file exists
             string filePath = Path.Combine(_hostEnvironment.WebRootPath, document.FilePath.TrimStart('/'));
@@ -628,6 +642,9 @@ namespace SenseLib.Controllers
                     DownloadType = "Original"
                 });
                 await _context.SaveChangesAsync();
+                
+                // Ghi log hoạt động tải xuống
+                await _userActivityService.LogDownloadActivityAsync(userId, id);
 
                 // Kiểm tra file tồn tại
                 string filePath = Path.Combine(_hostEnvironment.WebRootPath, document.FilePath.TrimStart('/'));
@@ -771,6 +788,13 @@ namespace SenseLib.Controllers
                 _context.Update(stats);
             }
             await _context.SaveChangesAsync();
+            
+            // Ghi lại hoạt động đọc nếu người dùng đã đăng nhập
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                await _userActivityService.LogReadActivityAsync(userId, id);
+            }
 
             // Truyền thông tin tài liệu và trang đang xem cho view
             ViewBag.Document = document;
@@ -1044,6 +1068,9 @@ namespace SenseLib.Controllers
                 DownloadType = "PDF"
             });
             await _context.SaveChangesAsync();
+            
+            // Ghi log hoạt động tải xuống
+            await _userActivityService.LogDownloadActivityAsync(userId, id);
 
             // Tên file khi tải xuống
             string fileName = document.Title + ".pdf";
@@ -1101,6 +1128,9 @@ namespace SenseLib.Controllers
                 DownloadType = "Original"
             });
             await _context.SaveChangesAsync();
+            
+            // Ghi log hoạt động tải xuống
+            await _userActivityService.LogDownloadActivityAsync(userId, id);
 
             // Tên file khi tải xuống - giữ nguyên phần mở rộng của file gốc
             string originalFileName = Path.GetFileName(filePath);

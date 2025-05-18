@@ -14,7 +14,7 @@
                         <img src="https://sandbox.vnpayment.vn/paymentv2/images/icons/logo-en.svg" alt="VNPay Logo" height="30" class="me-3">
                         <div>
                             <h5 class="mb-0">Tổng tiền đã thanh toán</h5>
-                            <h4 class="mb-0 text-primary">@ViewBag.TotalSpent.ToString("N0") VNĐ</h4>
+                            <h4 class="mb-0 text-primary">@ViewBag.TotalSpent.ToString("N0") POINT</h4>
                         </div>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
                                         </a>
                                     </td>
                                     <td>@item.PurchaseDate.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td class="text-end">@item.Amount.ToString("N0") VNĐ</td>
+                                    <td class="text-end">@item.Amount.ToString("N0") POINT</td>
                                     <td>
                                         @if (item.Status == "Completed")
                                         {

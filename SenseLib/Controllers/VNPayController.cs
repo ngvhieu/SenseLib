@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using SenseLib.Models;
 using SenseLib.Services;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace SenseLib.Controllers
 {
@@ -17,12 +18,16 @@ namespace SenseLib.Controllers
         private readonly DataContext _context;
         private readonly VNPayService _vnpayService;
         private readonly WalletService _walletService;
+        private readonly ILogger<VNPayController> _logger;
+        private readonly UserActivityService _userActivityService;
 
-        public VNPayController(DataContext context, VNPayService vnpayService, WalletService walletService)
+        public VNPayController(DataContext context, VNPayService vnpayService, WalletService walletService, ILogger<VNPayController> logger, UserActivityService userActivityService)
         {
             _context = context;
             _vnpayService = vnpayService;
             _walletService = walletService;
+            _logger = logger;
+            _userActivityService = userActivityService;
         }
 
         // GET: VNPay/PaymentRequest/5
@@ -153,154 +158,100 @@ namespace SenseLib.Controllers
         // GET: VNPay/PaymentCallback
         public async Task<IActionResult> PaymentCallback()
         {
+            var response = _vnpayService.ProcessPaymentCallback(Request.Query);
+            
+            _logger.LogInformation("VNPay callback received. OrderId: {OrderId}, ResponseCode: {ResponseCode}, Message: {Message}", 
+                response.OrderId, response.ResponseCode, response.Message);
+            
+            // Lấy thông tin từ URL
+            var orderId = response.OrderId;
+            var documentId = 0;
+            var purchaseType = "";
+            
             try
             {
-                // Lấy thông tin từ callback của VNPay
-                var vnpayData = Request.Query.ToDictionary(x => x.Key, x => x.Value.ToString());
-                
-                // Ghi log dữ liệu trả về từ VNPay
-                Console.WriteLine("Dữ liệu trả về từ VNPay:");
-                foreach (var item in vnpayData)
+                // Parse thông tin từ order ID (format: DOCUMENT-123 hoặc WALLET-456)
+                if (!string.IsNullOrEmpty(orderId))
                 {
-                    Console.WriteLine($"{item.Key}: {item.Value}");
-                }
-                
-                // Kiểm tra dữ liệu cần thiết
-                if (!vnpayData.ContainsKey("vnp_ResponseCode") || 
-                    !vnpayData.ContainsKey("vnp_TxnRef") || 
-                    !vnpayData.ContainsKey("vnp_SecureHash"))
-                {
-                    // Thêm lại thông báo TempData
-                    TempData["ErrorMessage"] = "Dữ liệu trả về từ VNPay không đầy đủ";
-                    return RedirectToAction("Index", "Home");
-                }
-                
-                // Lấy mã giao dịch từ VNPay
-                string orderCode = vnpayData["vnp_TxnRef"];
-                Console.WriteLine($"Đang tìm giao dịch với mã: {orderCode}");
-                
-                // Tìm giao dịch trong DB
-                var purchase = await _context.Purchases
-                    .Include(p => p.Document)
-                    .FirstOrDefaultAsync(p => p.TransactionCode == orderCode);
-    
-                if (purchase == null)
-                {
-                    Console.WriteLine("Không tìm thấy giao dịch với mã trên. Kiểm tra tất cả các giao dịch để tìm gần đúng...");
-                    
-                    // Tải tất cả giao dịch Pending
-                    var pendingPurchases = await _context.Purchases
-                        .Include(p => p.Document)
-                        .Where(p => p.Status == "Pending")
-                        .OrderByDescending(p => p.PurchaseDate)
-                        .Take(10)
-                        .ToListAsync();
-                    
-                    Console.WriteLine($"Tìm thấy {pendingPurchases.Count} giao dịch Pending gần đây:");
-                    foreach (var p in pendingPurchases)
+                    var parts = orderId.Split('-');
+                    if (parts.Length >= 2)
                     {
-                        Console.WriteLine($"ID: {p.PurchaseID}, Mã GD: {p.TransactionCode}, Document: {p.DocumentID}, Ngày: {p.PurchaseDate}");
-                    }
-                    
-                    // Trường hợp VNPay đã thay đổi mã giao dịch, tìm giao dịch gần nhất
-                    purchase = pendingPurchases.FirstOrDefault();
-                    
-                    if (purchase != null)
-                    {
-                        Console.WriteLine($"Sử dụng giao dịch gần nhất thay thế: {purchase.PurchaseID}");
-                        // Cập nhật mã giao dịch thực tế từ VNPay
-                        purchase.TransactionCode = orderCode;
-                    }
-                    else
-                    {
-                        // Thêm lại thông báo TempData
-                        TempData["ErrorMessage"] = "Không tìm thấy thông tin giao dịch trong hệ thống";
-                        return RedirectToAction("Index", "Home");
+                        purchaseType = parts[0];
+                        
+                        if (purchaseType == "DOCUMENT" && int.TryParse(parts[1], out int docId))
+                        {
+                            documentId = docId;
+                        }
                     }
                 }
-                
-                // Xác thực chữ ký từ VNPay
-                bool isValidSignature = _vnpayService.ValidatePayment(vnpayData);
-                
-                // Lấy kết quả thanh toán
-                var responseCode = vnpayData["vnp_ResponseCode"];
-                
-                // Lưu thông tin giao dịch
-                purchase.Status = responseCode == "00" ? "Completed" : "Failed";
-                
-                // Nếu có số giao dịch từ VNPay, lưu lại
-                if (vnpayData.ContainsKey("vnp_TransactionNo"))
-                {
-                    purchase.TransactionCode = $"{purchase.TransactionCode}|{vnpayData["vnp_TransactionNo"]}";
-                }
-                
-                await _context.SaveChangesAsync();
-                
-                // Nếu chữ ký không hợp lệ, cảnh báo
-                if (!isValidSignature)
-                {
-                    // Không hiển thị thông báo nữa
-                    Console.WriteLine("Cảnh báo: Chữ ký xác thực từ VNPay không hợp lệ");
-                    // Thêm lại thông báo TempData
-                    TempData["WarningMessage"] = "Cảnh báo: Chữ ký xác thực từ VNPay không hợp lệ";
-                }
-    
-                // Xử lý kết quả thanh toán - không hiển thị thông báo nữa
-                if (responseCode == "00")
-                {
-                    Console.WriteLine($"Thanh toán thành công cho tài liệu: {purchase.Document.Title}");
-                    
-                    // Xử lý chuyển tiền vào ví của người đăng tài liệu
-                    try
-                    {
-                        await _walletService.ProcessPurchasePaymentAsync(purchase);
-                        Console.WriteLine("Đã chuyển tiền vào ví người đăng tải tài liệu.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Lỗi khi chuyển tiền vào ví: {ex.Message}");
-                        // Không báo lỗi cho người dùng, vì giao dịch vẫn thành công
-                    }
-                    
-                    // Thêm lại thông báo TempData
-                    TempData["SuccessMessage"] = $"Thanh toán thành công cho tài liệu: {purchase.Document.Title}";
-                }
-                else
-                {
-                    string errorMessage = "Thanh toán thất bại: ";
-                    switch (responseCode)
-                    {
-                        case "01": errorMessage += "Giao dịch đã tồn tại"; break;
-                        case "02": errorMessage += "Merchant không hợp lệ"; break;
-                        case "03": errorMessage += "Dữ liệu gửi sang không đúng định dạng"; break;
-                        case "04": errorMessage += "Khởi tạo GD không thành công"; break;
-                        case "07": errorMessage += "Giao dịch bị nghi ngờ"; break;
-                        case "09": errorMessage += "Thẻ/Tài khoản chưa đăng ký dịch vụ"; break;
-                        case "10": errorMessage += "Xác thực thông tin thẻ sai quá 3 lần"; break;
-                        case "11": errorMessage += "Đã hết hạn chờ thanh toán"; break;
-                        case "12": errorMessage += "Thẻ/Tài khoản bị khóa"; break;
-                        case "24": errorMessage += "Giao dịch bị hủy"; break;
-                        case "51": errorMessage += "Tài khoản không đủ số dư"; break;
-                        case "65": errorMessage += "Tài khoản vượt quá hạn mức giao dịch"; break;
-                        case "75": errorMessage += "Ngân hàng đang bảo trì"; break;
-                        case "79": errorMessage += "Nhập sai mật khẩu quá số lần quy định"; break;
-                        default: errorMessage += "Lỗi không xác định"; break;
-                    }
-                    Console.WriteLine(errorMessage);
-                    // Thêm lại thông báo TempData
-                    TempData["ErrorMessage"] = errorMessage;
-                }
-                
-                return RedirectToAction("Details", "Document", new { id = purchase.DocumentID });
             }
             catch (Exception ex)
             {
-                // Log lỗi
-                Console.WriteLine($"Lỗi khi xử lý callback VNPay: {ex.Message}");
-                // Thêm lại thông báo TempData
-                TempData["ErrorMessage"] = "Đã xảy ra lỗi trong quá trình xử lý thanh toán";
-                return RedirectToAction("Index", "Home");
+                _logger.LogError(ex, "Error parsing order ID: {OrderId}", orderId);
             }
+            
+            // Kiểm tra trạng thái thanh toán
+            if (response.IsSuccess)
+            {
+                _logger.LogInformation("Payment successful. PurchaseType: {PurchaseType}, DocumentId: {DocumentId}", 
+                    purchaseType, documentId);
+                
+                // Lấy thông tin người dùng hiện tại
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                
+                if (purchaseType == "DOCUMENT" && documentId > 0)
+                {
+                    // Xử lý mua tài liệu
+                    var document = await _context.Documents.FindAsync(documentId);
+                    
+                    if (document != null)
+                    {
+                        // Kiểm tra xem đã mua chưa
+                        var existingPurchase = await _context.Purchases
+                            .AnyAsync(p => p.UserID == userId && p.DocumentID == documentId && p.Status == "Completed");
+                            
+                        if (!existingPurchase)
+                        {
+                            decimal amount = document.Price ?? 0;
+                            
+                            // Lưu thông tin mua hàng
+                            var purchase = new Purchase
+                            {
+                                UserID = userId,
+                                DocumentID = documentId,
+                                PurchaseDate = DateTime.Now,
+                                Amount = amount,
+                                TransactionCode = response.TransactionId,
+                                Status = "Completed"
+                            };
+                            
+                            _context.Purchases.Add(purchase);
+                            await _context.SaveChangesAsync();
+                            
+                            // Ghi lại hoạt động mua tài liệu
+                            await _userActivityService.LogPurchaseActivityAsync(userId, documentId, amount);
+                            
+                            // Xử lý chuyển tiền cho tác giả tài liệu
+                            await _walletService.ProcessPurchasePaymentAsync(purchase);
+                            
+                            TempData["SuccessMessage"] = "Thanh toán thành công! Bạn đã mua tài liệu này.";
+                            return RedirectToAction("Details", "Document", new { id = documentId });
+                        }
+                        else
+                        {
+                            TempData["InfoMessage"] = "Bạn đã mua tài liệu này trước đó.";
+                            return RedirectToAction("Details", "Document", new { id = documentId });
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Thêm lại thông báo TempData
+                TempData["ErrorMessage"] = response.Message;
+            }
+            
+            return RedirectToAction("Index", "Home");
         }
         
         // GET: VNPay/PaymentHistory

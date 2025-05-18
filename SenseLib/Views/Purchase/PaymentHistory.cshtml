@@ -134,7 +134,7 @@
         </div>
         <div class="summary-card success">
             <h4>Tổng thanh toán</h4>
-            <p>@totalSpent.ToString("N0") ₫</p>
+            <p>@totalSpent.ToString("N0") P</p>
         </div>
         <div class="summary-card warning">
             <h4>Hoàn thành</h4>
@@ -238,7 +238,7 @@
                                 </div>
                             </td>
                             <td>@item.PurchaseDate.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td class="text-nowrap">@item.Amount.ToString("N0") ₫</td>
+                            <td class="text-nowrap">@item.Amount.ToString("N0") P</td>
                             <td>
                                 @if (item.Status == "Completed")
                                 {

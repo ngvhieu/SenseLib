@@ -563,7 +563,7 @@
                                     @if (wallet != null)
                                     {
                                         <span class="wallet-balance">
-                                            <i class="fas fa-wallet"></i> @wallet.Balance.ToString("N0") ₫
+                                            <i class="fas fa-wallet"></i> @wallet.Balance.ToString("N0") P
                                         </span>
                                     }
                                 </span>
@@ -588,7 +588,7 @@
                                     <i class="fas fa-wallet"></i> Ví của tôi
                                     @if (wallet != null)
                                     {
-                                        <span class="wallet-menu-balance">@wallet.Balance.ToString("N0") ₫</span>
+                                        <span class="wallet-menu-balance">@wallet.Balance.ToString("N0") P</span>
                                     }
                                 </a>
                                 <a asp-controller="User" asp-action="Favorites" class="user-dropdown-item">
@@ -596,6 +596,9 @@
                                 </a>
                                 <a asp-controller="User" asp-action="Downloads" class="user-dropdown-item">
                                     <i class="fas fa-download"></i> Tải xuống
+                                </a>
+                                <a asp-controller="UserActivity" asp-action="Index" class="user-dropdown-item">
+                                    <i class="fas fa-history"></i> Lịch sử hoạt động
                                 </a>
                                 <a asp-controller="Account" asp-action="Logout" class="user-dropdown-item">
                                     <i class="fas fa-sign-out-alt"></i> Đăng xuất

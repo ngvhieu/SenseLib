@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using SenseLib.Models;
 using System.Security.Claims;
 using System.Collections.Generic;
+using SenseLib.Services;
 
 namespace SenseLib.Controllers
 {
@@ -14,10 +15,12 @@ namespace SenseLib.Controllers
     public class PurchaseController : Controller
     {
         private readonly DataContext _context;
+        private readonly UserActivityService _userActivityService;
 
-        public PurchaseController(DataContext context)
+        public PurchaseController(DataContext context, UserActivityService userActivityService)
         {
             _context = context;
+            _userActivityService = userActivityService;
         }
 
         // GET: Purchase/CheckoutDocument/5
@@ -90,6 +93,9 @@ namespace SenseLib.Controllers
 
             _context.Add(purchase);
             await _context.SaveChangesAsync();
+            
+            // Ghi lại hoạt động mua tài liệu
+            await _userActivityService.LogPurchaseActivityAsync(userId, id, purchase.Amount);
 
             TempData["SuccessMessage"] = "Mua tài liệu thành công!";
             return RedirectToAction("Details", "Document", new { id = id });

@@ -23,25 +23,21 @@
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info mb-4">
-                        <div class="d-flex">
+                        <div class="d-flex align-items-center">
                             <div class="me-3">
-                                <i class="fas fa-info-circle fa-2x text-info"></i>
+                                <i class="fas fa-info-circle fa-2x"></i>
                             </div>
                             <div>
-                                <h5>Thông tin rút tiền</h5>
-                                <p class="mb-0">Số tiền rút tối thiểu là 100,000₫. Yêu cầu rút tiền sẽ được xử lý trong vòng 24-48 giờ làm việc. Quản trị viên sẽ liên hệ với bạn để xác nhận thông tin.</p>
+                                <h5 class="alert-heading mb-1">Thông tin rút POINT</h5>
+                                <p class="mb-0">Số tiền rút tối thiểu là 100,000 POINT. Yêu cầu rút tiền sẽ được xử lý trong vòng 24-48 giờ làm việc. Quản trị viên sẽ liên hệ với bạn để xác nhận thông tin.</p>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h5 class="card-title">Số dư hiện tại</h5>
-                                    <h3 class="text-primary mb-0">@Model.Balance.ToString("N0") ₫</h3>
-                                </div>
-                            </div>
+                    <div class="card mb-4">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Số dư khả dụng</h5>
+                            <h3 class="text-primary mb-0">@Model.Balance.ToString("N0") P</h3>
                         </div>
                     </div>
                     
@@ -56,10 +52,10 @@
                         <div class="mb-3">
                             <label for="amount" class="form-label">Số tiền rút <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="number" class="form-control" id="amount" name="amount" min="100000" max="@Model.Balance" step="10000" required>
-                                <span class="input-group-text">₫</span>
+                                <input type="number" class="form-control" id="amount" name="amount" min="100000" step="10000" required>
+                                <span class="input-group-text">P</span>
                             </div>
-                            <div class="form-text">Số tiền rút tối thiểu: 100,000₫</div>
+                            <div class="form-text">Số tiền rút tối thiểu: 100,000 POINT</div>
                         </div>
                         
                         <div class="mb-3">

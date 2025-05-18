@@ -114,11 +114,11 @@
                                 </div>
 
                                 <div class="mb-3" id="priceField" style="display: none;">
-                                    <label class="form-label fw-semibold">
-                                        <i class="bi bi-currency-dollar"></i> Giá (VNĐ) <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="number" name="price" class="form-control" min="1000" step="1000" placeholder="Nhập giá tài liệu" />
-                                    <small class="form-text text-muted">Giá tối thiểu 1,000 VNĐ</small>
+                                    <div class="form-group-title">
+                                        <i class="bi bi-currency-dollar"></i> Giá (POINT) <span class="text-danger">*</span>
+                                    </div>
+                                    <input type="number" name="Price" id="price" class="form-control" value="0" min="0" step="1000" required>
+                                    <small class="form-text text-muted">Giá tối thiểu 1,000 POINT</small>
                                 </div>
                             </div>
 

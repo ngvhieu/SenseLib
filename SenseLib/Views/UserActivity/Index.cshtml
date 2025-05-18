@@ -1,0 +1,702 @@
+@model IEnumerable<SenseLib.Models.UserActivity>
+@{
+    ViewData["Title"] = "Lịch sử hoạt động";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    var currentPage = ViewBag.CurrentPage;
+    var totalPages = ViewBag.TotalPages;
+    var totalItems = ViewBag.TotalItems;
+    var readCount = ViewBag.ReadCount;
+    var likeCount = ViewBag.LikeCount;
+    var downloadCount = ViewBag.DownloadCount;
+    var commentCount = ViewBag.CommentCount;
+    var purchaseCount = ViewBag.PurchaseCount;
+}
+
+<style>
+    /* Thiết lập chung */
+    .user-activity-container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    
+    .section-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title i {
+        color: #3498db;
+        margin-right: 10px;
+        font-size: 1.8rem;
+    }
+    
+    /* Stats Cards */
+    .activity-stats {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .activity-stat-card {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    
+    .activity-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    }
+    
+    .stat-icon-wrapper {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-bottom: 15px;
+    }
+    
+    .stat-read .stat-icon-wrapper {
+        background-color: rgba(66, 133, 244, 0.15);
+    }
+    
+    .stat-like .stat-icon-wrapper {
+        background-color: rgba(234, 67, 53, 0.15);
+    }
+    
+    .stat-download .stat-icon-wrapper {
+        background-color: rgba(52, 168, 83, 0.15);
+    }
+    
+    .stat-comment .stat-icon-wrapper {
+        background-color: rgba(251, 188, 5, 0.15);
+    }
+    
+    .stat-purchase .stat-icon-wrapper {
+        background-color: rgba(156, 39, 176, 0.15);
+    }
+    
+    .stat-icon {
+        font-size: 22px;
+    }
+    
+    .stat-read .stat-icon {
+        color: #4285F4;
+    }
+    
+    .stat-like .stat-icon {
+        color: #EA4335;
+    }
+    
+    .stat-download .stat-icon {
+        color: #34A853;
+    }
+    
+    .stat-comment .stat-icon {
+        color: #FBBC05;
+    }
+    
+    .stat-purchase .stat-icon {
+        color: #9C27B0;
+    }
+    
+    .stat-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 5px;
+    }
+    
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #333;
+    }
+    
+    /* Header section */
+    .activity-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        background-color: #fff;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    
+    .activity-count {
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .activity-count strong {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    /* Tab Navigation */
+    .activity-tabs {
+        margin-bottom: 25px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .tab-link {
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .tab-link i {
+        margin-right: 6px;
+    }
+    
+    .tab-link.active {
+        background-color: #3498db;
+        color: #fff;
+    }
+    
+    .tab-link:not(.active) {
+        background-color: #fff;
+        color: #555;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .tab-link:not(.active):hover {
+        background-color: #f5f5f5;
+    }
+    
+    /* Activity Card */
+    .activity-card {
+        display: flex;
+        background-color: #fff;
+        padding: 18px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        transition: all 0.2s ease;
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+    
+    .activity-card:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    .activity-time {
+        width: 100px;
+        text-align: center;
+        padding-right: 15px;
+        border-right: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .activity-time-day {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    
+    .activity-time-hour {
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .activity-content {
+        flex: 1;
+        padding-left: 15px;
+    }
+    
+    .activity-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+        font-size: 15px;
+        max-width: 90%;
+    }
+    
+    .activity-title a {
+        color: #2c3e50;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    .activity-title a:hover {
+        color: #3498db;
+    }
+    
+    .activity-details {
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .activity-type {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 10px;
+        border-radius: 50px;
+        margin-right: 10px;
+        color: white;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .activity-type i {
+        margin-right: 4px;
+        font-size: 11px;
+    }
+    
+    .activity-type.read {
+        background-color: #4285F4;
+    }
+    
+    .activity-type.like {
+        background-color: #EA4335;
+    }
+    
+    .activity-type.unlike {
+        background-color: #9e9e9e;
+    }
+    
+    .activity-type.download {
+        background-color: #34A853;
+    }
+    
+    .activity-type.comment {
+        background-color: #FBBC05;
+    }
+    
+    .activity-type.purchase {
+        background-color: #9C27B0;
+    }
+    
+    .clear-history-btn {
+        background-color: #fff;
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+        padding: 8px 15px;
+        border-radius: 50px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .clear-history-btn:hover {
+        background-color: #e74c3c;
+        color: #fff;
+    }
+    
+    .clear-history-btn i {
+        margin-right: 5px;
+        font-size: 12px;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+    
+    .empty-state i {
+        font-size: 60px;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h4 {
+        color: #333;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    
+    .empty-state p {
+        color: #777;
+        max-width: 400px;
+        margin: 0 auto 20px;
+    }
+    
+    .empty-state .btn {
+        padding: 10px 20px;
+        border-radius: 50px;
+    }
+    
+    /* Pagination */
+    .pagination {
+        margin-top: 30px;
+    }
+    
+    .page-link {
+        padding: 8px 15px;
+        border-radius: 5px;
+        margin: 0 3px;
+        border: 1px solid #e0e0e0;
+        color: #333;
+    }
+    
+    .page-item.active .page-link {
+        background-color: #3498db;
+        border-color: #3498db;
+    }
+    
+    /* Responsive Design */
+    @@media (max-width: 991px) {
+        .activity-stats {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @@media (max-width: 767px) {
+        .activity-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .activity-time {
+            width: 80px;
+        }
+    }
+    
+    @@media (max-width: 575px) {
+        .user-activity-container {
+            padding: 20px 15px;
+        }
+        
+        .activity-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .activity-header {
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .activity-card {
+            flex-direction: column;
+        }
+        
+        .activity-time {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid #eee;
+            padding-right: 0;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            text-align: left;
+            flex-direction: row;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+        
+        .activity-content {
+            padding-left: 0;
+        }
+    }
+</style>
+
+<div class="container my-4">
+    <div class="user-activity-container">
+        <h2 class="section-title">
+            <i class="fas fa-history"></i>
+            Lịch sử hoạt động
+        </h2>
+        
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+        
+        <!-- Thống kê hoạt động -->
+        <div class="activity-stats">
+            <a href="@Url.Action("ReadHistory")" class="activity-stat-card stat-read">
+                <div class="stat-icon-wrapper">
+                    <i class="fas fa-book-reader stat-icon"></i>
+                </div>
+                <div class="stat-title">Đã đọc</div>
+                <div class="stat-value">@readCount</div>
+            </a>
+            
+            <a href="@Url.Action("LikeHistory")" class="activity-stat-card stat-like">
+                <div class="stat-icon-wrapper">
+                    <i class="fas fa-heart stat-icon"></i>
+                </div>
+                <div class="stat-title">Đã thích</div>
+                <div class="stat-value">@likeCount</div>
+            </a>
+            
+            <a href="@Url.Action("DownloadHistory")" class="activity-stat-card stat-download">
+                <div class="stat-icon-wrapper">
+                    <i class="fas fa-download stat-icon"></i>
+                </div>
+                <div class="stat-title">Đã tải</div>
+                <div class="stat-value">@downloadCount</div>
+            </a>
+            
+            <a href="@Url.Action("CommentHistory")" class="activity-stat-card stat-comment">
+                <div class="stat-icon-wrapper">
+                    <i class="fas fa-comment stat-icon"></i>
+                </div>
+                <div class="stat-title">Bình luận</div>
+                <div class="stat-value">@commentCount</div>
+            </a>
+            
+            <a href="@Url.Action("PurchaseHistory")" class="activity-stat-card stat-purchase">
+                <div class="stat-icon-wrapper">
+                    <i class="fas fa-shopping-cart stat-icon"></i>
+                </div>
+                <div class="stat-title">Đã mua</div>
+                <div class="stat-value">@purchaseCount</div>
+            </a>
+        </div>
+        
+        <!-- Header -->
+        <div class="activity-header">
+            <div class="activity-count">
+                <span>Tổng cộng: <strong>@totalItems</strong> hoạt động</span>
+            </div>
+            
+            @if (Model.Any())
+            {
+                <form asp-action="Clear" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tất cả lịch sử hoạt động?');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="clear-history-btn">
+                        <i class="fas fa-trash-alt"></i> Xóa lịch sử
+                    </button>
+                </form>
+            }
+        </div>
+        
+        <!-- Tabs chuyển đến các loại hoạt động -->
+        <div class="activity-tabs">
+            <a href="@Url.Action("Index")" class="tab-link active">
+                <i class="fas fa-list"></i> Tất cả
+            </a>
+            <a href="@Url.Action("ReadHistory")" class="tab-link">
+                <i class="fas fa-book-reader"></i> Đã đọc
+            </a>
+            <a href="@Url.Action("LikeHistory")" class="tab-link">
+                <i class="fas fa-heart"></i> Đã thích
+            </a>
+            <a href="@Url.Action("DownloadHistory")" class="tab-link">
+                <i class="fas fa-download"></i> Đã tải
+            </a>
+            <a href="@Url.Action("CommentHistory")" class="tab-link">
+                <i class="fas fa-comment"></i> Bình luận
+            </a>
+            <a href="@Url.Action("PurchaseHistory")" class="tab-link">
+                <i class="fas fa-shopping-cart"></i> Đã mua
+            </a>
+        </div>
+        
+        <!-- Danh sách hoạt động -->
+        @if (Model.Any())
+        {
+            foreach (var activity in Model)
+            {
+                <div class="activity-card">
+                    <div class="activity-time">
+                        <div class="activity-time-day">@activity.ActivityDate.ToString("dd/MM/yyyy")</div>
+                        <div class="activity-time-hour">@activity.ActivityDate.ToString("HH:mm")</div>
+                    </div>
+                    <div class="activity-content">
+                        @{
+                            string activityTypeClass = "";
+                            string activityTypeName = "";
+                            string activityIcon = "";
+                            
+                            switch (activity.ActivityType)
+                            {
+                                case "Read":
+                                    activityTypeClass = "read";
+                                    activityTypeName = "Đã đọc";
+                                    activityIcon = "fas fa-book-reader";
+                                    break;
+                                case "Like":
+                                    activityTypeClass = "like";
+                                    activityTypeName = "Đã thích";
+                                    activityIcon = "fas fa-heart";
+                                    break;
+                                case "Unlike":
+                                    activityTypeClass = "unlike";
+                                    activityTypeName = "Bỏ thích";
+                                    activityIcon = "fas fa-heart-broken";
+                                    break;
+                                case "Download":
+                                    activityTypeClass = "download";
+                                    activityTypeName = "Đã tải";
+                                    activityIcon = "fas fa-download";
+                                    break;
+                                case "Comment":
+                                    activityTypeClass = "comment";
+                                    activityTypeName = "Bình luận";
+                                    activityIcon = "fas fa-comment";
+                                    break;
+                                case "Purchase":
+                                    activityTypeClass = "purchase";
+                                    activityTypeName = "Đã mua";
+                                    activityIcon = "fas fa-shopping-cart";
+                                    break;
+                                default:
+                                    activityTypeClass = "";
+                                    activityTypeName = activity.ActivityType;
+                                    activityIcon = "fas fa-info-circle";
+                                    break;
+                            }
+                        }
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="activity-type @activityTypeClass">
+                                <i class="@activityIcon"></i> @activityTypeName
+                            </span>
+                            
+                            <div class="activity-title">
+                                @if (activity.Document != null)
+                                {
+                                    <a href="@Url.Action("Details", "Document", new { id = activity.DocumentID })">
+                                        @activity.Document.Title
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span>Tài liệu không còn tồn tại</span>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="activity-details">
+                            @(activity.Description ?? "")
+                            
+                            @if (!string.IsNullOrEmpty(activity.AdditionalData) && activity.ActivityType == "Comment")
+                            {
+                                <div class="mt-2 p-3 bg-light rounded">
+                                    <i class="fas fa-quote-left me-1 text-muted"></i>
+                                    @activity.AdditionalData
+                                </div>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(activity.AdditionalData) && activity.ActivityType == "Purchase")
+                            {
+                                <div class="mt-1 text-success">
+                                    <i class="fas fa-tag me-1"></i> @activity.AdditionalData
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            
+            <!-- Phân trang -->
+            @if (totalPages > 1)
+            {
+                <div class="d-flex justify-content-center">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            @if (currentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1 })" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            }
+                            
+                            @{
+                                // Xác định phạm vi các trang sẽ hiển thị
+                                int startPage = Math.Max(1, currentPage - 2);
+                                int endPage = Math.Min(totalPages, startPage + 4);
+                                
+                                // Điều chỉnh lại startPage để luôn hiển thị 5 trang (nếu có đủ trang)
+                                if (endPage - startPage < 4 && startPage > 1)
+                                {
+                                    startPage = Math.Max(1, endPage - 4);
+                                }
+                            }
+                            
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = 1 })">1</a>
+                                </li>
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                            }
+                            
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                                </li>
+                            }
+                            
+                            @if (endPage < totalPages)
+                            {
+                                @if (endPage < totalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = totalPages })">@totalPages</a>
+                                </li>
+                            }
+                            
+                            @if (currentPage < totalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1 })" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-history"></i>
+                <h4>Chưa có lịch sử hoạt động nào</h4>
+                <p>Khi bạn đọc, thích, tải xuống hoặc bình luận tài liệu, các hoạt động đó sẽ được hiển thị ở đây.</p>
+                @* <a href="@Url.Action("Index", "Document")" class="btn btn-primary"> *@
+                @*     <i class="fas fa-search me-1"></i> Khám phá tài liệu *@
+                @* </a> *@
+            </div>
+        }
+    </div>
+</div> 

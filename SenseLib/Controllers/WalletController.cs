@@ -215,8 +215,8 @@ namespace SenseLib.Controllers
             // Tạo yêu cầu nạp tiền qua VNPay
             try 
             {
-                var orderInfo = $"Nạp tiền vào ví SenseLib";
-                var orderDescription = $"Nạp tiền {amount:N0} VND vào ví";
+                var orderInfo = $"Nạp POINT vào ví SenseLib";
+                var orderDescription = $"Nạp tiền {amount:N0} VND thành {amount:N0} POINT vào ví";
                 var orderType = "billpayment";
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
                 
@@ -276,7 +276,7 @@ namespace SenseLib.Controllers
                 
                 if (result)
                 {
-                    TempData["SuccessMessage"] = $"Nạp thành công {paymentResult.Amount:N0} VND vào ví";
+                    TempData["SuccessMessage"] = $"Nạp thành công {paymentResult.Amount:N0} POINT vào ví";
                 }
                 else
                 {

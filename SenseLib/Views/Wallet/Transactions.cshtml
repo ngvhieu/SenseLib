@@ -30,7 +30,7 @@
             
             <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
                 <div>
-                    <h5 class="mb-0">Số dư hiện tại: <span class="text-primary">@wallet.Balance.ToString("N0") ₫</span></h5>
+                    <h5 class="mb-0">Số dư hiện tại: <span class="text-primary">@wallet.Balance.ToString("N0") P</span></h5>
                 </div>
                 <div>
                     <a asp-action="Withdraw" class="btn btn-primary">
@@ -131,7 +131,7 @@
                                         }
                                     </td>
                                     <td class="@(transaction.Type == "Credit" ? "text-success" : "text-danger")">
-                                        <strong>@(transaction.Type == "Credit" ? "+" : "-")@transaction.Amount.ToString("N0") ₫</strong>
+                                        <strong>@(transaction.Type == "Credit" ? "+" : "-")@transaction.Amount.ToString("N0") P</strong>
                                     </td>
                                     <td>@transaction.Description</td>
                                     <td>
