@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SenseLib.Models;
 using System.Collections.Generic;
+using SenseLib.Services;
 
 namespace SenseLib.Areas.Admin.Controllers
 {
@@ -19,11 +20,13 @@ namespace SenseLib.Areas.Admin.Controllers
     {
         private readonly DataContext _context;
         private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly WalletService _walletService;
 
-        public DocumentController(DataContext context, IWebHostEnvironment hostEnvironment)
+        public DocumentController(DataContext context, IWebHostEnvironment hostEnvironment, WalletService walletService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
+            _walletService = walletService;
         }
 
         // GET: Admin/Document
@@ -1117,12 +1120,22 @@ namespace SenseLib.Areas.Admin.Controllers
                     TempData["WarningMessage"] = $"Cảnh báo: File vật lý không tồn tại tại đường dẫn {physicalPath}, nhưng vẫn tiếp tục phê duyệt tài liệu trong database.";
                 }
                 
-                // Cập nhật trạng thái tài liệu - vẫn giữ "Approved" để đồng nhất với logic người dùng tạo
+                // Cập nhật trạng thái tài liệu
                 document.Status = "Approved";
                 _context.Update(document);
                 await _context.SaveChangesAsync();
+
+                // Cộng điểm cho người dùng khi tài liệu được duyệt
+                var result = await _walletService.AddPointsForApprovedDocumentAsync(id);
+                if (result)
+                {
+                    TempData["SuccessMessage"] = "Tài liệu đã được duyệt thành công và người đăng tài liệu đã nhận được điểm thưởng!";
+                }
+                else
+                {
+                    TempData["SuccessMessage"] = "Tài liệu đã được duyệt thành công nhưng không thể cộng điểm cho người đăng tải!";
+                }
                 
-                TempData["SuccessMessage"] = "Tài liệu đã được duyệt thành công!";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)

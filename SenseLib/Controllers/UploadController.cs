@@ -124,8 +124,37 @@ namespace SenseLib.Controllers
                 document.Downloads = new List<Download>();
                 document.Favorites = new List<Favorite>();
                 
-                // Xử lý tác giả mới nếu có
-                if (setAsAuthor && !string.IsNullOrEmpty(newAuthorName))
+                // Xử lý tác giả - Kiểm tra xem người dùng có chọn "Đặt tôi làm tác giả" hay không
+                if (setAsAuthor)
+                {
+                    // Lấy thông tin người dùng hiện tại
+                    var user = await _context.Users.FindAsync(userId);
+                    if (user != null)
+                    {
+                        // Tìm xem đã có tác giả với tên người dùng chưa
+                        var existingAuthor = await _context.Authors.FirstOrDefaultAsync(a => a.AuthorName == user.FullName);
+                        if (existingAuthor != null)
+                        {
+                            document.AuthorID = existingAuthor.AuthorID;
+                        }
+                        else
+                        {
+                            // Tạo mới tác giả
+                            var newAuthor = new Author
+                            {
+                                AuthorName = user.FullName,
+                                Bio = "Người dùng tải lên tài liệu"
+                            };
+                            
+                            _context.Authors.Add(newAuthor);
+                            await _context.SaveChangesAsync();
+                            
+                            document.AuthorID = newAuthor.AuthorID;
+                        }
+                    }
+                }
+                // Nếu người dùng nhập tên tác giả mới (không chọn từ dropdown)
+                else if (!string.IsNullOrEmpty(newAuthorName) && document.AuthorID == null)
                 {
                     // Tạo mới tác giả
                     var newAuthor = new Author
@@ -383,6 +412,7 @@ namespace SenseLib.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Document document, IFormFile file, IFormFile imageFile, bool isPaid, decimal? price, bool setAsAuthor = false, string newAuthorName = null)
         {
+            // Kiểm tra ID hợp lệ
             if (id != document.DocumentID)
             {
                 return NotFound();
@@ -392,7 +422,7 @@ namespace SenseLib.Controllers
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var isAdmin = User.IsInRole("Admin");
             
-            // Lấy thông tin tài liệu từ database
+            // Lấy tài liệu hiện tại từ database
             var existingDocument = await _context.Documents.FindAsync(id);
             
             if (existingDocument == null)
@@ -400,36 +430,62 @@ namespace SenseLib.Controllers
                 return NotFound();
             }
             
-            // Kiểm tra quyền chỉnh sửa: người dùng sở hữu tài liệu hoặc là Admin
+            // Kiểm tra quyền chỉnh sửa
             if (existingDocument.UserID != userId && !isAdmin)
             {
                 return Forbid();
             }
             
-            // Lưu trạng thái và thông tin quan trọng hiện tại để kiểm tra sau
-            string currentStatus = existingDocument.Status;
-            string currentTitle = existingDocument.Title;
-            int? currentCategoryID = existingDocument.CategoryID;
-            int? currentAuthorID = existingDocument.AuthorID;
-            int? currentPublisherID = existingDocument.PublisherID;
-            bool currentIsPaid = existingDocument.IsPaid;
-            decimal? currentPrice = existingDocument.Price;
-            string currentFilePath = existingDocument.FilePath;
-            
-            // Cập nhật thông tin tài liệu
-            existingDocument.Title = document.Title;
-            existingDocument.Description = document.Description;
-            existingDocument.CategoryID = document.CategoryID;
-            
-            // Nếu người dùng muốn đặt mình làm tác giả
-            if (setAsAuthor)
+            try
             {
-                // Lấy thông tin người dùng
-                var user = await _context.Users.FindAsync(userId);
-                if (user != null)
+                // Lưu trạng thái và thông tin quan trọng hiện tại để kiểm tra sau
+                string currentStatus = existingDocument.Status;
+                string currentTitle = existingDocument.Title;
+                int? currentCategoryID = existingDocument.CategoryID;
+                int? currentAuthorID = existingDocument.AuthorID;
+                int? currentPublisherID = existingDocument.PublisherID;
+                bool currentIsPaid = existingDocument.IsPaid;
+                decimal? currentPrice = existingDocument.Price;
+                
+                // Cập nhật thông tin cơ bản
+                existingDocument.Title = document.Title;
+                existingDocument.Description = document.Description;
+                existingDocument.CategoryID = document.CategoryID;
+                
+                // Xử lý tác giả - Kiểm tra xem người dùng có chọn "Đặt tôi làm tác giả" không
+                if (setAsAuthor)
                 {
-                    // Tìm xem đã có tác giả với tên người dùng chưa
-                    var existingAuthor = await _context.Authors.FirstOrDefaultAsync(a => a.AuthorName == user.FullName);
+                    // Lấy thông tin người dùng
+                    var user = await _context.Users.FindAsync(userId);
+                    if (user != null)
+                    {
+                        // Tìm xem đã có tác giả với tên người dùng chưa
+                        var existingAuthor = await _context.Authors.FirstOrDefaultAsync(a => a.AuthorName == user.FullName);
+                        if (existingAuthor != null)
+                        {
+                            existingDocument.AuthorID = existingAuthor.AuthorID;
+                        }
+                        else
+                        {
+                            // Tạo mới tác giả
+                            var newAuthor = new Author
+                            {
+                                AuthorName = user.FullName,
+                                Bio = "Người dùng tải lên tài liệu"
+                            };
+                            
+                            _context.Authors.Add(newAuthor);
+                            await _context.SaveChangesAsync();
+                            
+                            existingDocument.AuthorID = newAuthor.AuthorID;
+                        }
+                    }
+                }
+                // Nếu người dùng nhập tên tác giả mới
+                else if (!string.IsNullOrEmpty(newAuthorName) && document.AuthorID == null)
+                {
+                    // Tìm xem có tác giả với tên này chưa
+                    var existingAuthor = await _context.Authors.FirstOrDefaultAsync(a => a.AuthorName == newAuthorName);
                     if (existingAuthor != null)
                     {
                         existingDocument.AuthorID = existingAuthor.AuthorID;
@@ -439,8 +495,8 @@ namespace SenseLib.Controllers
                         // Tạo mới tác giả
                         var newAuthor = new Author
                         {
-                            AuthorName = user.FullName,
-                            Bio = "Người dùng tải lên tài liệu"
+                            AuthorName = newAuthorName,
+                            Bio = "Tác giả được tạo từ quy trình tải lên tài liệu"
                         };
                         
                         _context.Authors.Add(newAuthor);
@@ -449,255 +505,241 @@ namespace SenseLib.Controllers
                         existingDocument.AuthorID = newAuthor.AuthorID;
                     }
                 }
-            }
-            // Nếu người dùng nhập tên tác giả mới
-            else if (!string.IsNullOrEmpty(newAuthorName) && document.AuthorID == null)
-            {
-                // Tìm xem có tác giả với tên này chưa
-                var existingAuthor = await _context.Authors.FirstOrDefaultAsync(a => a.AuthorName == newAuthorName);
-                if (existingAuthor != null)
-                {
-                    existingDocument.AuthorID = existingAuthor.AuthorID;
-                }
                 else
                 {
-                    // Tạo mới tác giả
-                    var newAuthor = new Author
-                    {
-                        AuthorName = newAuthorName,
-                        Bio = "Tác giả được tạo từ quy trình tải lên tài liệu"
-                    };
-                    
-                    _context.Authors.Add(newAuthor);
-                    await _context.SaveChangesAsync();
-                    
-                    existingDocument.AuthorID = newAuthor.AuthorID;
+                    existingDocument.AuthorID = document.AuthorID;
                 }
-            }
-            else
-            {
-                existingDocument.AuthorID = document.AuthorID;
-            }
-            
-            existingDocument.PublisherID = document.PublisherID;
-            
-            // Cập nhật thông tin về giá
-            existingDocument.IsPaid = isPaid;
-            existingDocument.Price = isPaid && price.HasValue ? price.Value : 0;
-            
-            // Biến kiểm tra xem có thay đổi thông tin quan trọng không
-            bool hasImportantChanges = false;
-            
-            // Kiểm tra xem có thay đổi thông tin quan trọng không
-            if (currentTitle != existingDocument.Title ||
-                currentCategoryID != existingDocument.CategoryID ||
-                currentAuthorID != existingDocument.AuthorID ||
-                currentPublisherID != existingDocument.PublisherID ||
-                currentIsPaid != existingDocument.IsPaid ||
-                currentPrice != existingDocument.Price ||
-                file != null) // Nếu thay đổi file, cần duyệt lại
-            {
-                hasImportantChanges = true;
-            }
-            
-            // Đặt lại trạng thái là Pending (chờ duyệt) nếu có thay đổi quan trọng và không phải admin
-            if (hasImportantChanges && !isAdmin && (existingDocument.Status == "Approved" || existingDocument.Status == "Published"))
-            {
-                existingDocument.Status = "Pending";
-                TempData["WarningMessage"] = "Tài liệu đã được cập nhật và cần chờ quản trị viên duyệt lại!";
-            }
-            else if (!hasImportantChanges)
-            {
-                // Giữ nguyên trạng thái nếu chỉ thay đổi mô tả hoặc ảnh bìa
-                TempData["SuccessMessage"] = "Tài liệu đã được cập nhật thành công!";
-            }
-            else if (isAdmin)
-            {
-                // Admin thay đổi, giữ nguyên trạng thái
-                TempData["SuccessMessage"] = "Tài liệu đã được cập nhật thành công với quyền Admin!";
-            }
-            
-            // Xử lý upload file tài liệu mới nếu có
-            if (file != null && file.Length > 0)
-            {
-                try
+                
+                existingDocument.PublisherID = document.PublisherID;
+                
+                // Cập nhật thông tin về giá
+                existingDocument.IsPaid = isPaid;
+                existingDocument.Price = isPaid && price.HasValue ? price.Value : 0;
+                
+                // Biến kiểm tra xem có thay đổi thông tin quan trọng không
+                bool hasImportantChanges = false;
+                
+                // Kiểm tra xem có thay đổi thông tin quan trọng không
+                if (currentTitle != existingDocument.Title ||
+                    currentCategoryID != existingDocument.CategoryID ||
+                    currentAuthorID != existingDocument.AuthorID ||
+                    currentPublisherID != existingDocument.PublisherID ||
+                    currentIsPaid != existingDocument.IsPaid ||
+                    currentPrice != existingDocument.Price ||
+                    file != null) // Nếu thay đổi file, cần duyệt lại
                 {
-                    // Tạo thư mục nếu chưa tồn tại
-                    string uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "uploads", "documents");
-                    if (!Directory.Exists(uploadsFolder))
+                    hasImportantChanges = true;
+                }
+                
+                // Đặt lại trạng thái là Pending (chờ duyệt) nếu có thay đổi quan trọng và không phải admin
+                if (hasImportantChanges && !isAdmin && (existingDocument.Status == "Approved" || existingDocument.Status == "Published"))
+                {
+                    existingDocument.Status = "Pending";
+                    TempData["WarningMessage"] = "Tài liệu đã được cập nhật và cần chờ quản trị viên duyệt lại!";
+                }
+                else if (!hasImportantChanges)
+                {
+                    // Giữ nguyên trạng thái nếu chỉ thay đổi mô tả hoặc ảnh bìa
+                    TempData["SuccessMessage"] = "Tài liệu đã được cập nhật thành công!";
+                }
+                else if (isAdmin)
+                {
+                    // Admin thay đổi, giữ nguyên trạng thái
+                    TempData["SuccessMessage"] = "Tài liệu đã được cập nhật thành công với quyền Admin!";
+                }
+                
+                // Xử lý upload file tài liệu mới nếu có
+                if (file != null && file.Length > 0)
+                {
+                    try
                     {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
-                    
-                    // Kiểm tra kích thước file (giới hạn 50MB)
-                    if (file.Length > 50 * 1024 * 1024)
-                    {
-                        ModelState.AddModelError("", "Kích thước file không được vượt quá 50MB");
-                        PrepareEditViewData();
-                        return View(existingDocument);
-                    }
-                    
-                    // Kiểm tra định dạng file
-                    string extension = Path.GetExtension(file.FileName).ToLower();
-                    string[] allowedExtensions = { 
-                        ".pdf", ".doc", ".docx", 
-                        ".xls", ".xlsx", ".xlsm", 
-                        ".ppt", ".pptx", ".pptm", 
-                        ".txt", ".rtf", ".csv", 
-                        ".odt", ".ods", ".odp",
-                        ".md", ".html", ".htm",
-                        ".xml", ".json", ".log",
-                        ".zip", ".rar", ".7z",
-                        ".mp3", ".mp4", ".avi",
-                        ".png", ".jpg", ".jpeg",
-                        ".gif", ".bmp", ".svg"
-                    };
-                    if (!allowedExtensions.Contains(extension))
-                    {
-                        ModelState.AddModelError("", "Chỉ chấp nhận các định dạng file: PDF, Word, Excel, PowerPoint, Text, Notepad, hình ảnh, âm thanh, video và định dạng tương tự");
-                        PrepareEditViewData();
-                        return View(existingDocument);
-                    }
-                    
-                    // Xóa file cũ nếu có
-                    if (!string.IsNullOrEmpty(existingDocument.FilePath))
-                    {
-                        string oldFilePath = Path.Combine(_hostEnvironment.WebRootPath, 
-                            existingDocument.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                        
-                        if (System.IO.File.Exists(oldFilePath))
+                        // Tạo thư mục nếu chưa tồn tại
+                        string uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "uploads", "documents");
+                        if (!Directory.Exists(uploadsFolder))
                         {
-                            try
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+                        
+                        // Kiểm tra kích thước file (giới hạn 50MB)
+                        if (file.Length > 50 * 1024 * 1024)
+                        {
+                            ModelState.AddModelError("", "Kích thước file không được vượt quá 50MB");
+                            PrepareEditViewData();
+                            return View(existingDocument);
+                        }
+                        
+                        // Kiểm tra định dạng file
+                        string extension = Path.GetExtension(file.FileName).ToLower();
+                        string[] allowedExtensions = { 
+                            ".pdf", ".doc", ".docx", 
+                            ".xls", ".xlsx", ".xlsm", 
+                            ".ppt", ".pptx", ".pptm", 
+                            ".txt", ".rtf", ".csv", 
+                            ".odt", ".ods", ".odp",
+                            ".md", ".html", ".htm",
+                            ".xml", ".json", ".log",
+                            ".zip", ".rar", ".7z",
+                            ".mp3", ".mp4", ".avi",
+                            ".png", ".jpg", ".jpeg",
+                            ".gif", ".bmp", ".svg"
+                        };
+                        if (!allowedExtensions.Contains(extension))
+                        {
+                            ModelState.AddModelError("", "Chỉ chấp nhận các định dạng file: PDF, Word, Excel, PowerPoint, Text, Notepad, hình ảnh, âm thanh, video và định dạng tương tự");
+                            PrepareEditViewData();
+                            return View(existingDocument);
+                        }
+                        
+                        // Xóa file cũ nếu có
+                        if (!string.IsNullOrEmpty(existingDocument.FilePath))
+                        {
+                            string oldFilePath = Path.Combine(_hostEnvironment.WebRootPath, 
+                                existingDocument.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                            
+                            if (System.IO.File.Exists(oldFilePath))
                             {
-                                System.IO.File.Delete(oldFilePath);
-                            }
-                            catch (Exception ex)
-                            {
-                                // Ghi log lỗi nhưng không dừng quy trình
-                                Console.WriteLine($"Lỗi khi xóa file cũ: {ex.Message}");
+                                try
+                                {
+                                    System.IO.File.Delete(oldFilePath);
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Ghi log lỗi nhưng không dừng quy trình
+                                    Console.WriteLine($"Lỗi khi xóa file cũ: {ex.Message}");
+                                }
                             }
                         }
-                    }
-                    
-                    // Tạo tên file duy nhất
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                    
-                    // Lưu file vào server
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(fileStream);
-                    }
-                    
-                    // Cập nhật đường dẫn file mới
-                    existingDocument.FilePath = "/uploads/documents/" + uniqueFileName;
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", $"Lỗi khi tải lên file: {ex.Message}");
-                    PrepareEditViewData();
-                    return View(existingDocument);
-                }
-            }
-            
-            // Xử lý upload ảnh bìa mới nếu có
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                try
-                {
-                    // Kiểm tra kích thước ảnh (giới hạn 5MB)
-                    if (imageFile.Length > 5 * 1024 * 1024)
-                    {
-                        ModelState.AddModelError("", "Kích thước ảnh bìa không được vượt quá 5MB");
-                        PrepareEditViewData();
-                        return View(existingDocument);
-                    }
-                    
-                    // Kiểm tra định dạng ảnh
-                    string extension = Path.GetExtension(imageFile.FileName).ToLower();
-                    string[] allowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                    if (!allowedImageExtensions.Contains(extension))
-                    {
-                        ModelState.AddModelError("", "Chỉ chấp nhận định dạng ảnh: JPG, PNG, GIF, WEBP");
-                        PrepareEditViewData();
-                        return View(existingDocument);
-                    }
-                    
-                    // Xóa ảnh cũ nếu không phải ảnh mặc định
-                    if (!string.IsNullOrEmpty(existingDocument.ImagePath) && 
-                        !existingDocument.ImagePath.Contains("document-placeholder.jpg") &&
-                        existingDocument.ImagePath.StartsWith("/uploads/"))
-                    {
-                        string oldImagePath = Path.Combine(_hostEnvironment.WebRootPath, 
-                            existingDocument.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
                         
-                        if (System.IO.File.Exists(oldImagePath))
+                        // Tạo tên file duy nhất
+                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
+                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                        
+                        // Lưu file vào server
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
                         {
-                            try
+                            await file.CopyToAsync(fileStream);
+                        }
+                        
+                        // Cập nhật đường dẫn file mới
+                        existingDocument.FilePath = "/uploads/documents/" + uniqueFileName;
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", $"Lỗi khi tải lên file: {ex.Message}");
+                        PrepareEditViewData();
+                        return View(existingDocument);
+                    }
+                }
+                
+                // Xử lý upload ảnh bìa mới nếu có
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    try
+                    {
+                        // Kiểm tra kích thước ảnh (giới hạn 5MB)
+                        if (imageFile.Length > 5 * 1024 * 1024)
+                        {
+                            ModelState.AddModelError("", "Kích thước ảnh bìa không được vượt quá 5MB");
+                            PrepareEditViewData();
+                            return View(existingDocument);
+                        }
+                        
+                        // Kiểm tra định dạng ảnh
+                        string extension = Path.GetExtension(imageFile.FileName).ToLower();
+                        string[] allowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                        if (!allowedImageExtensions.Contains(extension))
+                        {
+                            ModelState.AddModelError("", "Chỉ chấp nhận định dạng ảnh: JPG, PNG, GIF, WEBP");
+                            PrepareEditViewData();
+                            return View(existingDocument);
+                        }
+                        
+                        // Xóa ảnh cũ nếu không phải ảnh mặc định
+                        if (!string.IsNullOrEmpty(existingDocument.ImagePath) && 
+                            !existingDocument.ImagePath.Contains("document-placeholder.jpg") &&
+                            existingDocument.ImagePath.StartsWith("/uploads/"))
+                        {
+                            string oldImagePath = Path.Combine(_hostEnvironment.WebRootPath, 
+                                existingDocument.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                            
+                            if (System.IO.File.Exists(oldImagePath))
                             {
-                                System.IO.File.Delete(oldImagePath);
-                            }
-                            catch (Exception ex)
-                            {
-                                // Ghi log lỗi nhưng không dừng quy trình
-                                Console.WriteLine($"Lỗi khi xóa ảnh cũ: {ex.Message}");
+                                try
+                                {
+                                    System.IO.File.Delete(oldImagePath);
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Ghi log lỗi nhưng không dừng quy trình
+                                    Console.WriteLine($"Lỗi khi xóa ảnh cũ: {ex.Message}");
+                                }
                             }
                         }
+                        
+                        // Tạo thư mục nếu chưa tồn tại
+                        string imagesFolder = Path.Combine(_hostEnvironment.WebRootPath, "uploads", "images");
+                        if (!Directory.Exists(imagesFolder))
+                        {
+                            Directory.CreateDirectory(imagesFolder);
+                        }
+                        
+                        // Tạo tên file duy nhất
+                        string uniqueImageName = Guid.NewGuid().ToString() + extension;
+                        string imagePath = Path.Combine(imagesFolder, uniqueImageName);
+                        
+                        // Lưu file vào server
+                        using (var fileStream = new FileStream(imagePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(fileStream);
+                        }
+                        
+                        // Cập nhật đường dẫn ảnh mới
+                        existingDocument.ImagePath = "/uploads/images/" + uniqueImageName;
                     }
-                    
-                    // Tạo thư mục nếu chưa tồn tại
-                    string imagesFolder = Path.Combine(_hostEnvironment.WebRootPath, "uploads", "images");
-                    if (!Directory.Exists(imagesFolder))
+                    catch (Exception ex)
                     {
-                        Directory.CreateDirectory(imagesFolder);
+                        // Ghi log lỗi nhưng vẫn giữ ảnh cũ
+                        Console.WriteLine($"Lỗi khi tải lên ảnh mới: {ex.Message}");
+                        ModelState.AddModelError("", $"Lỗi khi tải lên ảnh mới: {ex.Message}");
+                        // Không thay đổi ảnh cũ
                     }
-                    
-                    // Tạo tên file duy nhất
-                    string uniqueImageName = Guid.NewGuid().ToString() + extension;
-                    string imagePath = Path.Combine(imagesFolder, uniqueImageName);
-                    
-                    // Lưu file vào server
-                    using (var fileStream = new FileStream(imagePath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(fileStream);
-                    }
-                    
-                    // Cập nhật đường dẫn ảnh mới
-                    existingDocument.ImagePath = "/uploads/images/" + uniqueImageName;
                 }
-                catch (Exception ex)
+                
+                if (ModelState.IsValid)
                 {
-                    // Ghi log lỗi nhưng vẫn giữ ảnh cũ
-                    Console.WriteLine($"Lỗi khi tải lên ảnh mới: {ex.Message}");
-                    ModelState.AddModelError("", $"Lỗi khi tải lên ảnh mới: {ex.Message}");
-                    // Không thay đổi ảnh cũ
+                    try
+                    {
+                        _context.Update(existingDocument);
+                        await _context.SaveChangesAsync();
+                        return RedirectToAction(nameof(Index));
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        if (!DocumentExists(id))
+                        {
+                            return NotFound();
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
                 }
+                
+                PrepareEditViewData();
+                return View(existingDocument);
             }
-            
-            if (ModelState.IsValid)
+            catch (Exception ex)
             {
-                try
-                {
-                    _context.Update(existingDocument);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!DocumentExists(id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                // Ghi log lỗi
+                string errorMessage = $"Lỗi không xác định: {ex.Message}";
+                
+                ModelState.AddModelError("", errorMessage);
+                PrepareEditViewData();
+                return View(existingDocument);
             }
             
-            PrepareEditViewData();
-            return View(existingDocument);
-            
+            // Phương thức helper để chuẩn bị dữ liệu cho view
             void PrepareEditViewData()
             {
                 ViewData["CategoryID"] = new SelectList(_context.Categories, "CategoryID", "CategoryName", document.CategoryID);

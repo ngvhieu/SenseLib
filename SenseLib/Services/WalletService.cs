@@ -280,5 +280,69 @@ namespace SenseLib.Services
             
             return (true, "Thanh toán thành công");
         }
+
+        // Cộng điểm khi tài liệu được duyệt
+        public async Task<bool> AddPointsForApprovedDocumentAsync(int documentId)
+        {
+            try
+            {
+                // Lấy thông tin tài liệu và người tạo
+                var document = await _context.Documents
+                    .FirstOrDefaultAsync(d => d.DocumentID == documentId);
+
+                if (document == null || !document.UserID.HasValue)
+                {
+                    _logger.LogWarning($"Không thể cộng điểm: Tài liệu không tồn tại hoặc không có thông tin người đăng tải (DocumentID: {documentId})");
+                    return false;
+                }
+
+                var uploaderId = document.UserID.Value;
+
+                // Lấy số điểm thưởng từ cấu hình hệ thống, mặc định là 10 điểm
+                decimal pointsToAdd = 10m;
+                var pointsConfig = await _context.SystemConfigs
+                    .FirstOrDefaultAsync(c => c.ConfigKey == "PointsForApprovedDocument");
+
+                if (pointsConfig != null && decimal.TryParse(pointsConfig.ConfigValue, out var configPoints))
+                {
+                    pointsToAdd = configPoints;
+                }
+
+                // Lấy ví của người đăng tải
+                var uploaderWallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserID == uploaderId);
+                
+                // Nếu chưa có ví, tạo ví mới
+                if (uploaderWallet == null)
+                {
+                    uploaderWallet = await CreateWalletAsync(uploaderId);
+                }
+
+                // Cập nhật số dư ví
+                uploaderWallet.Balance += pointsToAdd;
+                uploaderWallet.LastUpdatedDate = DateTime.Now;
+
+                // Tạo giao dịch ví
+                var walletTransaction = new WalletTransaction
+                {
+                    WalletID = uploaderWallet.WalletID,
+                    Amount = pointsToAdd,
+                    TransactionDate = DateTime.Now,
+                    Type = "Credit",
+                    Description = $"Thưởng {pointsToAdd:N0} POINT cho việc đăng tải tài liệu: {document.Title}",
+                    DocumentID = document.DocumentID
+                };
+
+                _context.WalletTransactions.Add(walletTransaction);
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Đã cộng {pointsToAdd} điểm cho người dùng {uploaderId} cho tài liệu {documentId}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi cộng điểm cho tài liệu được duyệt: {ex.Message}");
+                return false;
+            }
+        }
     }
 } 

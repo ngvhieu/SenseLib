@@ -22,7 +22,15 @@ namespace SenseLib.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var configs = await _context.SystemConfigs.OrderBy(c => c.ConfigKey).ToListAsync();
-            return View(configs);
+            
+            // Đưa các cấu hình Point lên đầu danh sách
+            var pointConfigs = configs.Where(c => c.ConfigKey.Contains("Point") || c.Description.Contains("Point")).ToList();
+            var otherConfigs = configs.Where(c => !c.ConfigKey.Contains("Point") && !c.Description.Contains("Point")).ToList();
+            
+            ViewBag.PointCount = pointConfigs.Count;
+            ViewBag.TotalCount = configs.Count;
+
+            return View(configs); // Khi render view, chúng ta sẽ phân loại trong view
         }
 
         // GET: Admin/SystemConfig/Edit/5
@@ -56,9 +64,27 @@ namespace SenseLib.Areas.Admin.Controllers
             {
                 try
                 {
+                    // Kiểm tra giá trị hợp lệ đối với cấu hình Point
+                    if (config.ConfigKey.Contains("Point") && decimal.TryParse(config.ConfigValue, out decimal pointValue))
+                    {
+                        if (pointValue < 0)
+                        {
+                            ModelState.AddModelError("ConfigValue", "Giá trị Point không được âm");
+                            return View(config);
+                        }
+                    }
+                    
                     _context.Update(config);
                     await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Cập nhật cấu hình thành công!";
+                    
+                    if (config.ConfigKey.Contains("Point"))
+                    {
+                        TempData["SuccessMessage"] = $"Cập nhật cấu hình Point thành công!";
+                    }
+                    else
+                    {
+                        TempData["SuccessMessage"] = "Cập nhật cấu hình thành công!";
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -96,9 +122,28 @@ namespace SenseLib.Areas.Admin.Controllers
                     return View(config);
                 }
                 
+                // Kiểm tra giá trị hợp lệ đối với cấu hình Point
+                if (config.ConfigKey.Contains("Point") && decimal.TryParse(config.ConfigValue, out decimal pointValue))
+                {
+                    if (pointValue < 0)
+                    {
+                        ModelState.AddModelError("ConfigValue", "Giá trị Point không được âm");
+                        return View(config);
+                    }
+                }
+                
                 _context.Add(config);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Thêm cấu hình thành công!";
+                
+                if (config.ConfigKey.Contains("Point"))
+                {
+                    TempData["SuccessMessage"] = $"Thêm cấu hình Point thành công!";
+                }
+                else
+                {
+                    TempData["SuccessMessage"] = "Thêm cấu hình thành công!";
+                }
+                
                 return RedirectToAction(nameof(Index));
             }
             return View(config);
@@ -129,7 +174,14 @@ namespace SenseLib.Areas.Admin.Controllers
             var config = await _context.SystemConfigs.FindAsync(id);
             
             // Không cho phép xóa các cấu hình mặc định quan trọng
-            var essentialConfigs = new[] { "MaxLoginAttempts", "LockoutTimeMinutes", "HomePagePaidDocuments", "HomePageFreeDocuments" };
+            var essentialConfigs = new[] { 
+                "MaxLoginAttempts", 
+                "LockoutTimeMinutes", 
+                "HomePagePaidDocuments", 
+                "HomePageFreeDocuments", 
+                "PointsForApprovedDocument" 
+            };
+            
             if (essentialConfigs.Contains(config.ConfigKey))
             {
                 TempData["ErrorMessage"] = "Không thể xóa cấu hình hệ thống quan trọng này!";
@@ -138,7 +190,16 @@ namespace SenseLib.Areas.Admin.Controllers
             
             _context.SystemConfigs.Remove(config);
             await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Xóa cấu hình thành công!";
+            
+            if (config.ConfigKey.Contains("Point"))
+            {
+                TempData["SuccessMessage"] = $"Xóa cấu hình Point thành công!";
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "Xóa cấu hình thành công!";
+            }
+            
             return RedirectToAction(nameof(Index));
         }
 

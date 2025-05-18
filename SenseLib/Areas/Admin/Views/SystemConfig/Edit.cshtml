@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Chỉnh sửa cấu hình";
     Layout = "_AdminLayout";
+    bool isPointConfig = Model.ConfigKey.Contains("Point") || Model.Description.Contains("Point") || Model.Description.Contains("point");
 }
 
 <section class="section dashboard">
@@ -10,7 +11,38 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Chỉnh sửa cấu hình</h5>
+                    <h5 class="card-title">
+                        @if (isPointConfig)
+                        {
+                            <i class="bi bi-coin me-2 text-primary"></i>
+                            <span class="text-primary">Chỉnh sửa cấu hình Point</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-gear me-2"></i>
+                            <span>Chỉnh sửa cấu hình hệ thống</span>
+                        }
+                    </h5>
+                    
+                    @if (isPointConfig)
+                    {
+                        <div class="alert alert-info mb-4">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-info-circle-fill fs-3"></i>
+                                </div>
+                                <div>
+                                    <strong>Lưu ý về cấu hình Point</strong><br>
+                                    <ul class="mb-0 ps-3">
+                                        <li>Point là đơn vị tiền tệ được sử dụng trong hệ thống.</li>
+                                        <li>Việc thay đổi giá trị sẽ ảnh hưởng trực tiếp đến người dùng.</li>
+                                        <li>Đối với <strong>@Model.ConfigKey</strong>, giá trị nên là số nguyên dương.</li>
+                                        <li>Thay đổi có hiệu lực ngay sau khi lưu.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
                     
                     <form asp-action="Edit" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -21,13 +53,36 @@
                             <div class="col-sm-10">
                                 <input asp-for="ConfigKey" class="form-control" readonly />
                                 <span asp-validation-for="ConfigKey" class="text-danger"></span>
+                                @if (Model.ConfigKey == "PointsForApprovedDocument")
+                                {
+                                    <small class="text-muted">Đây là cấu hình điểm thưởng cho người dùng khi tài liệu của họ được phê duyệt</small>
+                                }
                             </div>
                         </div>
                         
                         <div class="row mb-3">
-                            <label asp-for="ConfigValue" class="col-sm-2 col-form-label">Giá trị</label>
+                            <label asp-for="ConfigValue" class="col-sm-2 col-form-label">
+                                @if (isPointConfig)
+                                {
+                                    <span>Số Point</span>
+                                }
+                                else
+                                {
+                                    <span>Giá trị</span>
+                                }
+                            </label>
                             <div class="col-sm-10">
-                                <input asp-for="ConfigValue" class="form-control" required />
+                                @if (isPointConfig)
+                                {
+                                    <div class="input-group">
+                                        <input asp-for="ConfigValue" class="form-control" required type="number" min="1" />
+                                        <span class="input-group-text">Point</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <input asp-for="ConfigValue" class="form-control" required />
+                                }
                                 <span asp-validation-for="ConfigValue" class="text-danger"></span>
                             </div>
                         </div>
