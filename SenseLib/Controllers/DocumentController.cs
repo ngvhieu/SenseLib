@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Antiforgery;
 using SenseLib.Services;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace SenseLib.Controllers
 {
@@ -978,7 +980,7 @@ namespace SenseLib.Controllers
         }
 
         // GET: Document/DownloadPdf/5
-        [Authorize]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> DownloadPdf(int id)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -999,8 +1001,9 @@ namespace SenseLib.Controllers
 
                 if (!hasPurchased)
                 {
-                    TempData["ErrorMessage"] = "Bạn cần mua tài liệu này để tải xuống.";
-                    return RedirectToAction(nameof(Details), new { id });
+                    // TempData["ErrorMessage"] = "Bạn cần mua tài liệu này để tải xuống.";
+                    // return RedirectToAction(nameof(Details), new { id });
+                    return StatusCode(StatusCodes.Status402PaymentRequired, new { Message = "Bạn cần mua tài liệu này để có thể xem hoặc tải xuống." });
                 }
             }
 
@@ -1012,9 +1015,10 @@ namespace SenseLib.Controllers
             string originalFilePath = Path.Combine(_hostEnvironment.WebRootPath, document.FilePath.TrimStart('/'));
             if (!System.IO.File.Exists(originalFilePath))
             {
-                _logger.LogError($"Tài liệu gốc không tồn tại tại đường dẫn: {originalFilePath}");
-                TempData["ErrorMessage"] = "Tài liệu không tồn tại.";
-                return RedirectToAction(nameof(Details), new { id });
+                _logger.LogError($"Tài liệu gốc không tồn tại tại đường dẫn: {originalFilePath} cho document ID {id}");
+                // TempData["ErrorMessage"] = "Tài liệu không tồn tại.";
+                // return RedirectToAction(nameof(Details), new { id });
+                return NotFound(new { Message = $"Tài liệu gốc không tìm thấy (ID: {id})." });
             }
             
             // Nếu đã là file PDF, sử dụng trực tiếp
@@ -1038,25 +1042,29 @@ namespace SenseLib.Controllers
                     // Nếu chuyển đổi thất bại, hiển thị thông báo lỗi
                     if (string.IsNullOrEmpty(pdfPath))
                     {
-                        _logger.LogError($"Không thể chuyển đổi file {document.FilePath} sang PDF");
-                        TempData["ErrorMessage"] = "Không thể chuyển đổi tài liệu sang dạng PDF. Vui lòng tải xuống bản gốc.";
-                        return RedirectToAction(nameof(Details), new { id });
+                        _logger.LogError($"Không thể chuyển đổi file {document.FilePath} sang PDF cho document ID {id}");
+                        // TempData["ErrorMessage"] = "Không thể chuyển đổi tài liệu sang dạng PDF. Vui lòng tải xuống bản gốc.";
+                        // return RedirectToAction(nameof(Details), new { id });
+                        return StatusCode(StatusCodes.Status500InternalServerError, new { Message = $"Không thể chuyển đổi tài liệu sang PDF (ID: {id}). Vui lòng thử tải bản gốc." });
                     }
                 }
             }
-            else
+            else // documentConverter == null
             {
-                TempData["ErrorMessage"] = "Dịch vụ chuyển đổi PDF không khả dụng.";
-                return RedirectToAction(nameof(Details), new { id });
+                _logger.LogError($"Dịch vụ chuyển đổi PDF (IDocumentConverterService) không khả dụng khi xử lý document ID {id}.");
+                // TempData["ErrorMessage"] = "Dịch vụ chuyển đổi PDF không khả dụng.";
+                // return RedirectToAction(nameof(Details), new { id });
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { Message = "Dịch vụ chuyển đổi PDF hiện không khả dụng." });
             }
             
             // Đường dẫn tới file PDF
             string pdfFilePath = Path.Combine(_hostEnvironment.WebRootPath, pdfPath.TrimStart('/'));
             if (!System.IO.File.Exists(pdfFilePath))
             {
-                _logger.LogError($"File PDF không tồn tại tại đường dẫn: {pdfFilePath}");
-                TempData["ErrorMessage"] = "File PDF không tồn tại.";
-                return RedirectToAction(nameof(Details), new { id });
+                _logger.LogError($"File PDF không tồn tại tại đường dẫn: {pdfFilePath} sau khi xử lý document ID {id}");
+                // TempData["ErrorMessage"] = "File PDF không tồn tại.";
+                // return RedirectToAction(nameof(Details), new { id });
+                return NotFound(new { Message = $"File PDF đã xử lý không tìm thấy (ID: {id})." });
             }
 
             // Ghi lại lượt tải

@@ -7,26 +7,17 @@
 
 <section class="section dashboard">
     <div class="row">
-        <div class="col-lg-12">
-            <div class="card">
+        <div class="col-12">
+            <div class="card recent-sales overflow-auto">
+                <div class="filter">
+                    <a asp-action="Create" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-lg"></i> Thêm mới
+                    </a>
+                </div>
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title">Danh sách cấu hình hệ thống</h5>
-                        <a asp-action="Create" class="btn btn-primary">
-                            <i class="bi bi-plus"></i> Thêm cấu hình mới
-                        </a>
-                    </div>
-
-                    <div class="alert alert-info mb-4">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
-                            <div>
-                                <strong>Point là đơn vị tiền tệ được sử dụng trên hệ thống.</strong><br>
-                                Người dùng có thể nhận Point khi đăng tài liệu được duyệt, hoặc từ các hoạt động khác trên hệ thống.
-                                Point có thể được sử dụng để mua tài liệu trả phí, hoặc các dịch vụ khác.
-                            </div>
-                        </div>
-                    </div>
+                    <h5 class="card-title">
+                        <i class="bi bi-gear-fill me-2 text-primary"></i>Quản lý cấu hình hệ thống
+                    </h5>
 
                     @if (TempData["SuccessMessage"] != null)
                     {
@@ -45,100 +36,179 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     }
-                    
-                    <!-- Phần cấu hình Point -->
-                    <div class="mb-4">
-                        <h5 class="border-bottom pb-2 text-primary">
-                            <i class="bi bi-coin me-2"></i>Cấu hình Point
-                        </h5>
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead>
-                                    <tr class="table-primary">
-                                        <th scope="col">Khóa cấu hình</th>
-                                        <th scope="col">Giá trị</th>
-                                        <th scope="col">Mô tả</th>
-                                        <th scope="col">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in Model.Where(c => c.ConfigKey.Contains("Point") || c.Description.Contains("Point") || c.Description.Contains("point")))
-                                    {
-                                        <tr>
-                                            <td><strong>@item.ConfigKey</strong></td>
-                                            <td>
-                                                <span class="badge bg-primary">@item.ConfigValue</span>
-                                            </td>
-                                            <td>@item.Description</td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    <a asp-action="Edit" asp-route-id="@item.ConfigID" class="btn btn-primary btn-sm">
-                                                        <i class="bi bi-pencil"></i> Sửa
-                                                    </a>
-                                                    
-                                                    <a asp-action="Details" asp-route-id="@item.ConfigID" class="btn btn-info btn-sm">
-                                                        <i class="bi bi-info-circle"></i> Chi tiết
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-primary h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-coin fs-4 me-2"></i>
+                                        <h5 class="m-0">Cấu hình Point</h5>
+                                    </div>
+                                </div>
+                                <div class="card-body px-0 py-0">
+                                    <div class="alert alert-info m-3 mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-info-circle-fill me-2"></i>
+                                            <div>
+                                                <strong>Point là đơn vị tiền tệ được sử dụng trên hệ thống.</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th scope="col" style="width: 25%">Cấu hình</th>
+                                                    <th scope="col" style="width: 15%">Giá trị</th>
+                                                    <th scope="col" style="width: 40%">Mô tả</th>
+                                                    <th scope="col" style="width: 20%">Thao tác</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model.Where(c => c.ConfigKey.Contains("Point") || c.Description.Contains("Point") || c.Description.Contains("point")))
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <strong class="text-primary">@item.ConfigKey</strong>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-primary fs-6 config-value" title="@item.ConfigValue">@item.ConfigValue</span>
+                                                        </td>
+                                                        <td><span class="config-description" title="@item.Description">@item.Description</span></td>
+                                                        <td>
+                                                            <div class="btn-group" role="group">
+                                                                <a asp-action="Edit" asp-route-id="@item.ConfigID" class="btn btn-outline-primary btn-sm" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                                    <i class="bi bi-pencil-square"></i>
+                                                                </a>
+                                                                <a asp-action="Details" asp-route-id="@item.ConfigID" class="btn btn-outline-info btn-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                                    <i class="bi bi-info-circle"></i>
+                                                                </a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="card border-success h-100">
+                                <div class="card-header bg-success text-white">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-shield-lock fs-4 me-2"></i>
+                                        <h5 class="m-0">Cấu hình bảo mật</h5>
+                                    </div>
+                                </div>
+                                <div class="card-body px-0 py-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th scope="col" style="width: 25%">Cấu hình</th>
+                                                    <th scope="col" style="width: 15%">Giá trị</th>
+                                                    <th scope="col" style="width: 40%">Mô tả</th>
+                                                    <th scope="col" style="width: 20%">Thao tác</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model.Where(c => c.ConfigKey.Contains("Login") || c.ConfigKey.Contains("Lock") || 
+                                                                                c.ConfigKey.Contains("Security") || c.ConfigKey.Contains("Password")))
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <strong class="text-success">@item.ConfigKey</strong>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-success config-value" title="@item.ConfigValue">@item.ConfigValue</span>
+                                                        </td>
+                                                        <td><span class="config-description" title="@item.Description">@item.Description</span></td>
+                                                        <td>
+                                                            <div class="btn-group" role="group">
+                                                                <a asp-action="Edit" asp-route-id="@item.ConfigID" class="btn btn-outline-primary btn-sm" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                                    <i class="bi bi-pencil-square"></i>
+                                                                </a>
+                                                                <a asp-action="Details" asp-route-id="@item.ConfigID" class="btn btn-outline-info btn-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                                    <i class="bi bi-info-circle"></i>
+                                                                </a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- Các cấu hình khác -->
-                    <div>
-                        <h5 class="border-bottom pb-2">
-                            <i class="bi bi-gear me-2"></i>Cấu hình hệ thống khác
-                        </h5>
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover datatable">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">ID</th>
-                                        <th scope="col">Khóa cấu hình</th>
-                                        <th scope="col">Giá trị</th>
-                                        <th scope="col">Mô tả</th>
-                                        <th scope="col">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in Model.Where(c => !c.ConfigKey.Contains("Point") && !c.Description.Contains("Point") && !c.Description.Contains("point")))
-                                    {
-                                        <tr>
-                                            <td>@item.ConfigID</td>
-                                            <td>@item.ConfigKey</td>
-                                            <td>@item.ConfigValue</td>
-                                            <td>@item.Description</td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    <a asp-action="Edit" asp-route-id="@item.ConfigID" class="btn btn-primary btn-sm">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </a>
-                                                    
-                                                    @{
-                                                        string[] essentialConfigs = { "MaxLoginAttempts", "LockoutTimeMinutes", "HomePagePaidDocuments", "HomePageFreeDocuments", "PointsForApprovedDocument" };
-                                                        bool isEssential = essentialConfigs.Contains(item.ConfigKey);
-                                                    }
-                                                    
-                                                    <a asp-action="Details" asp-route-id="@item.ConfigID" class="btn btn-info btn-sm">
-                                                        <i class="bi bi-info-circle"></i>
-                                                    </a>
-                                                    
-                                                    @if (!isEssential)
-                                                    {
-                                                        <a asp-action="Delete" asp-route-id="@item.ConfigID" class="btn btn-danger btn-sm">
-                                                            <i class="bi bi-trash"></i>
-                                                        </a>
-                                                    }
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-info text-white">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-gear-wide-connected fs-4 me-2"></i>
+                                        <h5 class="m-0">Cấu hình hệ thống khác</h5>
+                                    </div>
+                                </div>
+                                <div class="card-body px-0 py-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover datatable mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th scope="col">ID</th>
+                                                    <th scope="col">Cấu hình</th>
+                                                    <th scope="col">Giá trị</th>
+                                                    <th scope="col">Mô tả</th>
+                                                    <th scope="col">Thao tác</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model.Where(c => 
+                                                    !c.ConfigKey.Contains("Point") && !c.Description.Contains("Point") && !c.Description.Contains("point") && 
+                                                    !c.ConfigKey.Contains("Login") && !c.ConfigKey.Contains("Lock") && 
+                                                    !c.ConfigKey.Contains("Security") && !c.ConfigKey.Contains("Password")))
+                                                {
+                                                    <tr>
+                                                        <td>@item.ConfigID</td>
+                                                        <td>
+                                                            <strong>@item.ConfigKey</strong>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-info config-value" title="@item.ConfigValue">@item.ConfigValue</span>
+                                                        </td>
+                                                        <td><span class="config-description" title="@item.Description">@item.Description</span></td>
+                                                        <td>
+                                                            <div class="btn-group" role="group">
+                                                                <a asp-action="Edit" asp-route-id="@item.ConfigID" class="btn btn-outline-primary btn-sm" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                                                    <i class="bi bi-pencil-square"></i>
+                                                                </a>
+                                                                <a asp-action="Details" asp-route-id="@item.ConfigID" class="btn btn-outline-info btn-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                                    <i class="bi bi-info-circle"></i>
+                                                                </a>
+                                                                @{
+                                                                    string[] essentialConfigs = { "MaxLoginAttempts", "LockoutTimeMinutes", "HomePagePaidDocuments", "HomePageFreeDocuments", "PointsForApprovedDocument" };
+                                                                    bool isEssential = essentialConfigs.Contains(item.ConfigKey);
+                                                                }
+                                                                @if (!isEssential)
+                                                                {
+                                                                    <a asp-action="Delete" asp-route-id="@item.ConfigID" class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip" title="Xóa">
+                                                                        <i class="bi bi-trash"></i>
+                                                                    </a>
+                                                                }
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,6 +236,30 @@
                     }
                 }
             });
+            
+            // Kích hoạt tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
         });
     </script>
+    
+    <style>
+        .config-value {
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+        
+        .config-description {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+    </style>
 } 

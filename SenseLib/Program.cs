@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using SenseLib.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using SenseLib.Services;
 using SenseLib.Utilities;
 using System.IO;
@@ -73,8 +76,12 @@ builder.Services.AddScoped<TextToSpeechService>();
 // Đăng ký dịch vụ UserActivity
 builder.Services.AddScoped<UserActivityService>();
 
-// Cấu hình xác thực cookie
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+// Cấu hình xác thực cookie và JWT
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
     .AddCookie(options =>
     {
         options.Cookie.HttpOnly = true;
@@ -82,6 +89,21 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromDays(1);
         options.SlidingExpiration = true;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            // Sử dụng fallback khi config Jwt:Issuer/Audience null
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "SenseLib",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "SenseLibApp",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                builder.Configuration["Jwt:Key"] ?? "SenseLibSecretKeyForJwtAuthenticationAndAuthorization123"))
+        };
     });
 
 // Add services to the container.
@@ -102,6 +124,18 @@ builder.Services.Configure<KestrelServerOptions>(options =>
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 52428800; // 50MB in bytes
+});
+
+// Thêm CORS để cho phép ứng dụng Android kết nối
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAndroid", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
 });
 
 var app = builder.Build();
@@ -229,6 +263,9 @@ catch (Exception ex)
 }
 
 app.UseRouting();
+
+// Kích hoạt CORS (đặt trước UseAuthentication và UseAuthorization)
+app.UseCors("AllowAndroid");
 
 // Kích hoạt Session trước Authentication
 app.UseSession();

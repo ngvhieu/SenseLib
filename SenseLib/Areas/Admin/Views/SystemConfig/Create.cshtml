@@ -9,70 +9,116 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Thông tin cấu hình mới</h5>
-                    
-                    <div class="alert alert-info mb-4">
-                        <div class="d-flex">
-                            <div class="me-3">
-                                <i class="bi bi-info-circle-fill fs-3"></i>
+                <div class="card-body pt-3">
+                    <nav>
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                            <li class="breadcrumb-item"><a asp-action="Index">Cấu hình hệ thống</a></li>
+                            <li class="breadcrumb-item active">Tạo mới</li>
+                        </ol>
+                    </nav>
+                
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-plus-circle-fill fs-4 me-2"></i>
+                                <h5 class="m-0">Thêm cấu hình mới</h5>
                             </div>
-                            <div>
-                                <strong>Lưu ý khi tạo cấu hình mới</strong><br>
-                                <ul class="mb-0 ps-3">
-                                    <li>Nếu tạo cấu hình liên quan đến Point, hãy bắt đầu khóa với tiền tố "Point" hoặc mô tả rõ liên quan đến Point.</li>
-                                    <li>Đối với cấu hình Point, giá trị nên là số nguyên dương.</li>
-                                    <li>Mô tả cấu hình càng chi tiết càng tốt để dễ hiểu và quản lý.</li>
-                                </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info mb-4">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <i class="bi bi-info-circle-fill fs-3"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Lưu ý khi tạo cấu hình mới</strong><br>
+                                        <ul class="mb-0 ps-3">
+                                            <li>Nếu tạo cấu hình liên quan đến Point, hãy bắt đầu khóa với tiền tố "Point" hoặc mô tả rõ liên quan đến Point.</li>
+                                            <li>Đối với cấu hình Point, giá trị nên là số nguyên dương.</li>
+                                            <li>Đối với cấu hình bảo mật, hãy bắt đầu bằng "Security", "Login" hoặc "Password".</li>
+                                            <li>Mô tả cấu hình càng chi tiết càng tốt để dễ hiểu và quản lý.</li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
+                            
+                            <form asp-action="Create" method="post" id="configForm">
+                                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                                
+                                <div class="row mb-4">
+                                    <label asp-for="ConfigKey" class="col-sm-2 col-form-label fw-bold">Khóa cấu hình</label>
+                                    <div class="col-sm-10">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light">
+                                                <i class="bi bi-key-fill" id="keyIcon"></i>
+                                            </span>
+                                            <input asp-for="ConfigKey" class="form-control form-control-lg" required id="configKey" 
+                                                placeholder="Nhập khóa cấu hình (vd: PointsForLogin, MaxLoginAttempts)" />
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-primary" id="btnAddPointPrefix">
+                                                    <i class="bi bi-coin me-1"></i>Thêm Point
+                                                </button>
+                                                <button type="button" class="btn btn-outline-success" id="btnAddSecurityPrefix">
+                                                    <i class="bi bi-shield-lock me-1"></i>Thêm Security
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="form-text text-muted mt-2">
+                                            <span class="badge bg-light text-dark me-1">Ví dụ:</span>
+                                            <span class="badge bg-primary me-1">PointsForLogin</span>
+                                            <span class="badge bg-success me-1">SecurityMaxAttempts</span>
+                                            <span class="badge bg-info me-1">HomePageItems</span>
+                                        </div>
+                                        <span asp-validation-for="ConfigKey" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <label asp-for="ConfigValue" class="col-sm-2 col-form-label fw-bold">Giá trị</label>
+                                    <div class="col-sm-10">
+                                        <div class="input-group" id="valueGroup">
+                                            <span class="input-group-text bg-light">
+                                                <i class="bi bi-input-cursor-text" id="valueIcon"></i>
+                                            </span>
+                                            <input asp-for="ConfigValue" class="form-control form-control-lg" required placeholder="Nhập giá trị" id="configValue" maxlength="1000" />
+                                            <span class="input-group-text d-none" id="pointSuffix">Point</span>
+                                        </div>
+                                        <div class="form-text d-none" id="valueHelp">
+                                            Đây là cấu hình Point, nên nhập giá trị số nguyên dương.
+                                        </div>
+                                        <span asp-validation-for="ConfigValue" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <label asp-for="Description" class="col-sm-2 col-form-label fw-bold">Mô tả</label>
+                                    <div class="col-sm-10">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light">
+                                                <i class="bi bi-file-text"></i>
+                                            </span>
+                                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Mô tả chi tiết về cấu hình này..."></textarea>
+                                        </div>
+                                        <span asp-validation-for="Description" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-0">
+                                    <div class="col-sm-10 offset-sm-2">
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                                <i class="bi bi-save me-2"></i> Lưu cấu hình
+                                            </button>
+                                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                                <i class="bi bi-arrow-left me-2"></i> Quay lại
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                    
-                    <form asp-action="Create" method="post" id="configForm">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        
-                        <div class="row mb-3">
-                            <label asp-for="ConfigKey" class="col-sm-2 col-form-label">Khóa cấu hình</label>
-                            <div class="col-sm-10">
-                                <div class="input-group">
-                                    <input asp-for="ConfigKey" class="form-control" required id="configKey" placeholder="Nhập khóa cấu hình" />
-                                    <button type="button" class="btn btn-outline-primary" id="btnAddPointPrefix">+ Point...</button>
-                                </div>
-                                <small class="text-muted">Ví dụ: PointsForLogin, PointsPerReview, HomePageItems...</small>
-                                <span asp-validation-for="ConfigKey" class="text-danger"></span>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <label asp-for="ConfigValue" class="col-sm-2 col-form-label">Giá trị</label>
-                            <div class="col-sm-10">
-                                <div class="input-group">
-                                    <input asp-for="ConfigValue" class="form-control" required placeholder="Nhập giá trị" id="configValue" />
-                                    <span class="input-group-text d-none" id="pointSuffix">Point</span>
-                                </div>
-                                <span asp-validation-for="ConfigValue" class="text-danger"></span>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <label asp-for="Description" class="col-sm-2 col-form-label">Mô tả</label>
-                            <div class="col-sm-10">
-                                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Mô tả chi tiết về cấu hình này..."></textarea>
-                                <span asp-validation-for="Description" class="text-danger"></span>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-sm-10 offset-sm-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save"></i> Lưu cấu hình
-                                </button>
-                                <a asp-action="Index" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-left"></i> Quay lại
-                                </a>
-                            </div>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -84,31 +130,66 @@
     
     <script>
         $(document).ready(function() {
+            // Cập nhật UI dựa vào loại cấu hình
+            function updateUIBasedOnConfigType() {
+                let configKey = $('#configKey').val().toLowerCase();
+                let isPoint = configKey.includes('point');
+                let isSecurity = configKey.includes('security') || configKey.includes('login') || 
+                                configKey.includes('password') || configKey.includes('lock');
+                
+                // Cập nhật icon
+                if (isPoint) {
+                    $('#keyIcon').removeClass().addClass('bi bi-coin text-primary');
+                    $('#valueIcon').removeClass().addClass('bi bi-coin text-warning');
+                    $('#submitBtn').removeClass().addClass('btn btn-primary btn-lg');
+                    $('#pointSuffix').removeClass('d-none');
+                    $('#valueHelp').removeClass('d-none');
+                    
+                    // Chuyển input sang kiểu number
+                    $('#configValue').attr('type', 'number').attr('min', '1');
+                    if ($('#configValue').val() === '' || isNaN($('#configValue').val())) {
+                        $('#configValue').val('10');
+                    }
+                } else if (isSecurity) {
+                    $('#keyIcon').removeClass().addClass('bi bi-shield-lock text-success');
+                    $('#valueIcon').removeClass().addClass('bi bi-shield text-success');
+                    $('#submitBtn').removeClass().addClass('btn btn-success btn-lg');
+                    $('#pointSuffix').addClass('d-none');
+                    $('#valueHelp').addClass('d-none');
+                    $('#configValue').attr('type', 'text').removeAttr('min');
+                } else {
+                    $('#keyIcon').removeClass().addClass('bi bi-key-fill text-info');
+                    $('#valueIcon').removeClass().addClass('bi bi-input-cursor-text text-info');
+                    $('#submitBtn').removeClass().addClass('btn btn-info btn-lg');
+                    $('#pointSuffix').addClass('d-none');
+                    $('#valueHelp').addClass('d-none');
+                    $('#configValue').attr('type', 'text').removeAttr('min');
+                }
+            }
+            
             // Xử lý khi nhấn nút thêm tiền tố Point
             $('#btnAddPointPrefix').click(function() {
                 let currentValue = $('#configKey').val();
-                if (!currentValue.startsWith('Point')) {
-                    $('#configKey').val('Points' + currentValue);
+                if (!currentValue.toLowerCase().includes('point')) {
+                    $('#configKey').val('Points' + (currentValue.charAt(0).toUpperCase() + currentValue.slice(1)));
                 }
+                updateUIBasedOnConfigType();
             });
             
-            // Theo dõi sự thay đổi của configKey để hiển thị suffix Point nếu cần
-            $('#configKey').on('input', function() {
-                if ($(this).val().toLowerCase().includes('point')) {
-                    $('#pointSuffix').removeClass('d-none');
-                    
-                    // Nếu giá trị hiện tại không phải số, set về 0
-                    let currentVal = $('#configValue').val();
-                    if (isNaN(currentVal) || currentVal === '') {
-                        $('#configValue').val('0');
-                    }
-                    
-                    // Chuyển input sang kiểu number
-                    $('#configValue').attr('type', 'number').attr('min', '0');
-                } else {
-                    $('#pointSuffix').addClass('d-none');
-                    $('#configValue').attr('type', 'text').removeAttr('min');
+            // Xử lý khi nhấn nút thêm tiền tố Security
+            $('#btnAddSecurityPrefix').click(function() {
+                let currentValue = $('#configKey').val();
+                if (!currentValue.toLowerCase().includes('security') && 
+                    !currentValue.toLowerCase().includes('login') &&
+                    !currentValue.toLowerCase().includes('password')) {
+                    $('#configKey').val('Security' + (currentValue.charAt(0).toUpperCase() + currentValue.slice(1)));
                 }
+                updateUIBasedOnConfigType();
+            });
+            
+            // Theo dõi sự thay đổi của configKey để cập nhật UI
+            $('#configKey').on('input', function() {
+                updateUIBasedOnConfigType();
             });
         });
     </script>

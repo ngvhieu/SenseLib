@@ -4,109 +4,217 @@
     ViewData["Title"] = "Chi tiết cấu hình";
     Layout = "_AdminLayout";
     bool isPointConfig = Model.ConfigKey.Contains("Point") || Model.Description.Contains("Point") || Model.Description.Contains("point");
+    bool isSecurityConfig = Model.ConfigKey.Contains("Login") || Model.ConfigKey.Contains("Lock") || 
+                           Model.ConfigKey.Contains("Security") || Model.ConfigKey.Contains("Password");
 }
 
 <section class="section dashboard">
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        @if (isPointConfig)
-                        {
-                            <i class="bi bi-coin me-2 text-primary"></i>
-                            <span class="text-primary">Chi tiết cấu hình Point</span>
-                        }
-                        else
-                        {
-                            <i class="bi bi-gear me-2"></i>
-                            <span>Chi tiết cấu hình hệ thống</span>
-                        }
-                    </h5>
+                <div class="card-body pt-3">
+                    <nav>
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                            <li class="breadcrumb-item"><a asp-action="Index">Cấu hình hệ thống</a></li>
+                            <li class="breadcrumb-item active">Chi tiết</li>
+                        </ol>
+                    </nav>
                     
-                    @if (isPointConfig && Model.ConfigKey == "PointsForApprovedDocument")
-                    {
-                        <div class="alert alert-info mb-4">
-                            <div class="d-flex">
-                                <div class="me-3">
-                                    <i class="bi bi-lightbulb-fill fs-3"></i>
-                                </div>
-                                <div>
-                                    <strong>Thông tin quan trọng</strong><br>
-                                    <p class="mb-1">Cấu hình này xác định số Point người dùng nhận được khi tài liệu họ đăng tải lên hệ thống được admin phê duyệt.</p>
-                                    <p class="mb-0">Mỗi khi một tài liệu được phê duyệt, hệ thống sẽ tự động cộng số Point này vào ví của người đăng tài liệu.</p>
-                                </div>
+                    <div class="card 
+                        @(isPointConfig ? "border-primary" : isSecurityConfig ? "border-success" : "border-info")">
+                        <div class="card-header 
+                            @(isPointConfig ? "bg-primary" : isSecurityConfig ? "bg-success" : "bg-info") 
+                            text-white">
+                            <div class="d-flex align-items-center">
+                                @if (isPointConfig)
+                                {
+                                    <i class="bi bi-coin fs-4 me-2"></i>
+                                    <h5 class="m-0">Chi tiết cấu hình Point</h5>
+                                }
+                                else if (isSecurityConfig)
+                                {
+                                    <i class="bi bi-shield-lock fs-4 me-2"></i>
+                                    <h5 class="m-0">Chi tiết cấu hình bảo mật</h5>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-gear-wide-connected fs-4 me-2"></i>
+                                    <h5 class="m-0">Chi tiết cấu hình hệ thống</h5>
+                                }
                             </div>
                         </div>
-                    }
-                    
-                    <div class="row mb-4">
-                        <div class="col-lg-12">
-                            <div class="table-responsive">
-                                <table class="table table-striped table-bordered">
-                                    <tbody>
-                                        <tr>
-                                            <th scope="row" style="width: 25%">ID</th>
-                                            <td>@Model.ConfigID</td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Khóa cấu hình</th>
-                                            <td><strong>@Model.ConfigKey</strong></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                @if (isPointConfig) { <span>Số Point</span> } else { <span>Giá trị</span> }
-                                            </th>
-                                            <td>
-                                                @if (isPointConfig)
-                                                {
-                                                    <span class="badge bg-primary fs-6">@Model.ConfigValue</span>
-                                                    <span> Point</span>
-                                                }
-                                                else
-                                                {
-                                                    @Model.ConfigValue
-                                                }
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">Mô tả</th>
-                                            <td>@Html.Raw(Model.Description?.Replace(Environment.NewLine, "<br />"))</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <div class="card-body">
+                            
+                            @if (isPointConfig && Model.ConfigKey == "PointsForApprovedDocument")
+                            {
+                                <div class="alert alert-info mb-4">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="bi bi-lightbulb-fill fs-3"></i>
+                                        </div>
+                                        <div>
+                                            <strong>Thông tin quan trọng</strong><br>
+                                            <p class="mb-1">Cấu hình này xác định số Point người dùng nhận được khi tài liệu họ đăng tải lên hệ thống được admin phê duyệt.</p>
+                                            <p class="mb-0">Mỗi khi một tài liệu được phê duyệt, hệ thống sẽ tự động cộng số Point này vào ví của người đăng tài liệu.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-light">
+                                    <h6 class="m-0 fw-bold">
+                                        <i class="bi bi-info-circle me-2"></i>Thông tin chi tiết
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <tbody>
+                                                <tr>
+                                                    <th scope="row" style="width: 25%" class="bg-light">ID cấu hình</th>
+                                                    <td>
+                                                        <span class="badge bg-secondary">@Model.ConfigID</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row" class="bg-light">Khóa cấu hình</th>
+                                                    <td>
+                                                        @if (isPointConfig)
+                                                        {
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="bi bi-coin text-primary me-2 fs-5"></i>
+                                                                <strong class="text-primary">@Model.ConfigKey</strong>
+                                                            </div>
+                                                        }
+                                                        else if (isSecurityConfig)
+                                                        {
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="bi bi-shield-lock text-success me-2 fs-5"></i>
+                                                                <strong class="text-success">@Model.ConfigKey</strong>
+                                                            </div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="bi bi-gear-wide text-info me-2 fs-5"></i>
+                                                                <strong>@Model.ConfigKey</strong>
+                                                            </div>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row" class="bg-light">
+                                                        @if (isPointConfig) { <span>Số Point</span> } else { <span>Giá trị</span> }
+                                                    </th>
+                                                    <td>
+                                                        @if (isPointConfig)
+                                                        {
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="badge bg-primary fs-6 me-2">@Model.ConfigValue</span>
+                                                                <span>Point</span>
+                                                            </div>
+                                                        }
+                                                        else if (isSecurityConfig)
+                                                        {
+                                                            <span class="badge bg-success fs-6">@Model.ConfigValue</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-info fs-6">@Model.ConfigValue</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row" class="bg-light">Mô tả</th>
+                                                    <td>
+                                                        @if (string.IsNullOrEmpty(Model.Description))
+                                                        {
+                                                            <i class="text-muted">Không có mô tả</i>
+                                                        }
+                                                        else
+                                                        {
+                                                            @Html.Raw(Model.Description?.Replace(Environment.NewLine, "<br />"))
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            @if (isPointConfig && Model.ConfigKey == "PointsForApprovedDocument")
+                            {
+                                <div class="card shadow-sm mb-4 border-primary">
+                                    <div class="card-header bg-primary bg-opacity-10">
+                                        <h6 class="mb-0 text-primary fw-bold">
+                                            <i class="bi bi-diagram-3 me-2"></i>Quy trình cộng Point
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="timeline">
+                                            <div class="timeline-item pb-3 ms-3 ps-4 position-relative">
+                                                <div class="timeline-marker bg-primary"></div>
+                                                <h6 class="fw-bold mb-1">1. Đăng tải tài liệu</h6>
+                                                <p class="mb-0 text-muted">Người dùng đăng tải tài liệu lên hệ thống</p>
+                                            </div>
+                                            <div class="timeline-item pb-3 ms-3 ps-4 position-relative">
+                                                <div class="timeline-marker bg-primary"></div>
+                                                <h6 class="fw-bold mb-1">2. Phê duyệt tài liệu</h6>
+                                                <p class="mb-0 text-muted">Admin xem xét và phê duyệt tài liệu trong phần quản trị</p>
+                                            </div>
+                                            <div class="timeline-item pb-3 ms-3 ps-4 position-relative">
+                                                <div class="timeline-marker bg-primary"></div>
+                                                <h6 class="fw-bold mb-1">3. Cộng Point</h6>
+                                                <p class="mb-0 text-muted">Hệ thống tự động cộng <span class="badge bg-primary">@Model.ConfigValue Point</span> vào ví của người dùng</p>
+                                            </div>
+                                            <div class="timeline-item pb-3 ms-3 ps-4 position-relative">
+                                                <div class="timeline-marker bg-primary"></div>
+                                                <h6 class="fw-bold mb-1">4. Ghi nhận giao dịch</h6>
+                                                <p class="mb-0 text-muted">Giao dịch được ghi lại trong lịch sử ví của người dùng</p>
+                                            </div>
+                                            <div class="timeline-item ms-3 ps-4 position-relative">
+                                                <div class="timeline-marker bg-primary"></div>
+                                                <h6 class="fw-bold mb-1">5. Sử dụng Point</h6>
+                                                <p class="mb-0 text-muted">Người dùng có thể sử dụng Point để mua các tài liệu trả phí khác</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
+                            <div class="text-end mt-4">
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@Model.ConfigID" class="btn @(isPointConfig ? "btn-primary" : isSecurityConfig ? "btn-success" : "btn-info") btn-lg">
+                                        <i class="bi bi-pencil-square me-2"></i> Chỉnh sửa
+                                    </a>
+                                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                        <i class="bi bi-arrow-left me-2"></i> Quay lại danh sách
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
-                    @if (Model.ConfigKey == "PointsForApprovedDocument")
-                    {
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0"><i class="bi bi-info-circle me-1"></i>Quy trình cộng Point</h6>
-                            </div>
-                            <div class="card-body">
-                                <ol>
-                                    <li>Người dùng đăng tải tài liệu lên hệ thống</li>
-                                    <li>Admin xem xét và phê duyệt tài liệu trong phần quản trị</li>
-                                    <li>Hệ thống tự động cộng <strong>@Model.ConfigValue Point</strong> vào ví của người dùng</li>
-                                    <li>Giao dịch được ghi lại trong lịch sử ví của người dùng</li>
-                                    <li>Người dùng có thể sử dụng Point để mua các tài liệu trả phí khác</li>
-                                </ol>
-                            </div>
-                        </div>
-                    }
-                    
-                    <div class="text-center">
-                        <a asp-action="Edit" asp-route-id="@Model.ConfigID" class="btn btn-primary">
-                            <i class="bi bi-pencil"></i> Chỉnh sửa
-                        </a>
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Quay lại
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
-</section> 
+</section>
+
+<style>
+    .timeline-marker {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        position: absolute;
+        left: -6px;
+        top: 6px;
+    }
+    
+    .timeline-item {
+        border-left: 2px solid #cfe2ff;
+    }
+</style> 
