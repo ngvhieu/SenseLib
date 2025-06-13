@@ -15,6 +15,9 @@ using SenseLib.Models;
 using SenseLib.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace SenseLib.Controllers
 {
@@ -27,17 +30,23 @@ namespace SenseLib.Controllers
         private readonly IConfiguration _configuration;
         private readonly UserActivityService _userActivityService;
         private readonly IFavoriteService _favoriteService;
+        private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IDocumentConverterService _documentConverterService;
 
         public ApiController(
             DataContext context,
             IConfiguration configuration,
             UserActivityService userActivityService,
-            IFavoriteService favoriteService)
+            IFavoriteService favoriteService,
+            IWebHostEnvironment hostEnvironment,
+            IDocumentConverterService documentConverterService)
         {
             _context = context;
             _configuration = configuration;
             _userActivityService = userActivityService;
             _favoriteService = favoriteService;
+            _hostEnvironment = hostEnvironment;
+            _documentConverterService = documentConverterService;
         }
 
         // API endpoint đăng nhập - Trả về JWT Token
@@ -672,6 +681,269 @@ namespace SenseLib.Controllers
             });
         }
 
+        // API: Tải xuống file gốc
+        [HttpGet("documents/{id}/download")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> DownloadDocument(int id)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var document = await _context.Documents.FindAsync(id);
+            if (document == null)
+                return NotFound(new { message = "Không tìm thấy tài liệu" });
+            if (document.IsPaid)
+            {
+                var hasPurchased = await _context.Purchases.AnyAsync(p => p.UserID == userId && p.DocumentID == id && p.Status == "Completed");
+                if (!hasPurchased)
+                    return StatusCode(StatusCodes.Status402PaymentRequired, new { message = "Bạn cần mua tài liệu này để tải xuống." });
+            }
+            string filePath = Path.Combine(_hostEnvironment.WebRootPath, document.FilePath.TrimStart('/'));
+            if (!System.IO.File.Exists(filePath))
+                return NotFound(new { message = "Tài liệu không tồn tại." });
+            string fileName = document.Title + Path.GetExtension(filePath);
+            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+            string mimeType = GetMimeType(Path.GetExtension(filePath));
+            var fileBytes = System.IO.File.ReadAllBytes(filePath);
+            return File(fileBytes, mimeType, fileName);
+        }
+
+        // API: Tải xuống PDF
+        [HttpGet("documents/{id}/download-pdf")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> DownloadPdfDocument(int id)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var document = await _context.Documents.FindAsync(id);
+            if (document == null)
+                return NotFound(new { message = "Không tìm thấy tài liệu" });
+            if (document.IsPaid)
+            {
+                var hasPurchased = await _context.Purchases.AnyAsync(p => p.UserID == userId && p.DocumentID == id && p.Status == "Completed");
+                if (!hasPurchased)
+                    return StatusCode(StatusCodes.Status402PaymentRequired, new { message = "Bạn cần mua tài liệu này để tải xuống." });
+            }
+            string pdfPath = null;
+            string originalFilePath = Path.Combine(_hostEnvironment.WebRootPath, document.FilePath.TrimStart('/'));
+            if (!System.IO.File.Exists(originalFilePath))
+                return NotFound(new { message = "Tài liệu gốc không tồn tại." });
+            string fileExtension = Path.GetExtension(originalFilePath).ToLower();
+            if (fileExtension == ".pdf")
+            {
+                pdfPath = document.FilePath;
+            }
+            else if (_documentConverterService != null)
+            {
+                if (_documentConverterService.IsPdfAvailable(document.FilePath, document.DocumentID))
+                {
+                    pdfPath = _documentConverterService.GetPdfPath(document.FilePath, document.DocumentID);
+                }
+                else
+                {
+                    pdfPath = await _documentConverterService.ConvertToPdfAsync(document.FilePath, document.DocumentID);
+                    if (string.IsNullOrEmpty(pdfPath))
+                        return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Không thể chuyển đổi tài liệu sang PDF." });
+                }
+            }
+            else
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Dịch vụ chuyển đổi PDF không khả dụng." });
+            }
+            string pdfFilePath = Path.Combine(_hostEnvironment.WebRootPath, pdfPath.TrimStart('/'));
+            if (!System.IO.File.Exists(pdfFilePath))
+                return NotFound(new { message = "File PDF không tồn tại." });
+            string fileName = document.Title + ".pdf";
+            fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+            var fileBytes = System.IO.File.ReadAllBytes(pdfFilePath);
+            return File(fileBytes, "application/pdf", fileName);
+        }
+
+        // API: Lấy tài liệu theo danh mục
+        [HttpGet("categories/{id}/documents")]
+        public async Task<IActionResult> GetDocumentsByCategory(int id, int page = 1, int pageSize = 10)
+        {
+            var documentsQuery = _context.Documents
+                .Where(d => d.CategoryID == id && (d.Status == "Approved" || d.Status == "Published"))
+                .Include(d => d.Author)
+                .Include(d => d.Category)
+                .Include(d => d.Publisher)
+                .Include(d => d.Ratings)
+                .Include(d => d.Statistics);
+            int totalItems = await documentsQuery.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            var documents = await documentsQuery
+                .OrderByDescending(d => d.UploadDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            var result = new
+            {
+                totalItems,
+                totalPages,
+                currentPage = page,
+                pageSize,
+                items = documents.Select(d => new
+                {
+                    id = d.DocumentID,
+                    title = d.Title,
+                    description = d.Description,
+                    coverImageUrl = d.ImagePath,
+                    authorName = d.Author?.AuthorName,
+                    categoryName = d.Category?.CategoryName,
+                    uploadDate = d.UploadDate,
+                    price = d.Price,
+                    isPaid = d.IsPaid,
+                    averageRating = d.Ratings.Any() ? d.Ratings.Average(r => r.RatingValue) : 0,
+                    ratingCount = d.Ratings.Count(),
+                    viewCount = d.Statistics?.ViewCount ?? 0
+                })
+            };
+            return Ok(result);
+        }
+
+        // API: Mua tài liệu
+        [HttpPost("purchases/{documentId}")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> PurchaseDocument(int documentId)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var document = await _context.Documents.FindAsync(documentId);
+            if (document == null)
+                return NotFound(new { message = "Không tìm thấy tài liệu" });
+            if (!document.IsPaid)
+                return BadRequest(new { message = "Tài liệu này là miễn phí." });
+            var hasPurchased = await _context.Purchases.AnyAsync(p => p.UserID == userId && p.DocumentID == documentId && p.Status == "Completed");
+            if (hasPurchased)
+                return BadRequest(new { message = "Bạn đã mua tài liệu này rồi." });
+            // Trừ tiền ví
+            var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserID == userId);
+            if (wallet == null || wallet.Balance < (document.Price ?? 0))
+                return StatusCode(StatusCodes.Status402PaymentRequired, new { message = "Số dư ví không đủ." });
+            wallet.Balance -= (document.Price ?? 0);
+            wallet.LastUpdatedDate = DateTime.Now;
+            // Tạo purchase
+            var purchase = new Purchase
+            {
+                UserID = userId,
+                DocumentID = documentId,
+                PurchaseDate = DateTime.Now,
+                Amount = document.Price ?? 0,
+                Status = "Completed"
+            };
+            await _context.Purchases.AddAsync(purchase);
+            await _context.SaveChangesAsync();
+            await LogUserActivity(userId, "Purchase", $"Mua tài liệu: {document.Title}");
+            return Ok(new { message = "Mua tài liệu thành công." });
+        }
+
+        // API: Lấy danh sách đã mua
+        [HttpGet("purchases")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> GetPurchasedDocuments(int page = 1, int pageSize = 10)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var purchasesQuery = _context.Purchases
+                .Where(p => p.UserID == userId && p.Status == "Completed")
+                .Include(p => p.Document)
+                    .ThenInclude(d => d.Author)
+                .Include(p => p.Document)
+                    .ThenInclude(d => d.Category)
+                .Include(p => p.Document)
+                    .ThenInclude(d => d.Ratings)
+                .OrderByDescending(p => p.PurchaseDate);
+            int totalItems = await purchasesQuery.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            var purchases = await purchasesQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            var result = new
+            {
+                totalItems,
+                totalPages,
+                currentPage = page,
+                pageSize,
+                items = purchases.Select(p => new
+                {
+                    id = p.Document.DocumentID,
+                    title = p.Document.Title,
+                    description = p.Document.Description,
+                    coverImageUrl = p.Document.ImagePath,
+                    authorName = p.Document.Author?.AuthorName,
+                    categoryName = p.Document.Category?.CategoryName,
+                    uploadDate = p.Document.UploadDate,
+                    price = p.Document.Price,
+                    isPaid = p.Document.IsPaid,
+                    averageRating = p.Document.Ratings.Any() ? p.Document.Ratings.Average(r => r.RatingValue) : 0,
+                    ratingCount = p.Document.Ratings.Count(),
+                    purchaseDate = p.PurchaseDate
+                })
+            };
+            return Ok(result);
+        }
+
+        // API: Upload tài liệu (multipart)
+        [HttpPost("documents")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
+        [RequestSizeLimit(52428800)] // 50MB
+        public async Task<IActionResult> UploadDocument([FromForm] string title, [FromForm] string description, [FromForm] int? categoryId, [FromForm] int? authorId, [FromForm] int? publisherId, [FromForm] bool isPaid, [FromForm] decimal? price, [FromForm] IFormFile documentFile, [FromForm] IFormFile coverImage)
+        {
+            if (documentFile == null)
+                return BadRequest(new { message = "Vui lòng chọn file tài liệu để tải lên." });
+            string[] allowedExtensions = { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm", ".ppt", ".pptx", ".pptm", ".txt", ".rtf", ".csv", ".odt", ".ods", ".odp", ".md", ".html", ".htm", ".xml", ".json", ".log", ".zip", ".rar", ".7z", ".mp3", ".mp4", ".avi", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg" };
+            string extension = Path.GetExtension(documentFile.FileName).ToLower();
+            if (!allowedExtensions.Contains(extension))
+                return BadRequest(new { message = "Định dạng file không được hỗ trợ." });
+            if (documentFile.Length > 50 * 1024 * 1024)
+                return BadRequest(new { message = "Kích thước file không được vượt quá 50MB." });
+            string uploadsPath = Path.Combine(_hostEnvironment.WebRootPath, "uploads", "documents");
+            if (!Directory.Exists(uploadsPath))
+                Directory.CreateDirectory(uploadsPath);
+            string fileName = Guid.NewGuid().ToString() + extension;
+            string filePath = Path.Combine(uploadsPath, fileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await documentFile.CopyToAsync(stream);
+            }
+            string relativeFilePath = $"/uploads/documents/{fileName}";
+            string imagePath = null;
+            if (coverImage != null)
+            {
+                string imageExt = Path.GetExtension(coverImage.FileName).ToLower();
+                string[] allowedImageExt = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg" };
+                if (!allowedImageExt.Contains(imageExt))
+                    return BadRequest(new { message = "Định dạng ảnh bìa không hợp lệ." });
+                string imageFileName = Guid.NewGuid().ToString() + imageExt;
+                string imageUploadsPath = Path.Combine(_hostEnvironment.WebRootPath, "uploads", "images");
+                if (!Directory.Exists(imageUploadsPath))
+                    Directory.CreateDirectory(imageUploadsPath);
+                string imageFilePath = Path.Combine(imageUploadsPath, imageFileName);
+                using (var stream = new FileStream(imageFilePath, FileMode.Create))
+                {
+                    await coverImage.CopyToAsync(stream);
+                }
+                imagePath = $"/uploads/images/{imageFileName}";
+            }
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var document = new Document
+            {
+                Title = title,
+                Description = description ?? string.Empty,
+                CategoryID = categoryId,
+                AuthorID = authorId,
+                PublisherID = publisherId,
+                IsPaid = isPaid,
+                Price = isPaid ? price : 0,
+                FilePath = relativeFilePath,
+                ImagePath = imagePath,
+                UserID = userId,
+                Status = "Pending",
+                UploadDate = DateTime.Now
+            };
+            _context.Documents.Add(document);
+            await _context.SaveChangesAsync();
+            await LogUserActivity(userId, "Upload", $"Tải lên tài liệu: {title}");
+            return Ok(new { message = "Tải lên tài liệu thành công!", documentId = document.DocumentID });
+        }
+
         // Helper method để tạo JWT token
         private string GenerateJwtToken(User user)
         {
@@ -709,6 +981,42 @@ namespace SenseLib.Controllers
             
             await _context.UserActivities.AddAsync(activity);
             await _context.SaveChangesAsync();
+        }
+
+        private string GetMimeType(string extension)
+        {
+            switch (extension.ToLower())
+            {
+                case ".pdf":
+                    return "application/pdf";
+                case ".doc":
+                    return "application/msword";
+                case ".docx":
+                    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                case ".xls":
+                    return "application/vnd.ms-excel";
+                case ".xlsx":
+                    return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                case ".ppt":
+                    return "application/vnd.ms-powerpoint";
+                case ".pptx":
+                    return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+                case ".txt":
+                    return "text/plain";
+                case ".jpg":
+                case ".jpeg":
+                    return "image/jpeg";
+                case ".png":
+                    return "image/png";
+                case ".gif":
+                    return "image/gif";
+                case ".zip":
+                    return "application/zip";
+                case ".rar":
+                    return "application/x-rar-compressed";
+                default:
+                    return "application/octet-stream";
+            }
         }
     }
 
