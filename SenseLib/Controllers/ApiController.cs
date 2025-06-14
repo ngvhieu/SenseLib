@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using System.Security.Cryptography;
+using BCrypt.Net;
 
 namespace SenseLib.Controllers
 {
@@ -29,7 +31,6 @@ namespace SenseLib.Controllers
         private readonly DataContext _context;
         private readonly IConfiguration _configuration;
         private readonly UserActivityService _userActivityService;
-        private readonly IFavoriteService _favoriteService;
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly IDocumentConverterService _documentConverterService;
 
@@ -37,14 +38,12 @@ namespace SenseLib.Controllers
             DataContext context,
             IConfiguration configuration,
             UserActivityService userActivityService,
-            IFavoriteService favoriteService,
             IWebHostEnvironment hostEnvironment,
             IDocumentConverterService documentConverterService)
         {
             _context = context;
             _configuration = configuration;
             _userActivityService = userActivityService;
-            _favoriteService = favoriteService;
             _hostEnvironment = hostEnvironment;
             _documentConverterService = documentConverterService;
         }
@@ -66,22 +65,39 @@ namespace SenseLib.Controllers
 
                 bool passwordValid = false;
                 
-                try
+                // Kiểm tra theo 3 cách:
+                // 1. Kiểm tra trực tiếp (khi Android đã hash)
+                if (user.Password == model.Password)
                 {
-                    // Thử xác thực với BCrypt
-                    passwordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.Password);
+                    passwordValid = true;
+                    Console.WriteLine("Xác thực thành công: Mật khẩu đã được hash từ Android");
                 }
-                catch (BCrypt.Net.SaltParseException)
+                // 2. Hash mật khẩu bằng SHA-256 rồi so sánh (khi Android gửi mật khẩu thô)
+                else if (user.Password == HashPassword(model.Password))
                 {
-                    // Nếu xảy ra lỗi SaltParseException, kiểm tra mật khẩu đơn giản (tạm thời)
-                    // Chỉ cho phép một số tài khoản test được cấu hình trước khi chưa update database
-                    if ((model.Email == "admin@example.com" && model.Password == "admin123") ||
-                        (model.Email == "test@example.com" && model.Password == "test123"))
+                    passwordValid = true;
+                    Console.WriteLine("Xác thực thành công: Mật khẩu được hash bởi server (SHA-256)");
+                }
+                // 3. Kiểm tra bằng BCrypt (cho các tài khoản cũ)
+                else
+                {
+                    try
                     {
-                        passwordValid = true;
-                        
-                        // Ghi log về việc sử dụng xác thực tạm thời
-                        Console.WriteLine($"CẢNH BÁO: Đăng nhập bằng xác thực tạm thời cho user {model.Email}");
+                        passwordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.Password);
+                        if (passwordValid)
+                        {
+                            Console.WriteLine("Xác thực thành công: Mật khẩu được verify bởi BCrypt");
+                            
+                            // Cập nhật mật khẩu sang định dạng mới (SHA-256)
+                            user.Password = HashPassword(model.Password);
+                            _context.Update(user);
+                            await _context.SaveChangesAsync();
+                            Console.WriteLine("Đã cập nhật mật khẩu sang định dạng SHA-256");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Không thể xác thực bằng BCrypt: {ex.Message}");
                     }
                 }
 
@@ -131,25 +147,28 @@ namespace SenseLib.Controllers
                     return BadRequest(new { message = "Email đã được sử dụng" });
                 }
 
-                string hashedPassword;
-                try
+                // Kiểm tra xem mật khẩu đã được hash từ Android chưa
+                string password = model.Password;
+                
+                // Kiểm tra độ dài: nếu dài 44 ký tự và kết thúc bằng = thì là chuỗi đã được hash bằng Base64
+                bool isAlreadyHashed = password.Length == 44 && password.EndsWith("=");
+                
+                if (!isAlreadyHashed)
                 {
-                    // Mã hóa mật khẩu với BCrypt
-                    hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                    // Nếu mật khẩu chưa được hash, thực hiện hash tại server
+                    password = HashPassword(model.Password);
+                    Console.WriteLine("Đã hash mật khẩu tại server");
                 }
-                catch (Exception ex)
+                else
                 {
-                    Console.WriteLine($"Lỗi khi mã hóa mật khẩu: {ex.Message}");
-                    // Sử dụng mật khẩu gốc trong trường hợp lỗi (không nên làm trong môi trường sản phẩm)
-                    hashedPassword = model.Password;
-                    Console.WriteLine("CẢNH BÁO: Đang lưu mật khẩu không được mã hóa!");
+                    Console.WriteLine("Sử dụng mật khẩu đã được hash từ Android");
                 }
 
                 // Tạo người dùng mới
                 var user = new User
                 {
                     Email = model.Email,
-                    Password = hashedPassword,
+                    Password = password,
                     FullName = model.FullName,
                     Username = model.Email, // Sử dụng email làm username
                     Role = "User",
@@ -343,11 +362,11 @@ namespace SenseLib.Controllers
                 document.Statistics.LastUpdated = DateTime.Now;
             }
             await _context.SaveChangesAsync();
-
+            
             // Kiểm tra người dùng đã mua tài liệu chưa
             bool isPurchased = false;
-            int userId = 0;
             bool isFavorite = false;
+            int userId = 0;
 
             if (User.Identity.IsAuthenticated)
             {
@@ -356,7 +375,7 @@ namespace SenseLib.Controllers
                 isPurchased = await _context.Purchases
                     .AnyAsync(p => p.UserID == userId && p.DocumentID == id && p.Status == "Completed");
                 
-                isFavorite = await _favoriteService.IsFavorite(userId, id);
+                isFavorite = await _context.Favorites.AnyAsync(f => f.UserID == userId && f.DocumentID == id);
                 
                 // Ghi nhận hoạt động xem chi tiết tài liệu
                 await LogUserActivity(userId, "View", $"Xem chi tiết tài liệu: {document.Title}");
@@ -442,7 +461,7 @@ namespace SenseLib.Controllers
         }
 
         // API endpoint thêm bình luận cho tài liệu
-        [HttpPost("comments/{documentId}")]
+        [HttpPost("documents/{documentId}/comments")]
         [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> AddComment(int documentId, [FromBody] Dictionary<string, string> data)
         {
@@ -480,15 +499,19 @@ namespace SenseLib.Controllers
             };
 
             await LogUserActivity(userId, "Comment", $"Bình luận tài liệu {documentId}: '{text}'");
-            return Ok(result);
+            return CreatedAtAction(nameof(GetComments), new { documentId = comment.DocumentID }, comment);
         }
 
         // API endpoint toggle like cho bình luận
-        [HttpPost("comments/like/{commentId}")]
+        [HttpPost("comments/{commentId}/like")]
         [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> ToggleCommentLike(int commentId)
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return Unauthorized();
+
+            int userId = int.Parse(userIdClaim.Value);
             var comment = await _context.Comments
                 .Include(c => c.CommentLikes)
                 .FirstOrDefaultAsync(c => c.CommentID == commentId);
@@ -583,88 +606,6 @@ namespace SenseLib.Controllers
             int ratingCount = ratings.Count;
 
             return Ok(new { averageRating, ratingCount });
-        }
-
-        // API endpoint để thêm/gỡ tài liệu yêu thích
-        [HttpPost("documents/{id}/favorite")]
-        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> ToggleFavorite(int id)
-        {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            // Kiểm tra tài liệu tồn tại
-            var document = await _context.Documents.FindAsync(id);
-            if (document == null)
-            {
-                return NotFound(new { message = "Không tìm thấy tài liệu" });
-            }
-
-            // Thêm/gỡ tài liệu khỏi danh sách yêu thích
-            bool isFavorite = await _favoriteService.ToggleFavorite(userId, id);
-
-            // Ghi nhận hoạt động
-            string action = isFavorite ? "AddFavorite" : "RemoveFavorite";
-            string description = isFavorite 
-                ? $"Thêm tài liệu vào danh sách yêu thích: {document.Title}" 
-                : $"Gỡ tài liệu khỏi danh sách yêu thích: {document.Title}";
-                
-            await LogUserActivity(userId, action, description);
-
-            return Ok(new { isFavorite });
-        }
-
-        // API endpoint để lấy danh sách tài liệu yêu thích
-        [HttpGet("favorites")]
-        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> GetFavorites(int page = 1, int pageSize = 10)
-        {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            // Lấy danh sách tài liệu yêu thích
-            var favoritesQuery = _context.Favorites
-                .Where(f => f.UserID == userId)
-                .Include(f => f.Document)
-                    .ThenInclude(d => d.Author)
-                .Include(f => f.Document)
-                    .ThenInclude(d => d.Category)
-                .Include(f => f.Document)
-                    .ThenInclude(d => d.Ratings)
-                .OrderByDescending(f => f.FavoriteID);
-
-            // Tính tổng số tài liệu yêu thích
-            int totalItems = await favoritesQuery.CountAsync();
-            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-            
-            // Phân trang
-            var favorites = await favoritesQuery
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            // Chuyển đổi dữ liệu để trả về
-            var result = new
-            {
-                totalItems,
-                totalPages,
-                currentPage = page,
-                pageSize,
-                items = favorites.Select(f => new
-                {
-                    id = f.Document.DocumentID,
-                    title = f.Document.Title,
-                    description = f.Document.Description,
-                    coverImageUrl = f.Document.ImagePath,
-                    authorName = f.Document.Author?.AuthorName,
-                    categoryName = f.Document.Category?.CategoryName,
-                    uploadDate = f.Document.UploadDate,
-                    price = f.Document.Price,
-                    isPaid = f.Document.IsPaid,
-                    averageRating = f.Document.Ratings.Any() ? f.Document.Ratings.Average(r => r.RatingValue) : 0,
-                    ratingCount = f.Document.Ratings.Count()
-                })
-            };
-
-            return Ok(result);
         }
 
         // API endpoint để kiểm tra kết nối
@@ -839,7 +780,7 @@ namespace SenseLib.Controllers
         [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetPurchasedDocuments(int page = 1, int pageSize = 10)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             var purchasesQuery = _context.Purchases
                 .Where(p => p.UserID == userId && p.Status == "Completed")
                 .Include(p => p.Document)
@@ -944,6 +885,106 @@ namespace SenseLib.Controllers
             return Ok(new { message = "Tải lên tài liệu thành công!", documentId = document.DocumentID });
         }
 
+        // API endpoint đổi mật khẩu
+        [HttpPost("account/change-password")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
+        {
+            try
+            {
+                // Lấy ID người dùng từ token
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+                var user = await _context.Users.FindAsync(userId);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng" });
+                }
+
+                // Kiểm tra mật khẩu hiện tại
+                bool currentPasswordValid = false;
+                
+                // 1. Kiểm tra trực tiếp với mật khẩu đã hash từ Android
+                if (user.Password == model.CurrentPassword)
+                {
+                    currentPasswordValid = true;
+                    Console.WriteLine("Xác thực mật khẩu hiện tại thành công: Mật khẩu đã được hash từ Android");
+                }
+                // 2. Hash mật khẩu hiện tại và so sánh
+                else if (user.Password == HashPassword(model.CurrentPassword))
+                {
+                    currentPasswordValid = true;
+                    Console.WriteLine("Xác thực mật khẩu hiện tại thành công: Mật khẩu được hash bởi server");
+                }
+                // 3. Kiểm tra bằng BCrypt (cho các tài khoản cũ)
+                else
+                {
+                    try
+                    {
+                        currentPasswordValid = BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.Password);
+                        if (currentPasswordValid)
+                        {
+                            Console.WriteLine("Xác thực mật khẩu hiện tại thành công: Mật khẩu được verify bởi BCrypt");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Không thể xác thực mật khẩu hiện tại bằng BCrypt: {ex.Message}");
+                    }
+                }
+                
+                if (!currentPasswordValid)
+                {
+                    return BadRequest(new { message = "Mật khẩu hiện tại không chính xác" });
+                }
+
+                // Kiểm tra mật khẩu mới
+                if (string.IsNullOrEmpty(model.NewPassword) || model.NewPassword.Length < 6)
+                {
+                    return BadRequest(new { message = "Mật khẩu mới phải có ít nhất 6 ký tự" });
+                }
+
+                if (model.NewPassword != model.ConfirmPassword)
+                {
+                    return BadRequest(new { message = "Mật khẩu xác nhận không khớp với mật khẩu mới" });
+                }
+
+                // Kiểm tra xem mật khẩu mới đã được hash từ Android chưa
+                string newPassword = model.NewPassword;
+                
+                // Nếu dài 44 ký tự và kết thúc bằng = thì là chuỗi đã được hash bằng Base64
+                bool isAlreadyHashed = newPassword.Length == 44 && newPassword.EndsWith("=");
+                
+                if (!isAlreadyHashed)
+                {
+                    // Nếu mật khẩu chưa được hash, thực hiện hash tại server
+                    newPassword = HashPassword(model.NewPassword);
+                    Console.WriteLine("Đã hash mật khẩu mới tại server");
+                }
+                else
+                {
+                    Console.WriteLine("Sử dụng mật khẩu mới đã được hash từ Android");
+                }
+
+                // Cập nhật mật khẩu mới
+                user.Password = newPassword;
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+
+                // Ghi nhận hoạt động
+                await LogUserActivity(userId, "ChangePassword", "Đổi mật khẩu thành công từ ứng dụng di động");
+
+                return Ok(new { message = "Đổi mật khẩu thành công" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi đổi mật khẩu: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
+            }
+        }
+
         // Helper method để tạo JWT token
         private string GenerateJwtToken(User user)
         {
@@ -1018,6 +1059,16 @@ namespace SenseLib.Controllers
                     return "application/octet-stream";
             }
         }
+
+        private string HashPassword(string password)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(password);
+                byte[] hash = sha256.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
+        }
     }
 
     // Model cho đăng nhập
@@ -1039,5 +1090,13 @@ namespace SenseLib.Controllers
     public class RatingModel
     {
         public int Rating { get; set; }
+    }
+
+    // Model cho đổi mật khẩu
+    public class ChangePasswordModel
+    {
+        public string CurrentPassword { get; set; }
+        public string NewPassword { get; set; }
+        public string ConfirmPassword { get; set; }
     }
 } 

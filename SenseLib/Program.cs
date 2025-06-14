@@ -264,12 +264,12 @@ catch (Exception ex)
 
 app.UseRouting();
 
-// Kích hoạt CORS (đặt trước UseAuthentication và UseAuthorization)
-app.UseCors("AllowAndroid");
+// CORS phải được đặt sau UseRouting và trước UseAuthorization
+app.UseCors();
 
-// Kích hoạt Session trước Authentication
 app.UseSession();
 
+// Thêm UseAuthentication vào trước UseAuthorization
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -279,10 +279,15 @@ app.UseCurrentUser();
 // Route cho khu vực Admin
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+);
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
+
+app.MapRazorPages();
+app.MapControllers();
 
 app.Run();

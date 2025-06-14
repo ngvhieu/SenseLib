@@ -344,5 +344,13 @@ namespace SenseLib.Services
                 return false;
             }
         }
+
+        // Đếm tổng số giao dịch của ví
+        public async Task<int> CountTransactionsAsync(int walletId)
+        {
+            return await _context.WalletTransactions
+                .Where(t => t.WalletID == walletId)
+                .CountAsync();
+        }
     }
 } 
