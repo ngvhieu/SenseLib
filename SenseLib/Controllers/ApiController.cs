@@ -891,6 +891,28 @@ namespace SenseLib.Controllers
                 imagePath = $"/uploads/images/{imageFileName}";
             }
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            // Xác thực AuthorID và PublisherID để tránh lỗi ràng buộc khóa ngoại
+            if (authorId.HasValue)
+            {
+                bool authorExists = await _context.Authors.AnyAsync(a => a.AuthorID == authorId.Value);
+                if (!authorExists)
+                {
+                    Console.WriteLine($"AuthorID {authorId} không tồn tại. Gán null để tránh lỗi.");
+                    authorId = null;
+                }
+            }
+
+            if (publisherId.HasValue)
+            {
+                bool publisherExists = await _context.Publishers.AnyAsync(p => p.PublisherID == publisherId.Value);
+                if (!publisherExists)
+                {
+                    Console.WriteLine($"PublisherID {publisherId} không tồn tại. Gán null để tránh lỗi.");
+                    publisherId = null;
+                }
+            }
+
             var document = new Document
             {
                 Title = title,
@@ -1010,6 +1032,55 @@ namespace SenseLib.Controllers
                 
                 return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
             }
+        }
+
+        // API endpoint lấy tài liệu đã tải lên bởi người dùng hiện tại
+        [HttpGet("documents/my")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> GetMyDocuments(int page = 1, int pageSize = 10)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            var documentsQuery = _context.Documents
+                .Where(d => d.UserID == userId)
+                .Include(d => d.Category)
+                .Include(d => d.Author)
+                .Include(d => d.Publisher)
+                .Include(d => d.Ratings);
+
+            int totalItems = await documentsQuery.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var documents = await documentsQuery
+                .OrderByDescending(d => d.UploadDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var result = new
+            {
+                totalItems,
+                totalPages,
+                currentPage = page,
+                pageSize,
+                items = documents.Select(d => new
+                {
+                    id = d.DocumentID,
+                    title = d.Title,
+                    description = d.Description,
+                    coverImageUrl = d.ImagePath,
+                    authorName = d.Author?.AuthorName,
+                    categoryName = d.Category?.CategoryName,
+                    uploadDate = d.UploadDate,
+                    price = d.Price,
+                    isPaid = d.IsPaid,
+                    status = d.Status, // Pending / Approved / Rejected
+                    averageRating = d.Ratings.Any() ? d.Ratings.Average(r => r.RatingValue) : 0,
+                    ratingCount = d.Ratings.Count()
+                })
+            };
+
+            return Ok(result);
         }
 
         // Helper method để tạo JWT token
