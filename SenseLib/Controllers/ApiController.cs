@@ -424,10 +424,7 @@ namespace SenseLib.Controllers
             var query = _context.Comments
                 .Where(c => c.DocumentID == documentId && c.ParentCommentID == null)
                 .Include(c => c.User)
-                .Include(c => c.CommentLikes)
-                .Include(c => c.Replies).ThenInclude(r => r.User)
-                .Include(c => c.Replies).ThenInclude(r => r.CommentLikes)
-                .OrderByDescending(c => c.CommentDate);
+                .Include(c => c.CommentLikes);
 
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
@@ -436,6 +433,7 @@ namespace SenseLib.Controllers
                 : 0;
 
             var items = await query
+                .OrderByDescending(c => c.CommentDate)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -450,22 +448,7 @@ namespace SenseLib.Controllers
                 username = c.User?.Username,
                 userAvatar = c.User?.ProfileImage,
                 likeCount = c.LikeCount,
-                isLiked = c.CommentLikes.Any(cl => cl.UserID == userId),
-                replies = c.Replies
-                    .OrderBy(r => r.CommentDate)
-                    .Select(r => new
-                    {
-                        id = r.CommentID,
-                        content = r.CommentText,
-                        createdDate = r.CommentDate,
-                        userId = r.UserID,
-                        documentId = r.DocumentID,
-                        parentCommentId = r.ParentCommentID,
-                        username = r.User?.Username,
-                        userAvatar = r.User?.ProfileImage,
-                        likeCount = r.LikeCount,
-                        isLiked = r.CommentLikes.Any(cl => cl.UserID == userId)
-                    })
+                isLiked = c.CommentLikes.Any(cl => cl.UserID == userId)
             });
 
             return Ok(new {
@@ -478,18 +461,11 @@ namespace SenseLib.Controllers
         }
 
         // API endpoint thêm bình luận cho tài liệu
-        public class AddCommentModel
-        {
-            public string CommentText { get; set; }
-            public int? ParentCommentId { get; set; }
-        }
-
         [HttpPost("documents/{documentId}/comments")]
         [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> AddComment(int documentId, [FromBody] AddCommentModel model)
+        public async Task<IActionResult> AddComment(int documentId, [FromBody] Dictionary<string, string> data)
         {
-            var text = model?.CommentText;
-            if (string.IsNullOrWhiteSpace(text))
+            if (!data.TryGetValue("commentText", out var text) || string.IsNullOrWhiteSpace(text))
                 return BadRequest(new { message = "Nội dung bình luận không được để trống" });
 
             int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -497,16 +473,13 @@ namespace SenseLib.Controllers
             if (document == null)
                 return NotFound(new { message = "Tài liệu không tồn tại" });
 
-            int? parentCommentId = model?.ParentCommentId;
-
             var comment = new Comment
             {
                 DocumentID = documentId,
                 UserID = userId,
                 CommentText = text,
                 CommentDate = DateTime.Now,
-                LikeCount = 0,
-                ParentCommentID = parentCommentId
+                LikeCount = 0
             };
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
@@ -526,7 +499,7 @@ namespace SenseLib.Controllers
             };
 
             await LogUserActivity(userId, "Comment", $"Bình luận tài liệu {documentId}: '{text}'");
-            return CreatedAtAction(nameof(GetComments), new { documentId = comment.DocumentID }, result);
+            return CreatedAtAction(nameof(GetComments), new { documentId = comment.DocumentID }, comment);
         }
 
         // API endpoint toggle like cho bình luận
@@ -891,28 +864,6 @@ namespace SenseLib.Controllers
                 imagePath = $"/uploads/images/{imageFileName}";
             }
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            // Xác thực AuthorID và PublisherID để tránh lỗi ràng buộc khóa ngoại
-            if (authorId.HasValue)
-            {
-                bool authorExists = await _context.Authors.AnyAsync(a => a.AuthorID == authorId.Value);
-                if (!authorExists)
-                {
-                    Console.WriteLine($"AuthorID {authorId} không tồn tại. Gán null để tránh lỗi.");
-                    authorId = null;
-                }
-            }
-
-            if (publisherId.HasValue)
-            {
-                bool publisherExists = await _context.Publishers.AnyAsync(p => p.PublisherID == publisherId.Value);
-                if (!publisherExists)
-                {
-                    Console.WriteLine($"PublisherID {publisherId} không tồn tại. Gán null để tránh lỗi.");
-                    publisherId = null;
-                }
-            }
-
             var document = new Document
             {
                 Title = title,
@@ -1032,55 +983,6 @@ namespace SenseLib.Controllers
                 
                 return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
             }
-        }
-
-        // API endpoint lấy tài liệu đã tải lên bởi người dùng hiện tại
-        [HttpGet("documents/my")]
-        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> GetMyDocuments(int page = 1, int pageSize = 10)
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            var documentsQuery = _context.Documents
-                .Where(d => d.UserID == userId)
-                .Include(d => d.Category)
-                .Include(d => d.Author)
-                .Include(d => d.Publisher)
-                .Include(d => d.Ratings);
-
-            int totalItems = await documentsQuery.CountAsync();
-            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-
-            var documents = await documentsQuery
-                .OrderByDescending(d => d.UploadDate)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var result = new
-            {
-                totalItems,
-                totalPages,
-                currentPage = page,
-                pageSize,
-                items = documents.Select(d => new
-                {
-                    id = d.DocumentID,
-                    title = d.Title,
-                    description = d.Description,
-                    coverImageUrl = d.ImagePath,
-                    authorName = d.Author?.AuthorName,
-                    categoryName = d.Category?.CategoryName,
-                    uploadDate = d.UploadDate,
-                    price = d.Price,
-                    isPaid = d.IsPaid,
-                    status = d.Status, // Pending / Approved / Rejected
-                    averageRating = d.Ratings.Any() ? d.Ratings.Average(r => r.RatingValue) : 0,
-                    ratingCount = d.Ratings.Count()
-                })
-            };
-
-            return Ok(result);
         }
 
         // Helper method để tạo JWT token

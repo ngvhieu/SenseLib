@@ -67,14 +67,21 @@ namespace SenseLib.Controllers.Api
                 // Tính tổng số trang
                 var totalPages = (int)Math.Ceiling((double)totalTransactions / pageSize);
                 
-                // Tạo kết quả phân trang
-                var result = new ApiResponse<WalletTransaction>
-                {
-                    Items = transactions,
-                    Page = page,
-                    PageSize = pageSize,
-                    TotalItems = totalTransactions,
-                    TotalPages = totalPages
+                // Chuyển đổi tránh vòng tham chiếu
+                var simpleList = transactions.Select(t => new {
+                    transactionID = t.TransactionID,
+                    amount = t.Amount,
+                    type = t.Type,
+                    description = t.Description,
+                    transactionDate = t.TransactionDate
+                }).ToList();
+                
+                var result = new {
+                    items = simpleList,
+                    page = page,
+                    pageSize = pageSize,
+                    totalItems = totalTransactions,
+                    totalPages = totalPages
                 };
                 
                 return Ok(result);
