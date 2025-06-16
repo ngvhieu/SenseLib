@@ -4,6 +4,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var wallet = ViewBag.Wallet as SenseLib.Models.Wallet;
     bool notEnoughBalance = ViewBag.NotEnoughBalance ?? false;
+    var walletBalance = wallet?.Balance ?? 0;
 }
 
 <div class="container my-5">
@@ -55,9 +56,9 @@
                             <h4 class="mb-2">@Model.Title</h4>
                             
                             <div class="mb-3">
-                                <span class="badge bg-primary me-2">@Model.Category.CategoryName</span>
+                                <span class="badge bg-primary me-2">@(Model.Category?.CategoryName ?? "")</span>
                                 <span class="text-muted">
-                                    <i class="fas fa-user me-1"></i> @Model.Author.AuthorName
+                                    <i class="fas fa-user me-1"></i> @(Model.Author?.AuthorName ?? "")
                                 </span>
                             </div>
                             
@@ -83,7 +84,7 @@
                                 </div>
                                 <div class="col-md-6 text-md-end">
                                     <strong class="@(notEnoughBalance ? "text-danger" : "text-success")">
-                                        @wallet.Balance.ToString("N0") P
+                                        @walletBalance.ToString("N0") P
                                     </strong>
                                 </div>
                             </div>
@@ -103,7 +104,7 @@
                                 </div>
                                 <div class="col-md-6 text-md-end">
                                     @{
-                                        var remainingBalance = wallet.Balance - (Model.Price ?? 0);
+                                        var remainingBalance = walletBalance - (Model.Price ?? 0);
                                     }
                                     <strong class="@(remainingBalance < 0 ? "text-danger" : "text-success")">
                                         @remainingBalance.ToString("N0") P

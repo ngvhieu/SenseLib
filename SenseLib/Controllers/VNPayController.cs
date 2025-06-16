@@ -156,101 +156,59 @@ namespace SenseLib.Controllers
         }
 
         // GET: VNPay/PaymentCallback
+        [AllowAnonymous]
         public async Task<IActionResult> PaymentCallback()
         {
             var response = _vnpayService.ProcessPaymentCallback(Request.Query);
-            
-            _logger.LogInformation("VNPay callback received. OrderId: {OrderId}, ResponseCode: {ResponseCode}, Message: {Message}", 
+
+            _logger.LogInformation("VNPay callback received. TxnRef: {OrderId}, ResponseCode: {ResponseCode}, Message: {Message}",
                 response.OrderId, response.ResponseCode, response.Message);
-            
-            // Lấy thông tin từ URL
-            var orderId = response.OrderId;
-            var documentId = 0;
-            var purchaseType = "";
-            
-            try
+
+            // Tìm giao dịch trong DB bằng mã TxnRef
+            var purchase = await _context.Purchases
+                .Include(p => p.Document)
+                .FirstOrDefaultAsync(p => p.TransactionCode == response.OrderId);
+
+            if (purchase == null)
             {
-                // Parse thông tin từ order ID (format: DOCUMENT-123 hoặc WALLET-456)
-                if (!string.IsNullOrEmpty(orderId))
-                {
-                    var parts = orderId.Split('-');
-                    if (parts.Length >= 2)
-                    {
-                        purchaseType = parts[0];
-                        
-                        if (purchaseType == "DOCUMENT" && int.TryParse(parts[1], out int docId))
-                        {
-                            documentId = docId;
-                        }
-                    }
-                }
+                _logger.LogWarning("Không tìm thấy giao dịch tương ứng trong hệ thống. TxnRef = {TxnRef}", response.OrderId);
+                TempData["ErrorMessage"] = "Không tìm thấy giao dịch tương ứng.";
+                return RedirectToAction("Index", "Home");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error parsing order ID: {OrderId}", orderId);
-            }
-            
-            // Kiểm tra trạng thái thanh toán
+
+            // Nếu giao dịch thành công từ VNPay
             if (response.IsSuccess)
             {
-                _logger.LogInformation("Payment successful. PurchaseType: {PurchaseType}, DocumentId: {DocumentId}", 
-                    purchaseType, documentId);
-                
-                // Lấy thông tin người dùng hiện tại
-                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-                
-                if (purchaseType == "DOCUMENT" && documentId > 0)
+                if (purchase.Status != "Completed")
                 {
-                    // Xử lý mua tài liệu
-                    var document = await _context.Documents.FindAsync(documentId);
-                    
-                    if (document != null)
+                    purchase.Status = "Completed";
+                    purchase.TransactionCode = response.TransactionId; // Cập nhật TransactionNo thực tế
+                    purchase.PurchaseDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+
+                    if (purchase.DocumentID > 0)
                     {
-                        // Kiểm tra xem đã mua chưa
-                        var existingPurchase = await _context.Purchases
-                            .AnyAsync(p => p.UserID == userId && p.DocumentID == documentId && p.Status == "Completed");
-                            
-                        if (!existingPurchase)
-                        {
-                            decimal amount = document.Price ?? 0;
-                            
-                            // Lưu thông tin mua hàng
-                            var purchase = new Purchase
-                            {
-                                UserID = userId,
-                                DocumentID = documentId,
-                                PurchaseDate = DateTime.Now,
-                                Amount = amount,
-                                TransactionCode = response.TransactionId,
-                                Status = "Completed"
-                            };
-                            
-                            _context.Purchases.Add(purchase);
-                            await _context.SaveChangesAsync();
-                            
-                            // Ghi lại hoạt động mua tài liệu
-                            await _userActivityService.LogPurchaseActivityAsync(userId, documentId, amount);
-                            
-                            // Xử lý chuyển tiền cho tác giả tài liệu
-                            await _walletService.ProcessPurchasePaymentAsync(purchase);
-                            
-                            TempData["SuccessMessage"] = "Thanh toán thành công! Bạn đã mua tài liệu này.";
-                            return RedirectToAction("Details", "Document", new { id = documentId });
-                        }
-                        else
-                        {
-                            TempData["InfoMessage"] = "Bạn đã mua tài liệu này trước đó.";
-                            return RedirectToAction("Details", "Document", new { id = documentId });
-                        }
+                        // Ghi log hoạt động mua và chia tiền cho tác giả
+                        await _userActivityService.LogPurchaseActivityAsync(purchase.UserID, purchase.DocumentID, purchase.Amount);
+                        await _walletService.ProcessPurchasePaymentAsync(purchase);
                     }
                 }
+
+                TempData["SuccessMessage"] = "Thanh toán thành công!";
             }
             else
             {
-                // Thêm lại thông báo TempData
-                TempData["ErrorMessage"] = response.Message;
+                purchase.Status = "Failed";
+                await _context.SaveChangesAsync();
+                TempData["ErrorMessage"] = response.Message ?? "Thanh toán thất bại.";
             }
-            
+
+            // Điều hướng tuỳ theo có tài liệu hay không
+            if (purchase.DocumentID > 0)
+            {
+                return RedirectToAction("Details", "Document", new { id = purchase.DocumentID });
+            }
+
             return RedirectToAction("Index", "Home");
         }
         
