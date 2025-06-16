@@ -7,11 +7,14 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using SenseLib.Models;
 using System.Linq;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace SenseLib.Controllers.Api
 {
     [ApiController]
-    [Authorize]
+    [Route("api/wallet")]
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
     public class WalletApiController : ControllerBase
     {
         private readonly WalletService _walletService;
@@ -21,7 +24,7 @@ namespace SenseLib.Controllers.Api
             _walletService = walletService;
         }
 
-        [HttpGet("api/wallet/balance")]
+        [HttpGet("balance")]
         public async Task<IActionResult> GetBalance()
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -41,7 +44,7 @@ namespace SenseLib.Controllers.Api
             }
         }
 
-        [HttpGet("api/wallet/transactions")]
+        [HttpGet("transactions")]
         public async Task<IActionResult> GetTransactions([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -82,7 +85,7 @@ namespace SenseLib.Controllers.Api
             }
         }
 
-        [HttpPost("api/wallet/deposit-direct")]
+        [HttpPost("deposit-direct")]
         public async Task<IActionResult> DirectDeposit([FromBody] DepositRequestPayload payload)
         {
             if (payload == null || payload.Amount <= 0)

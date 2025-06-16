@@ -121,7 +121,7 @@ namespace SenseLib.Controllers
                         id = user.UserID,
                         name = user.FullName,
                         email = user.Email,
-                        avatarUrl = user.ProfileImage
+                        avatarUrl = string.IsNullOrEmpty(user.ProfileImage) ? null : $"/uploads/profiles/{user.ProfileImage}"
                     }
                 });
             }
@@ -205,7 +205,7 @@ namespace SenseLib.Controllers
                         id = user.UserID,
                         name = user.FullName,
                         email = user.Email,
-                        avatarUrl = user.ProfileImage
+                        avatarUrl = string.IsNullOrEmpty(user.ProfileImage) ? null : $"/uploads/profiles/{user.ProfileImage}"
                     }
                 });
             }
@@ -424,7 +424,10 @@ namespace SenseLib.Controllers
             var query = _context.Comments
                 .Where(c => c.DocumentID == documentId && c.ParentCommentID == null)
                 .Include(c => c.User)
-                .Include(c => c.CommentLikes);
+                .Include(c => c.CommentLikes)
+                .Include(c => c.Replies).ThenInclude(r => r.User)
+                .Include(c => c.Replies).ThenInclude(r => r.CommentLikes)
+                .OrderByDescending(c => c.CommentDate);
 
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
@@ -433,7 +436,6 @@ namespace SenseLib.Controllers
                 : 0;
 
             var items = await query
-                .OrderByDescending(c => c.CommentDate)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -448,7 +450,22 @@ namespace SenseLib.Controllers
                 username = c.User?.Username,
                 userAvatar = c.User?.ProfileImage,
                 likeCount = c.LikeCount,
-                isLiked = c.CommentLikes.Any(cl => cl.UserID == userId)
+                isLiked = c.CommentLikes.Any(cl => cl.UserID == userId),
+                replies = c.Replies
+                    .OrderBy(r => r.CommentDate)
+                    .Select(r => new
+                    {
+                        id = r.CommentID,
+                        content = r.CommentText,
+                        createdDate = r.CommentDate,
+                        userId = r.UserID,
+                        documentId = r.DocumentID,
+                        parentCommentId = r.ParentCommentID,
+                        username = r.User?.Username,
+                        userAvatar = r.User?.ProfileImage,
+                        likeCount = r.LikeCount,
+                        isLiked = r.CommentLikes.Any(cl => cl.UserID == userId)
+                    })
             });
 
             return Ok(new {
@@ -461,11 +478,18 @@ namespace SenseLib.Controllers
         }
 
         // API endpoint thêm bình luận cho tài liệu
+        public class AddCommentModel
+        {
+            public string CommentText { get; set; }
+            public int? ParentCommentId { get; set; }
+        }
+
         [HttpPost("documents/{documentId}/comments")]
         [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme + "," + JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> AddComment(int documentId, [FromBody] Dictionary<string, string> data)
+        public async Task<IActionResult> AddComment(int documentId, [FromBody] AddCommentModel model)
         {
-            if (!data.TryGetValue("commentText", out var text) || string.IsNullOrWhiteSpace(text))
+            var text = model?.CommentText;
+            if (string.IsNullOrWhiteSpace(text))
                 return BadRequest(new { message = "Nội dung bình luận không được để trống" });
 
             int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -473,13 +497,16 @@ namespace SenseLib.Controllers
             if (document == null)
                 return NotFound(new { message = "Tài liệu không tồn tại" });
 
+            int? parentCommentId = model?.ParentCommentId;
+
             var comment = new Comment
             {
                 DocumentID = documentId,
                 UserID = userId,
                 CommentText = text,
                 CommentDate = DateTime.Now,
-                LikeCount = 0
+                LikeCount = 0,
+                ParentCommentID = parentCommentId
             };
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
@@ -499,7 +526,7 @@ namespace SenseLib.Controllers
             };
 
             await LogUserActivity(userId, "Comment", $"Bình luận tài liệu {documentId}: '{text}'");
-            return CreatedAtAction(nameof(GetComments), new { documentId = comment.DocumentID }, comment);
+            return CreatedAtAction(nameof(GetComments), new { documentId = comment.DocumentID }, result);
         }
 
         // API endpoint toggle like cho bình luận
